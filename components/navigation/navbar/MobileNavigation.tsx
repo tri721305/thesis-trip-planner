@@ -24,7 +24,7 @@ const MobileNavigation = () => {
         <HamburgerMenuIcon
           width={36}
           height={36}
-          className="sm:hidden cursor-pointer"
+          className="lg:hidden cursor-pointer"
         />
       </SheetTrigger>
       <SheetContent

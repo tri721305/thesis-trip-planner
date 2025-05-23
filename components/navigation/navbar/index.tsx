@@ -6,6 +6,7 @@ import GlobalSearch from "@/components/search/GlobalSearch";
 
 import Theme from "./Theme";
 import MobileNavigation from "./MobileNavigation";
+import NavLinks from "./NavLinks";
 
 const Navbar = () => {
   return (
@@ -22,6 +23,10 @@ const Navbar = () => {
           Trip<span className="text-primary-500">Planner</span>
         </p>
       </Link>
+
+      <section className="flex px-4 background-light900_dark200 light-border  flex-1  shadow-light-300 dark:shadow-none max-lg:hidden">
+        <NavLinks isMobileNav={false} />
+      </section>
 
       <GlobalSearch />
 

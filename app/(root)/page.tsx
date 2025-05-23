@@ -1,5 +1,11 @@
+import Title from "@/components/home/Title";
+
 const Page = () => {
-  return <div className="mt-20">{/* <Search /> */}</div>;
+  return (
+    <div className="">
+      <Title />
+    </div>
+  );
 };
 
 export default Page;
