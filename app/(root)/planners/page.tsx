@@ -1,3 +1,4 @@
+import HomeFilter from "@/components/filters/HomeFilter";
 import LocalSearch from "@/components/search/LocalSearch";
 import React from "react";
 
@@ -51,11 +52,17 @@ interface SearchParams {
 }
 
 const Page = async ({ searchParams }: SearchParams) => {
-  const { query = "" } = await searchParams;
+  const { query = "", filter = "" } = await searchParams;
 
-  const filteredQuestions = plans.filter((plan) =>
-    plan.name.toLowerCase().includes(query.toLowerCase())
-  );
+  const filteredQuestions = plans.filter((plan) => {
+    const matchesQuery = plan.name.toLowerCase().includes(query.toLowerCase());
+    const matchesFilter = filter
+      ? plan.tags.some((tag) => tag.name.toLowerCase() === filter.toLowerCase())
+      : true;
+
+    return matchesQuery && matchesFilter;
+  });
+  console.log("query", query, "filter", filter);
   return (
     <div className="px-8">
       {filteredQuestions.map((plan) => plan.name)}
@@ -65,6 +72,7 @@ const Page = async ({ searchParams }: SearchParams) => {
         otherClasses="flex-1"
         route="/planners"
       />
+      <HomeFilter />
     </div>
   );
 };
