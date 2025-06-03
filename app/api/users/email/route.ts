@@ -7,7 +7,7 @@ import { APIErrorResponse } from "@/types/global";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-  //   dbConnect();
+  await dbConnect();
   const { email } = await request.json();
 
   try {
