@@ -16,8 +16,13 @@ import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import ROUTES from "@/constants/route";
 import NavLinks from "./NavLinks";
+import { auth } from "@/auth";
 
-const MobileNavigation = () => {
+const MobileNavigation = async () => {
+  const session = await auth();
+
+  console.log("session Mobile Nav", session);
+
   return (
     <Sheet>
       <SheetTrigger asChild>

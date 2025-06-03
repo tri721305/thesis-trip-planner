@@ -1,6 +1,8 @@
 import HomeFilter from "@/components/filters/HomeFilter";
 import LocalSearch from "@/components/search/LocalSearch";
 import { InputFile } from "@/components/upload/UploadImg";
+import { handleError } from "@/lib/handler/error";
+import { NotFoundError, ValidationError } from "@/lib/http-errors";
 import React from "react";
 
 const plans = [

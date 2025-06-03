@@ -16,6 +16,8 @@ const NavLinks = ({ isMobileNav = false }: { isMobileNav: boolean }) => {
         const isActive =
           (pathname.includes(item.route) && item.route.length > 1) ||
           pathname === item.route;
+        if (item.route === "/profile") {
+        }
 
         const LinkComponent = (
           <Link

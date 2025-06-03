@@ -7,7 +7,7 @@ import SearchBar from "../search/SearchBar";
 const Title = () => {
   return (
     <section className=" flex flex-col gap-16 justify-between">
-      <section className=" flex justify-between px-16">
+      <section className=" flex justify-between px-16 max-md:flex-col max-md:gap-4">
         <section className="text-dark200-light800 font-extrabold flex flex-col gap-6 text-[3.5em]">
           <div>
             <h2 className="text-[1rem] tracking-wide">

@@ -21,7 +21,7 @@ export const sidebarLinks = [
   },
   {
     imgURL: "",
-    label: "About",
-    route: "/about",
+    label: "Planners",
+    route: "/planners",
   },
 ];
