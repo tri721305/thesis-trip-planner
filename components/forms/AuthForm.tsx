@@ -23,6 +23,9 @@ import {
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import ROUTES from "@/constants/route";
+import { ActionResponse } from "@/types/global";
+import { toast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 interface AuthFormProps<T extends FieldValues> {
   schema: ZodType<T>;
@@ -41,9 +44,27 @@ const AuthForm = <T extends FieldValues>({
     resolver: zodResolver(schema),
     defaultValues: defaultValues as DefaultValues<T>,
   });
-
+  const router = useRouter();
   const handleSubmit: SubmitHandler<T> = async (data) => {
-    console.log("data", data);
+    const result = (await onSubmit(data)) as ActionResponse;
+    if (result?.success) {
+      toast({
+        title: "Success",
+        description:
+          formType === "SIGN_IN"
+            ? "Signed in successfully!"
+            : "Signed up successfully!",
+      });
+      router.push(ROUTES.HOME);
+    } else {
+      toast({
+        title: "Error",
+        description:
+          result?.error?.message ||
+          "An error occurred. Please try again later.",
+        variant: "destructive",
+      });
+    }
   };
   const buttonText = formType === "SIGN_IN" ? "Sign In" : "Sign Up";
   return (

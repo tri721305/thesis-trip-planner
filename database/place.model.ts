@@ -10,7 +10,7 @@ export interface IPlace {
   location: Types.ObjectId;
   image?: string;
   coordinates: string[];
-  address: string;
+  // address: string;
   phone?: string; // Optional phone number
   website?: string; // Optional website URL
   type: string; // Type of place (e.g., restaurant, park, museum)
