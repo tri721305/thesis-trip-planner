@@ -15,3 +15,10 @@ interface AuthCredentials {
   email: string;
   password: string;
 }
+
+interface CreateGuideParams {
+  title: string;
+  content: string;
+  tags: string[];
+  images?: File[];
+}

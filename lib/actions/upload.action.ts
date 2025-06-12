@@ -176,3 +176,220 @@ export async function uploadImageAction(
     console.log("Upload process completed");
   }
 }
+
+// Upload Multiple Images
+export async function uploadMultipleImagesAction(files: File[]): Promise<{
+  success: boolean;
+  data?: Array<{
+    url: string;
+    filename: string;
+    originalName: string;
+  }>;
+  error?: string;
+  failedUploads?: Array<{
+    filename: string;
+    error: string;
+  }>;
+}> {
+  console.log(`Starting upload of ${files.length} images to S3...`);
+
+  if (!files || files.length === 0) {
+    return { success: false, error: "No files provided" };
+  }
+
+  // Validate environment variables
+  if (!process.env.AWS_S3_BUCKET_NAME) {
+    return {
+      success: false,
+      error: "AWS_S3_BUCKET_NAME environment variable is not set",
+    };
+  }
+
+  const uploadResults: Array<{
+    url: string;
+    filename: string;
+    originalName: string;
+  }> = [];
+
+  const failedUploads: Array<{
+    filename: string;
+    error: string;
+  }> = [];
+
+  try {
+    // Process uploads in parallel with controlled concurrency
+    const uploadPromises = files.map(async (file, index) => {
+      try {
+        // Validate individual file
+        if (!file || file.size === 0) {
+          throw new Error("Empty file provided");
+        }
+
+        // Validate file type
+        const allowedTypes = [
+          "image/jpeg",
+          "image/png",
+          "image/webp",
+          "image/gif",
+        ];
+        if (!allowedTypes.includes(file.type)) {
+          throw new Error(
+            "Invalid file type. Only JPEG, PNG, WebP, and GIF are allowed."
+          );
+        }
+
+        // Validate file size (5MB limit)
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+          throw new Error("File size exceeds 5MB limit");
+        }
+
+        // Generate unique filename
+        const timestamp = Date.now();
+        const fileExtension = file.name.split(".").pop();
+        const filename = `images/${timestamp}-${index}-${Math.random().toString(36).substring(2)}.${fileExtension}`;
+
+        // Convert file to buffer
+        const arrayBuffer = await file.arrayBuffer();
+        const buffer = Buffer.from(arrayBuffer);
+
+        // Upload to S3
+        const uploadCommand = new PutObjectCommand({
+          Bucket: process.env.AWS_S3_BUCKET_NAME,
+          Key: filename,
+          Body: buffer,
+          ContentType: file.type,
+          ContentDisposition: "inline",
+          Metadata: {
+            originalName: file.name,
+            uploadedAt: new Date().toISOString(),
+            uploadIndex: index.toString(),
+          },
+        });
+
+        await S3ClientConfig.send(uploadCommand);
+
+        // Construct S3 URL
+        let s3Url;
+        if (process.env.AWS_REGION === "us-east-1") {
+          s3Url = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.amazonaws.com/${filename}`;
+        } else {
+          s3Url = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION || "us-east-1"}.amazonaws.com/${filename}`;
+        }
+
+        // Alternative: if you've configured a custom domain or CDN for your bucket
+        if (process.env.NEXT_PUBLIC_S3_URL_PREFIX) {
+          s3Url = `${process.env.NEXT_PUBLIC_S3_URL_PREFIX}/${filename}`;
+        }
+
+        return {
+          success: true,
+          url: s3Url,
+          filename: filename,
+          originalName: file.name,
+        };
+      } catch (error) {
+        console.error(`Error uploading file ${file.name}:`, error);
+        return {
+          success: false,
+          filename: file.name,
+          error: error instanceof Error ? error.message : "Unknown error",
+        };
+      }
+    });
+
+    // Wait for all uploads to complete
+    const results = await Promise.all(uploadPromises);
+
+    // Separate successful and failed uploads
+    results.forEach((result) => {
+      if (result.success) {
+        uploadResults.push({
+          url: result.url!,
+          filename: result.filename!,
+          originalName: result.originalName!,
+        });
+      } else {
+        failedUploads.push({
+          filename: result.filename!,
+          error: result.error!,
+        });
+      }
+    });
+
+    console.log(
+      `Upload completed: ${uploadResults.length} successful, ${failedUploads.length} failed`
+    );
+
+    // Return results
+    if (uploadResults.length === 0) {
+      return {
+        success: false,
+        error: "All uploads failed",
+        failedUploads,
+      };
+    } else if (failedUploads.length === 0) {
+      return {
+        success: true,
+        data: uploadResults,
+      };
+    } else {
+      // Partial success
+      return {
+        success: true,
+        data: uploadResults,
+        failedUploads,
+      };
+    }
+  } catch (error) {
+    console.error("Multiple upload error:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Upload failed: Unknown error",
+      failedUploads,
+    };
+  }
+}
+
+// Upload Multiple Images from FormData
+export async function uploadMultipleImagesFromFormData(
+  formData: FormData
+): Promise<{
+  success: boolean;
+  data?: Array<{
+    url: string;
+    filename: string;
+    originalName: string;
+  }>;
+  error?: string;
+  failedUploads?: Array<{
+    filename: string;
+    error: string;
+  }>;
+}> {
+  try {
+    // Get all image files from FormData
+    const files: File[] = [];
+    const imageFiles = formData.getAll("images") as File[];
+
+    for (const file of imageFiles) {
+      if (file && file.size > 0) {
+        files.push(file);
+      }
+    }
+
+    if (files.length === 0) {
+      return { success: false, error: "No valid files found in FormData" };
+    }
+
+    return await uploadMultipleImagesAction(files);
+  } catch (error) {
+    console.error("Error processing FormData:", error);
+    return {
+      success: false,
+      error:
+        error instanceof Error ? error.message : "Failed to process FormData",
+    };
+  }
+}

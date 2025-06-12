@@ -118,7 +118,6 @@ export const UserSchema = z.object({
     .optional(),
   reputation: z.number().optional(),
 });
-
 export const AccountSchema = z.object({
   userId: z.string().min(1, { message: "User ID is required." }),
   name: z.string().min(1, { message: "Name is required." }),
@@ -143,7 +142,6 @@ export const AccountSchema = z.object({
     .string()
     .min(1, { message: "Provider Account ID is required." }),
 });
-
 export const SignInWithOAuthSchema = z.object({
   provider: z.enum(["google", "github", "facebook"]),
   providerAccountId: z
@@ -164,4 +162,22 @@ export const SignInWithOAuthSchema = z.object({
       })
       .optional(),
   }),
+});
+
+export const GuideSchema = z.object({
+  title: z
+    .string()
+    .min(5, { message: "Title is required." })
+    .max(100, { message: "Title cannot exceed 100 characters." }),
+
+  content: z.string().min(1, { message: "Body is required." }),
+  tags: z
+    .array(
+      z
+        .string()
+        .min(1, { message: "Tag is required." })
+        .max(30, { message: "Tag cannot exceed 30 characters." })
+    )
+    .min(1, { message: "At least one tag is required." })
+    .max(3, { message: "Cannot add more than 3 tags." }),
 });

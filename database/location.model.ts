@@ -46,6 +46,7 @@ export interface ILocation extends BaseDocument {
   description?: string;
   fullAddress: string;
   fullAddressEn?: string;
+  isActive?: boolean;
 }
 const LocationSchema = new Schema<ILocation>(
   {
