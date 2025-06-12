@@ -24,4 +24,9 @@ export const sidebarLinks = [
     label: "Planners",
     route: "/planners",
   },
+  {
+    imgURL: "",
+    label: "Profile",
+    route: "/profile",
+  },
 ];

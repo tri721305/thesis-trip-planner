@@ -7,7 +7,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import React from "react";
 
-const NavLinks = ({ isMobileNav = false }: { isMobileNav: boolean }) => {
+const NavLinks = ({
+  isMobileNav = false,
+  userId,
+}: {
+  userId?: string;
+  isMobileNav?: boolean;
+}) => {
   const pathname = usePathname();
 
   return (
@@ -17,6 +23,8 @@ const NavLinks = ({ isMobileNav = false }: { isMobileNav: boolean }) => {
           (pathname.includes(item.route) && item.route.length > 1) ||
           pathname === item.route;
         if (item.route === "/profile") {
+          if (userId) item.route = `${item.route}/${userId}`;
+          else return null;
         }
 
         const LinkComponent = (

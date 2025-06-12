@@ -1,29 +1,30 @@
-import { model, models, Schema, Types } from "mongoose";
+import { model, models, Schema } from "mongoose";
 
-export interface IAdministractiveRegion {
-  name: string; // Name of the administrative region
-  nameEn?: string; // English name of the administrative region
-  codeName: string; // Unique code name for the administrative region
-  codeNameEn?: string; // English code name for the administrative region
-  isActive: boolean; // Field to indicate if the region is active
+export interface IAdministrativeRegion {
+  id: number;
+  name: string;
+  nameEn: string;
+  codeName: string;
+  codeNameEn: string;
 }
 
-const AdministractiveRegionSchema = new Schema<IAdministractiveRegion>(
-  {
-    name: { type: String, required: true },
-    nameEn: { type: String },
-    codeName: { type: String, required: true, unique: true }, // Unique code name for the administrative region
-    codeNameEn: { type: String },
-    isActive: { type: Boolean, default: true }, // Field to indicate if the region is active
-  },
-  { timestamps: true }
-);
+export interface IAdministrativeRegionDoc
+  extends IAdministrativeRegion,
+    Document {}
 
-const AdministractiveRegion =
-  models?.AdministractiveRegion ||
-  model<IAdministractiveRegion>(
-    "AdministractiveRegion",
-    AdministractiveRegionSchema
+const AdministrativeRegionSchema = new Schema<IAdministrativeRegion>({
+  id: { type: Number, required: true, unique: true },
+  name: { type: String, required: true },
+  nameEn: { type: String, required: true },
+  codeName: { type: String, required: true },
+  codeNameEn: { type: String, required: true },
+});
+
+const AdministrativeRegion =
+  models?.AdministrativeRegion ||
+  model<IAdministrativeRegion>(
+    "AdministrativeRegion",
+    AdministrativeRegionSchema
   );
 
-export default AdministractiveRegion;
+export default AdministrativeRegion;
