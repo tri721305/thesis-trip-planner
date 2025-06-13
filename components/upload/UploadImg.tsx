@@ -8,19 +8,50 @@ import {
   uploadImageAction,
   uploadMultipleImagesAction,
 } from "@/lib/actions/upload.action";
+import { createGuide } from "@/lib/actions/guide.action";
+import { handleError } from "@/lib/handler/error";
+import { useRouter } from "next/navigation";
+import ROUTES from "@/constants/route";
+import { toast } from "@/hooks/use-toast";
 
 export function InputFile() {
+  const router = useRouter();
   const [file, setFile] = useState<FileList | null>(null);
   console.log("file", file);
   const handleSubmit = async () => {
-    const form = new FormData();
-    if (file) {
-      try {
-        // form.append("image", file);
-        const filesArray = Array.from(file);
-        const result = await uploadMultipleImagesAction(filesArray);
-        console.log("result", result);
-      } catch (error) {}
+    // const form = new FormData();
+    // if (file) {
+    //   try {
+    //     // form.append("image", file);
+    //     const filesArray = Array.from(file);
+    //     const result = await uploadMultipleImagesAction(filesArray);
+    //     console.log("result", result);
+    //   } catch (error) {}
+    // }
+
+    try {
+      const result = await createGuide({
+        title: "Test Guide",
+        content: "This is a test guide content.",
+        tags: ["test", "guide"],
+        // images1: file ? Array.from(file) : [],
+        images1: [],
+      });
+      // console.log("data", {
+      //   title: "Test Guide",
+      //   content: "This is a test guide content.",
+      //   tags: ["test", "guide"],
+      //   images1: file ? Array.from(file) : [],
+      // });
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: "Guide created successfully!",
+        });
+        if (result.data) router.push(ROUTES.GUIDE(result.data?._id));
+      }
+    } catch (error) {
+      return handleError(error) as ErrorResponse;
     }
   };
   return (

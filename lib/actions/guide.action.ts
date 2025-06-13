@@ -1,15 +1,16 @@
 "use server";
 
-import { ActionResponse, ErrorResponse } from "@/types/global";
 import action from "../handler/action";
 import { GuideSchema } from "../validation";
 import { handleError } from "../handler/error";
 import mongoose from "mongoose";
 import { uploadImageAction, uploadMultipleImagesAction } from "./upload.action";
 import Guide from "@/database/guide.model";
+import Tag from "@/database/tag.model";
+import TagGuide from "@/database/tag-guide.model";
 export async function createGuide(
   params: CreateGuideParams
-): Promise<ActionResponse> {
+): Promise<ActionResponse<Guide>> {
   const validationResult = await action({
     params,
     authorize: true,
@@ -20,54 +21,72 @@ export async function createGuide(
     return handleError(validationResult) as ErrorResponse;
   }
 
-  const { title, content, tags, images } = params;
+  const { title, content, tags, images1 } = validationResult.params!;
+  const userId = validationResult?.session?.user?.id;
 
   const session = await mongoose.startSession();
   session.startTransaction();
 
   try {
-    const imageUrls: string[] = [];
+    const [guide] = await Guide.create(
+      [
+        {
+          title,
+          content,
+          tags,
+          images1,
+          author: userId,
+        },
+      ],
+      { session }
+    );
+    console.log("params", params, guide);
 
-    if (images && images.length > 0) {
-      console.log(`Uploading ${images.length} images to S3...`);
-
-      // Use the new multiple upload function
-      const uploadResult = await uploadMultipleImagesAction(images);
-
-      if (!uploadResult.success) {
-        throw new Error(`Failed to upload images: ${uploadResult.error}`);
-      }
-
-      if (uploadResult.data) {
-        // Extract URLs from successful uploads
-        imageUrls.push(...uploadResult.data.map((item) => item.url));
-      }
-
-      // Log any failed uploads
-      if (uploadResult.failedUploads && uploadResult.failedUploads.length > 0) {
-        console.warn(
-          "Some images failed to upload:",
-          uploadResult.failedUploads
-        );
-        // Optionally, you can decide whether to proceed or fail the entire operation
-        // For now, we'll proceed with successfully uploaded images
-      }
-
-      console.log(`Successfully uploaded ${imageUrls.length} images`);
+    if (!guide) {
+      throw new Error("Failed to create guide");
     }
-    const newGuide = await Guide.create(
+
+    const tagIds: mongoose.Types.ObjectId[] = [];
+    const tagGuideDocuments = [];
+
+    for (const tag of tags) {
+      const existingTag = await Tag.findOneAndUpdate(
+        {
+          name: { $regex: new RegExp(`^${tag}$`, "i") },
+        },
+        {
+          $setOnInsert: { name: tag },
+          $inc: { guides: 1 },
+        },
+        {
+          upsert: true,
+          new: true,
+          session,
+        }
+      );
+
+      tagIds.push(existingTag?._id);
+      tagGuideDocuments.push({
+        tag: existingTag._id,
+        guide: guide._id,
+      });
+    }
+
+    await TagGuide.insertMany(tagGuideDocuments, { session });
+    await Guide.findByIdAndUpdate(
+      guide._id,
       {
-        title,
-        content,
-        tags,
-        images: imageUrls,
+        $push: { tags: { $each: tagIds } },
       },
       { session }
     );
+
     await session.commitTransaction();
 
-    console.log(`Guide created successfully with ID:?`);
-    return { success: true, data: JSON.parse(JSON.stringify(newGuide)) };
+    return {
+      success: true,
+      data: JSON.parse(JSON.stringify(guide)),
+    };
   } catch (error) {
     await session.abortTransaction();
     return handleError(error) as ErrorResponse;

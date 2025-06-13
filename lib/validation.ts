@@ -180,4 +180,5 @@ export const GuideSchema = z.object({
     )
     .min(1, { message: "At least one tag is required." })
     .max(3, { message: "Cannot add more than 3 tags." }),
+  images1: z.array(z.any()),
 });

@@ -20,5 +20,5 @@ interface CreateGuideParams {
   title: string;
   content: string;
   tags: string[];
-  images?: File[];
+  images1?: File[];
 }
