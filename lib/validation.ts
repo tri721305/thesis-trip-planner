@@ -170,7 +170,7 @@ export const GuideSchema = z.object({
     .min(5, { message: "Title is required." })
     .max(100, { message: "Title cannot exceed 100 characters." }),
 
-  content: z.string().min(1, { message: "Body is required." }),
+  content: z.string().min(1, { message: "Content is required." }),
   tags: z
     .array(
       z
@@ -180,5 +180,20 @@ export const GuideSchema = z.object({
     )
     .min(1, { message: "At least one tag is required." })
     .max(3, { message: "Cannot add more than 3 tags." }),
-  images1: z.array(z.any()),
+  images1: z.array(z.any()).optional().default([]),
+});
+
+export const HotelSchema = z.object({
+  name: z.string().min(5, { message: "Name is required." }).max(100, {
+    message: "Name cannot exceed 100 characters.",
+  }),
+  address: z.string(),
+  checkin: z.string(),
+  checkout: z.string(),
+  confirmation: z.string(),
+  note: z.string(),
+  cost: z.object({
+    type: z.string(),
+    number: z.string(),
+  }),
 });

@@ -1,6 +1,10 @@
 "use server";
 
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} from "@aws-sdk/client-s3";
 import { revalidatePath } from "next/cache";
 
 interface ImageRecord {
@@ -392,4 +396,72 @@ export async function uploadMultipleImagesFromFormData(
         error instanceof Error ? error.message : "Failed to process FormData",
     };
   }
+}
+
+// Delete multiple images from S3 (for rollback scenarios)
+export async function deleteMultipleImagesFromS3(imageUrls: string[]): Promise<{
+  success: boolean;
+  deletedCount: number;
+  errors: Array<{ url: string; error: string }>;
+}> {
+  if (!imageUrls || imageUrls.length === 0) {
+    return { success: true, deletedCount: 0, errors: [] };
+  }
+
+  console.log(`Starting deletion of ${imageUrls.length} images from S3...`);
+
+  const errors: Array<{ url: string; error: string }> = [];
+  let deletedCount = 0;
+
+  // Validate environment variables
+  if (!process.env.AWS_S3_BUCKET_NAME) {
+    return {
+      success: false,
+      deletedCount: 0,
+      errors: [
+        {
+          url: "all",
+          error: "AWS_S3_BUCKET_NAME environment variable is not set",
+        },
+      ],
+    };
+  }
+
+  for (const imageUrl of imageUrls) {
+    try {
+      // Extract S3 key from URL
+      const urlParts = imageUrl.split("/");
+      const key = urlParts.slice(-2).join("/"); // Get "images/filename.jpg"
+
+      if (!key || !key.startsWith("images/")) {
+        throw new Error("Invalid S3 URL format");
+      }
+
+      const deleteCommand = new DeleteObjectCommand({
+        Bucket: process.env.AWS_S3_BUCKET_NAME,
+        Key: key,
+      });
+
+      await S3ClientConfig.send(deleteCommand);
+      deletedCount++;
+      console.log(`Successfully deleted: ${key}`);
+    } catch (error) {
+      console.error(`Failed to delete ${imageUrl}:`, error);
+      errors.push({
+        url: imageUrl,
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
+  }
+
+  const success = errors.length === 0;
+  console.log(
+    `S3 cleanup completed: ${deletedCount} deleted, ${errors.length} failed`
+  );
+
+  return {
+    success,
+    deletedCount,
+    errors,
+  };
 }
