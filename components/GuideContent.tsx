@@ -17,6 +17,7 @@ import { Input } from "./ui/input";
 import HotelCard from "./cards/HotelCard";
 import InputCollapse from "./input/InputCollapse";
 import InputCollapseHotel from "./input/InputCollapseHotel";
+import InputCollapseHotelMultiple from "./input/InputCollapseHotelMultiple";
 import { Hotel, Plus } from "lucide-react";
 const GuideContent = () => {
   const [isOpen, setIsOpen] = React.useState(false);
@@ -56,7 +57,7 @@ const GuideContent = () => {
         </Collapsible>
       </div>
       <div>
-        <InputCollapseHotel />
+        <InputCollapseHotelMultiple />
         <div className="flex gap-4 items-center pl-[18px]">
           <div className="flex  cursor-pointer h-5 items-center gap-2">
             <Plus size={16} />

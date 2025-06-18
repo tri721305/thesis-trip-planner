@@ -197,3 +197,111 @@ export const HotelSchema = z.object({
     number: z.string(),
   }),
 });
+
+export const FlightSchema = z.object({
+  airline: z.string().min(1, { message: "Airline is required." }),
+  flightNumber: z.string().min(1, { message: "Flight number is required." }),
+  departure: z.object({
+    airport: z.string().min(1, { message: "Departure airport is required." }),
+    city: z.string().min(1, { message: "Departure city is required." }),
+    date: z.string().min(1, { message: "Departure date is required." }),
+    time: z.string().min(1, { message: "Departure time is required." }),
+  }),
+  arrival: z.object({
+    airport: z.string().min(1, { message: "Arrival airport is required." }),
+    city: z.string().min(1, { message: "Arrival city is required." }),
+    date: z.string().min(1, { message: "Arrival date is required." }),
+    time: z.string().min(1, { message: "Arrival time is required." }),
+  }),
+  seat: z.string().optional(),
+  confirmation: z
+    .string()
+    .min(1, { message: "Confirmation code is required." }),
+  note: z.string().optional(),
+  cost: z.object({
+    type: z.string(),
+    number: z.string(),
+  }),
+});
+
+export const ActivitySchema = z.object({
+  name: z.string().min(1, { message: "Activity name is required." }).max(100, {
+    message: "Name cannot exceed 100 characters.",
+  }),
+  location: z.string().min(1, { message: "Location is required." }),
+  date: z.string().min(1, { message: "Date is required." }),
+  time: z.string().optional(),
+  duration: z.string().optional(),
+  description: z.string().optional(),
+  confirmation: z.string().optional(),
+  contact: z.string().optional(),
+  note: z.string().optional(),
+  cost: z.object({
+    type: z.string(),
+    number: z.string(),
+  }),
+});
+
+export const RestaurantSchema = z.object({
+  name: z
+    .string()
+    .min(1, { message: "Restaurant name is required." })
+    .max(100, {
+      message: "Name cannot exceed 100 characters.",
+    }),
+  address: z.string().min(1, { message: "Address is required." }),
+  cuisine: z.string().optional(),
+  date: z.string().min(1, { message: "Reservation date is required." }),
+  time: z.string().min(1, { message: "Reservation time is required." }),
+  guests: z.string().optional(),
+  confirmation: z.string().optional(),
+  contact: z.string().optional(),
+  note: z.string().optional(),
+  cost: z.object({
+    type: z.string(),
+    number: z.string(),
+  }),
+});
+
+export const TransportSchema = z.object({
+  type: z.enum(["car_rental", "train", "bus", "taxi", "uber", "other"], {
+    message: "Please select a transport type.",
+  }),
+  provider: z.string().min(1, { message: "Provider is required." }),
+  pickupLocation: z
+    .string()
+    .min(1, { message: "Pickup location is required." }),
+  dropoffLocation: z.string().optional(),
+  pickupDate: z.string().min(1, { message: "Pickup date is required." }),
+  pickupTime: z.string().min(1, { message: "Pickup time is required." }),
+  returnDate: z.string().optional(),
+  returnTime: z.string().optional(),
+  confirmation: z.string().optional(),
+  vehicleDetails: z.string().optional(),
+  note: z.string().optional(),
+  cost: z.object({
+    type: z.string(),
+    number: z.string(),
+  }),
+});
+
+export const AttractionSchema = z.object({
+  name: z
+    .string()
+    .min(1, { message: "Attraction name is required." })
+    .max(100, {
+      message: "Name cannot exceed 100 characters.",
+    }),
+  address: z.string().min(1, { message: "Address is required." }),
+  category: z.string().optional(),
+  visitDate: z.string().optional(),
+  visitTime: z.string().optional(),
+  duration: z.string().optional(),
+  ticketInfo: z.string().optional(),
+  description: z.string().optional(),
+  note: z.string().optional(),
+  cost: z.object({
+    type: z.string(),
+    number: z.string(),
+  }),
+});

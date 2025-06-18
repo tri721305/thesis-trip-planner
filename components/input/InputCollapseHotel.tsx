@@ -56,18 +56,18 @@ const InputCollapseHotel = () => {
   const { watch } = form;
   const valueWatch = watch();
   console.log("valueWatch", valueWatch);
-  //   useEffect(() => {
-  //     function handleClickOutside(event: MouseEvent) {
-  //       if (divRef.current && !divRef.current.contains(event.target as Node)) {
-  //         setIsEdit(false);
-  //       }
+  // useEffect(() => {
+  //   function handleClickOutside(event: MouseEvent) {
+  //     if (divRef.current && !divRef.current.contains(event.target as Node)) {
+  //       setIsEdit(false);
   //     }
+  //   }
 
-  //     document.addEventListener("mousedown", handleClickOutside);
-  //     return () => {
-  //       document.removeEventListener("mousedown", handleClickOutside);
-  //     };
-  //   }, []);
+  //   document.addEventListener("mousedown", handleClickOutside);
+  //   return () => {
+  //     document.removeEventListener("mousedown", handleClickOutside);
+  //   };
+  // }, []);
 
   return (
     <Collapsible
