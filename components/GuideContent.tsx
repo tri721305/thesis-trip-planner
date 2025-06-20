@@ -19,8 +19,11 @@ import InputCollapse from "./input/InputCollapse";
 import InputCollapseHotel from "./input/InputCollapseHotel";
 import InputCollapseHotelMultiple from "./input/InputCollapseHotelMultiple";
 import { Hotel, Plus } from "lucide-react";
+import ReusableDialog from "./modal/ReusableDialog";
+import HotelLodging from "./modal/HotelLodging";
 const GuideContent = () => {
   const [isOpen, setIsOpen] = React.useState(false);
+  const [openModalHotel, setOpenModalHotel] = React.useState(false);
   return (
     <div className="mt-36 flex flex-col gap-2  px-2">
       <Textarea
@@ -59,7 +62,12 @@ const GuideContent = () => {
       <div>
         <InputCollapseHotelMultiple />
         <div className="flex gap-4 items-center pl-[18px]">
-          <div className="flex  cursor-pointer h-5 items-center gap-2">
+          <div
+            onClick={() => {
+              setOpenModalHotel(true);
+            }}
+            className="flex  cursor-pointer h-5 items-center gap-2"
+          >
             <Plus size={16} />
             <span className="text-dark400_light700 font-bold text-[12px]">
               Add another Lodging
@@ -75,6 +83,17 @@ const GuideContent = () => {
           </div>
         </div>
       </div>
+      {openModalHotel && (
+        <ReusableDialog
+          open={openModalHotel}
+          setOpen={setOpenModalHotel}
+          data={{
+            title: "Add hotels or lodging",
+            content: <HotelLodging />,
+            showCloseButton: false,
+          }}
+        />
+      )}
     </div>
   );
 };

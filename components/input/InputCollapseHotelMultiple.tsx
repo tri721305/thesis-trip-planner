@@ -29,6 +29,7 @@ import { HotelSchema } from "@/lib/validation";
 import { DateRangePicker } from "../datepicker/RangePicker";
 import PriceInput from "./PriceInput";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { CalendarDatePicker } from "../calendar-date-picker";
 
 // Schema cho multiple hotels
 const MultipleHotelsSchema = z.object({
@@ -40,6 +41,10 @@ type MultipleHotelsFormData = z.infer<typeof MultipleHotelsSchema>;
 const InputCollapseHotelMultiple = () => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [editingIndex, setEditingIndex] = React.useState<number | null>(null);
+  const [selectedDateRange, setSelectedDateRange] = React.useState({
+    from: new Date(new Date().getFullYear(), 0, 1),
+    to: new Date(),
+  });
   const divRef = useRef<HTMLDivElement | null>(null);
 
   const form = useForm<MultipleHotelsFormData>({
@@ -100,18 +105,18 @@ const InputCollapseHotelMultiple = () => {
   };
 
   // Handle click outside to stop editing
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (divRef.current && !divRef.current.contains(event.target as Node)) {
-        setEditingIndex(null);
-      }
-    }
+  //   useEffect(() => {
+  //     function handleClickOutside(event: MouseEvent) {
+  //       if (divRef.current && !divRef.current.contains(event.target as Node)) {
+  //         setEditingIndex(null);
+  //       }
+  //     }
 
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
+  //     document.addEventListener("mousedown", handleClickOutside);
+  //     return () => {
+  //       document.removeEventListener("mousedown", handleClickOutside);
+  //     };
+  //   }, []);
 
   // Form submit handler
   const onSubmit = (data: MultipleHotelsFormData) => {
@@ -132,14 +137,14 @@ const InputCollapseHotelMultiple = () => {
     return (
       <div className="flex justify-between items-start">
         <div className="flex-1">
-          <div className="font-medium text-sm">
+          <div className="font-bold text-[16px] text-[#212529]">
             {hotel.name || "Unnamed Hotel"}
           </div>
           {hotel.address && (
-            <div className="text-xs text-gray-600 mt-1">{hotel.address}</div>
+            <div className="text-[12px] !text-[#6c757d] ">{hotel.address}</div>
           )}
           {(hotel.checkin || hotel.checkout) && (
-            <div className="text-xs text-gray-600 mt-1">
+            <div className="text-[16px]  text-[#212529] mt-[8px]">
               {hotel.checkin} - {hotel.checkout}
             </div>
           )}
@@ -170,7 +175,7 @@ const InputCollapseHotelMultiple = () => {
                   <Input
                     type="text"
                     {...field}
-                    className="!min-h-[36px] border-none paragraph-regular background-light800_dark300 light-border-2 text-dark300_light700 no-focus rounded-1.5 border"
+                    className="!min-h-[36px] border-none paragraph-regular light-border-2 text-dark300_light700 no-focus rounded-1.5 border background-form-input"
                     placeholder="Enter hotel name"
                   />
                 </FormControl>
@@ -191,7 +196,7 @@ const InputCollapseHotelMultiple = () => {
                   <Input
                     type="text"
                     {...field}
-                    className="!min-h-[36px] border-none paragraph-regular background-light800_dark300 light-border-2 text-dark300_light700 no-focus rounded-1.5 border"
+                    className=" !min-h-[36px] border-none paragraph-regular  light-border-2 text-dark300_light700 no-focus rounded-1.5 border !background-form-input"
                     placeholder="Enter hotel address"
                   />
                 </FormControl>
@@ -209,7 +214,10 @@ const InputCollapseHotelMultiple = () => {
                   CHECKIN - CHECKOUT
                 </FormLabel>
                 <FormControl>
-                  <DateRangePicker />
+                  <CalendarDatePicker
+                    date={selectedDateRange}
+                    onDateSelect={setSelectedDateRange}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -305,6 +313,7 @@ const InputCollapseHotelMultiple = () => {
     );
   };
 
+  console.log("Hotel watch", hotelsWatch);
   return (
     <Collapsible
       open={isOpen}
@@ -323,35 +332,15 @@ const InputCollapseHotelMultiple = () => {
           placeholder="Hotels and lodging"
           className="paragraph-regular no-focus placeholder text-dark400_light700 border-none shadow-none !font-bold outline-none"
         />
-        {fields.length > 0 && (
-          <span className="text-xs text-gray-500 font-medium">
-            {fields.length} hotel{fields.length > 1 ? "s" : ""}
-          </span>
-        )}
       </div>
 
-      <CollapsibleContent ref={divRef} className="flex flex-col gap-2">
+      <CollapsibleContent ref={divRef} className="flex  flex-col gap-2">
         {fields.map((field, index) => (
-          <Card key={field.id} className="relative">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-medium">Hotel {index + 1}</h4>
-                <div className="flex items-center gap-2">
-                  {fields.length > 1 && (
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-6 w-6"
-                      onClick={() => removeHotel(index)}
-                    >
-                      <FaTrash className="h-3 w-3" />
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
+          <Card
+            key={field.id}
+            className="relative background-form border-none shadow-none"
+          >
+            <CardContent className="relative !p-4">
               {editingIndex === index ? (
                 renderHotelForm(index)
               ) : (
@@ -362,6 +351,21 @@ const InputCollapseHotelMultiple = () => {
                   {renderHotelPreview(hotelsWatch[index], index)}
                 </div>
               )}
+              <div className="flex items-center justify-between absolute right-2 bottom-2">
+                <div className="flex items-center gap-2">
+                  {fields.length > 1 && index > 0 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-6 w-6 text-gray-500"
+                      onClick={() => removeHotel(index)}
+                    >
+                      <FaTrash className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              </div>
             </CardContent>
           </Card>
         ))}

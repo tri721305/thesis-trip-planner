@@ -1,0 +1,9 @@
+{
+"type": "FeatureCollection",
+"name": "hsts-labels",
+"features": [
+{ "type": "Feature", "properties": { "Name": "Quần đảo Hoàng Sa"}, "geometry": { "type": "Point", "coordinates": [ 111.784165037545165, 16.059677394428235 ] } },
+{ "type": "Feature", "properties": { "Name": "Quần đảo Trường Sa"}, "geometry": { "type": "Point", "coordinates": [ 115.763202111469752, 10.499622746002856 ] } }
+]
+}
+

@@ -1,5 +1,4 @@
 "use server";
-import { ActionResponse, ErrorResponse } from "@/types/global";
 import action from "../handler/action";
 import { SignInSchema, SignUpSchema } from "../validation";
 import { handleError } from "../handler/error";

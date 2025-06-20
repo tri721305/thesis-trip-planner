@@ -78,6 +78,44 @@ declare global {
     params: Promise<Record<string, string>>;
     searchParams: Promise<Record<string, string>>;
   }
+
+  interface DialogAction {
+    label: string;
+    onClick: () => void;
+    variant?:
+      | "default"
+      | "destructive"
+      | "outline"
+      | "secondary"
+      | "ghost"
+      | "link";
+    disabled?: boolean;
+    loading?: boolean;
+  }
+  interface DialogActions {
+    primary?: DialogAction;
+    secondary?: DialogAction;
+    cancel?: {
+      label: string;
+      onClick?: () => void;
+    };
+  }
+  interface DialogData {
+    title?: string;
+    description?: string;
+    content: React.ReactNode;
+    size?: "sm" | "md" | "lg" | "xl" | "full";
+    showCloseButton?: boolean;
+    className?: string;
+    headerClassName?: string;
+    contentClassName?: string;
+    actions?: DialogActions;
+  }
+  interface ReusableDialogProps {
+    open: boolean;
+    setOpen: (open: boolean) => void;
+    data: DialogData;
+  }
 }
 
 export {};

@@ -11,6 +11,12 @@ body {
 }
 
 @layer utilities {
+  .background-form {
+    @apply bg-[#f3f4f5] dark:bg-dark-200;
+  }
+  .background-form-input {
+    @apply bg-[#eaecef] dark:!bg-dark-300;
+  }
   .background-light850_dark100 {
     @apply bg-light-850 dark:bg-dark-100;
   }
