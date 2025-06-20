@@ -17,9 +17,7 @@ const page = () => {
         <GuideContent />
         <Separator className="my-4" />
       </div>
-      <div className="flex-1">
-        <Map />
-      </div>
+      <div className="flex-1">{/* <Map /> */}</div>
     </div>
   );
 };

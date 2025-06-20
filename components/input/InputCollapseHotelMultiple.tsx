@@ -30,6 +30,7 @@ import { DateRangePicker } from "../datepicker/RangePicker";
 import PriceInput from "./PriceInput";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CalendarDatePicker } from "../calendar-date-picker";
+import { CurrencyDisplay } from "../CurrencyDisplay";
 
 // Schema cho multiple hotels
 const MultipleHotelsSchema = z.object({
@@ -236,7 +237,7 @@ const InputCollapseHotelMultiple = () => {
                   <Input
                     type="text"
                     {...field}
-                    className="!min-h-[36px] border-none paragraph-regular background-light800_dark300 light-border-2 text-dark300_light700 no-focus rounded-1.5 border"
+                    className="!min-h-[36px] border-none paragraph-regular background-form-input light-border-2 text-dark300_light700 no-focus rounded-1.5 border"
                     placeholder="Confirmation number"
                   />
                 </FormControl>
@@ -257,7 +258,7 @@ const InputCollapseHotelMultiple = () => {
                   <Input
                     type="text"
                     {...field}
-                    className="!min-h-[36px] border-none paragraph-regular background-light800_dark300 light-border-2 text-dark300_light700 no-focus rounded-1.5 border"
+                    className="!min-h-[36px] border-none paragraph-regular background-form-input light-border-2 text-dark300_light700 no-focus rounded-1.5 border"
                     placeholder="Add additional notes here"
                   />
                 </FormControl>
@@ -276,20 +277,26 @@ const InputCollapseHotelMultiple = () => {
                 </FormLabel>
                 <FormControl className="!mt-0">
                   <PriceInput
-                    {...field}
-                    className="!min-h-[36px] border-none paragraph-regular background-light800_dark300 light-border-2 text-dark300_light700 no-focus rounded-1.5 border"
-                    onChange={(e: any) => {
-                      field.onChange({
-                        type: "vnd",
-                        number: e.target.value,
-                      });
-                    }}
-                    value={field?.value?.number}
+                    value={field.value}
+                    onChange={field.onChange}
+                    defaultCurrency="vnd"
+                    allowCurrencyChange={true}
+                    compact={false}
+                    displayFormatted={true} // Show formatted value in input
+                    showSymbolInInput={true} // Show ₫ symbol inside input
+                    placeholder="0"
+                    className="!min-h-[36px] border-none paragraph-regular background-form-input light-border-2 text-dark300_light700 no-focus rounded-1.5 border"
                   />
                 </FormControl>
                 <FormMessage />
               </FormItem>
             )}
+          />
+          <CurrencyDisplay
+            amount={1500000}
+            currency="vnd"
+            variant="compact"
+            showSymbol={true}
           />
 
           <div className="flex gap-2 pt-4">
