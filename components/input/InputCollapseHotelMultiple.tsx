@@ -31,6 +31,11 @@ import PriceInput from "./PriceInput";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CalendarDatePicker } from "../calendar-date-picker";
 import { CurrencyDisplay } from "../CurrencyDisplay";
+import { Plus } from "lucide-react";
+import { Separator } from "../ui/separator";
+import { BiSolidHotel } from "react-icons/bi";
+import ReusableDialog from "../modal/ReusableDialog";
+import HotelLodging from "../modal/HotelLodging";
 
 // Schema cho multiple hotels
 const MultipleHotelsSchema = z.object({
@@ -46,6 +51,7 @@ const InputCollapseHotelMultiple = () => {
     from: new Date(new Date().getFullYear(), 0, 1),
     to: new Date(),
   });
+  const [openModalHotel, setOpenModalHotel] = React.useState(false);
   const divRef = useRef<HTMLDivElement | null>(null);
 
   const form = useForm<MultipleHotelsFormData>({
@@ -292,12 +298,12 @@ const InputCollapseHotelMultiple = () => {
               </FormItem>
             )}
           />
-          <CurrencyDisplay
+          {/* <CurrencyDisplay
             amount={1500000}
             currency="vnd"
             variant="compact"
             showSymbol={true}
-          />
+          /> */}
 
           <div className="flex gap-2 pt-4">
             <Button
@@ -329,7 +335,7 @@ const InputCollapseHotelMultiple = () => {
     >
       <div className="flex items-center justify-between gap-4 px-4">
         <CollapsibleTrigger asChild>
-          <Button variant="ghost" size="icon" className="size-8">
+          <Button variant="ghost" size="icon" className="size-8 font-medium">
             {!isOpen ? <FaChevronRight /> : <FaChevronDown />}
             <span className="sr-only">Toggle</span>
           </Button>
@@ -386,7 +392,40 @@ const InputCollapseHotelMultiple = () => {
           <FaPlus className="h-4 w-4" />
           Add Another Hotel
         </Button>
+
+        <div className="flex gap-4 items-center pl-[18px]">
+          <div
+            onClick={() => {
+              setOpenModalHotel(true);
+            }}
+            className="flex  cursor-pointer h-5 items-center gap-2"
+          >
+            <Plus size={16} />
+            <span className="text-dark400_light700 font-bold text-[12px]">
+              Add another Lodging
+            </span>
+            <Separator orientation="vertical" />
+          </div>
+
+          <div className="flex items-center gap-2 cursor-pointer">
+            <BiSolidHotel />
+            <span className="text-dark400_light700 font-bold text-[12px]">
+              Find hotels
+            </span>
+          </div>
+        </div>
       </CollapsibleContent>
+      {openModalHotel && (
+        <ReusableDialog
+          open={openModalHotel}
+          setOpen={setOpenModalHotel}
+          data={{
+            title: "Add hotels or lodging",
+            content: <HotelLodging />,
+            showCloseButton: false,
+          }}
+        />
+      )}
     </Collapsible>
   );
 };

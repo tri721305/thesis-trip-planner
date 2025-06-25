@@ -1,6 +1,5 @@
 "use client";
 
-import TitleCard from "@/components/cards/TitleCard";
 import GuideContent from "@/components/GuideContent";
 import GuideHeader from "@/components/GuideHeader";
 import Map from "@/components/Map";
@@ -15,9 +14,8 @@ const page = () => {
       <div className="flex-1">
         <GuideHeader />
         <GuideContent />
-        <Separator className="my-4" />
       </div>
-      <div className="flex-1">{/* <Map /> */}</div>
+      <div className="flex-1 hidden md:flex">{/* <Map /> */}</div>
     </div>
   );
 };

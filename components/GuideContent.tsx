@@ -21,6 +21,7 @@ import InputCollapseHotelMultiple from "./input/InputCollapseHotelMultiple";
 import { Hotel, Plus } from "lucide-react";
 import ReusableDialog from "./modal/ReusableDialog";
 import HotelLodging from "./modal/HotelLodging";
+import ContentGuide from "./input/ContentGuide";
 const GuideContent = () => {
   const [isOpen, setIsOpen] = React.useState(false);
   const [openModalHotel, setOpenModalHotel] = React.useState(false);
@@ -61,39 +62,8 @@ const GuideContent = () => {
       </div>
       <div>
         <InputCollapseHotelMultiple />
-        <div className="flex gap-4 items-center pl-[18px]">
-          <div
-            onClick={() => {
-              setOpenModalHotel(true);
-            }}
-            className="flex  cursor-pointer h-5 items-center gap-2"
-          >
-            <Plus size={16} />
-            <span className="text-dark400_light700 font-bold text-[12px]">
-              Add another Lodging
-            </span>
-            <Separator orientation="vertical" />
-          </div>
-
-          <div className="flex items-center gap-2 cursor-pointer">
-            <BiSolidHotel />
-            <span className="text-dark400_light700 font-bold text-[12px]">
-              Find hotels
-            </span>
-          </div>
-        </div>
       </div>
-      {openModalHotel && (
-        <ReusableDialog
-          open={openModalHotel}
-          setOpen={setOpenModalHotel}
-          data={{
-            title: "Add hotels or lodging",
-            content: <HotelLodging />,
-            showCloseButton: false,
-          }}
-        />
-      )}
+      <ContentGuide />
     </div>
   );
 };

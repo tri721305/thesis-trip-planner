@@ -1,7 +1,7 @@
 import React from "react";
 import { Input } from "../ui/input";
 interface InputIconProps {
-  icon: React.ReactNode;
+  icon?: React.ReactNode;
   placeholder?: string;
   className?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -11,10 +11,9 @@ interface InputIconProps {
 }
 
 const InputWithIcon = ({ icon, ...props }: InputIconProps) => {
-  console.log("placeholder", props);
   return (
     <div className="relative w-full ">
-      <div className="bg-white focus:background-light800_darkgradient hover:background-light800_darkgradient relative flex min-h-[56px] grow items-center gap-1 rounded-xl px-4">
+      <div className="background-form focus:background-light800_darkgradient hover:background-light800_darkgradient relative flex min-h-[48px] grow items-center gap-1 rounded-xl px-4">
         <Input
           type="text"
           //   placeholder="Search anything globally..."

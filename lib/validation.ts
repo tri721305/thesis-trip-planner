@@ -198,6 +198,20 @@ export const HotelSchema = z.object({
   }),
 });
 
+export const ItemGuideSchema = z.object({
+  type: z.enum(["route", "list"]),
+  title: z.string().min(1, { message: "Title is required." }),
+  subheading: z.string().optional(),
+  items: z.array(
+    z.object({
+      type: z.enum(["place", "note", "checklist"]),
+      data: z.object({
+        info: z.object({}) || z.string() || z.array(z.string()),
+      }),
+    })
+  ),
+});
+
 export const FlightSchema = z.object({
   airline: z.string().min(1, { message: "Airline is required." }),
   flightNumber: z.string().min(1, { message: "Flight number is required." }),

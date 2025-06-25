@@ -116,6 +116,44 @@ declare global {
     setOpen: (open: boolean) => void;
     data: DialogData;
   }
+
+  // Test form GUIDE
+  interface PlaceInfo {
+    name: string;
+    address: string;
+    coordinates: [number, number];
+    note: string;
+    imgUrls: string[];
+    duration?: string;
+    cost?: {
+      type: string;
+      number: string;
+    };
+  }
+  interface ItineraryItem {
+    id: string;
+    type: "place" | "note" | "checklist";
+    position: number;
+    data: {
+      info: PlaceInfo | string | string[];
+    };
+  }
+
+  interface DayRoute {
+    id: string;
+    type: "route";
+    title: string;
+    subheading: string;
+    items: ItineraryItem[];
+    autoFillDay?: boolean;
+    optimizeRoute?: boolean;
+    duration?: string;
+    distance?: string;
+  }
+
+  interface ItineraryFormData {
+    routes: DayRoute[];
+  }
 }
 
 export {};
