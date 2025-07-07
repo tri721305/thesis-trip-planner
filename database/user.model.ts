@@ -9,6 +9,7 @@ export interface IUser {
   location?: string;
   portfolio?: string;
   reputation?: number;
+  phone?: string;
 }
 
 export interface IUserDoc extends IUser, Document {}
@@ -22,6 +23,7 @@ const UserSchema = new Schema<IUser>(
     location: { type: String },
     portfolio: { type: String },
     reputation: { type: Number, default: 0 },
+    phone: { type: String },
   },
   { timestamps: true }
 );

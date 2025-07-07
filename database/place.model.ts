@@ -1,48 +1,90 @@
-// Địa điểm chi tiết
-
-import { model, models, Schema, Types } from "mongoose";
+import mongoose, { Schema, Document, Types } from "mongoose";
 
 export interface IPlace {
   name: string;
+  address: string;
   description?: string;
   tags: Types.ObjectId[];
-  //   Tỉnh quận huyện
-  location: Types.ObjectId;
-  image?: string[];
-  coordinates: {
-    type: string;
-    coordinates: [number, number]; // Assuming coordinates are stored as [longitude, latitude]
+  phone?: string;
+  images?: string[];
+  website?: string;
+  location: {
+    type: "Point";
+    coordinates: [number, number];
   };
-  // address: string;
-  phone?: string; // Optional phone number
-  website?: string; // Optional website URL
-  type: string; // Type of place (e.g., restaurant, park, museum)
-  openingHours?: string[]; // Optional opening hours
-  rating?: number; // Optional rating
-  reviews?: string[]; // Optional array of review IDs
+  category:
+    | "hotel"
+    | "restaurant"
+    | "attraction"
+    | "activity"
+    | "transportation"
+    | "other";
+
+  rating?: number;
+  priceRange?: "budget" | "mid" | "luxury";
+  openingHours?: {
+    [key: string]: string; // monday: "9:00-17:00"
+  };
 }
 
-const PlaceSchema = new Schema<IPlace>(
+export interface IPlaceDoc extends IPlace, Document {}
+
+const PlaceSchema = new Schema<IPlaceDoc>(
   {
     name: { type: String, required: true },
-    description: { type: String },
+    address: { type: String, required: true },
+    description: { type: String, maxlength: 1000 },
     tags: [{ type: Schema.Types.ObjectId, ref: "Tag" }],
-    location: { type: Schema.Types.ObjectId, ref: "Location", required: true }, // Reference to a location
-    image: [{ type: String }],
-    coordinates: {
-      type: { type: String, enum: ["Point"], required: true },
-      coordinates: { type: [Number], required: true }, // [longitude, latitude]
-    },
-    phone: { type: String },
+    phone: { type: String, maxlength: 20 },
+    images: [{ type: String }], // URLs of uploaded images
     website: { type: String },
-    type: { type: String, required: true }, // Type of place
-    openingHours: [{ type: String }],
-    rating: { type: Number, min: 0, max: 5 }, // Rating between 0 and 5
-    reviews: [{ type: String }], // Array of review IDs (could be ObjectId if you have a Review model)
+    location: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        required: true,
+      },
+      coordinates: {
+        type: [Number],
+        required: true,
+        validate: {
+          validator: function (coords: number[]) {
+            return coords.length === 2;
+          },
+          message:
+            "Coordinates must contain exactly 2 numbers [longitude, latitude]",
+        },
+      },
+    },
+    category: {
+      type: String,
+      enum: [
+        "hotel",
+        "restaurant",
+        "attraction",
+        "activity",
+        "transportation",
+        "other",
+      ],
+      required: true,
+    },
+    rating: { type: Number, min: 0, max: 5 },
+    priceRange: {
+      type: String,
+      enum: ["budget", "mid", "luxury"],
+    },
+    openingHours: {
+      type: Map,
+      of: String,
+    },
   },
   { timestamps: true }
 );
 
-const Place = models?.Place || model<IPlace>("Place", PlaceSchema);
+PlaceSchema.index({ location: "2dsphere" });
+PlaceSchema.index({ tags: 1 });
+PlaceSchema.index({ category: 1 });
 
+export const Place =
+  mongoose.models.Place || mongoose.model<IPlace>("Place", PlaceSchema);
 export default Place;

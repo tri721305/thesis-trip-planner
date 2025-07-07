@@ -1,4 +1,6 @@
-import React from "react";
+"use client";
+
+import React, { useState } from "react";
 import { Button } from "../ui/button";
 import { Plus, Trash } from "lucide-react";
 import { Separator } from "../ui/separator";
@@ -21,10 +23,11 @@ import Link from "next/link";
 import { BiRightArrow } from "react-icons/bi";
 import InputWithIcon from "./InputIcon";
 import { FaMapMarkerAlt, FaMarker, FaSave } from "react-icons/fa";
-import { FaNoteSticky } from "react-icons/fa6";
+import { FaEllipsis, FaNoteSticky } from "react-icons/fa6";
 import { MdChecklist } from "react-icons/md";
 import Checklist from "./Checklist";
 import "./style.css";
+import ReusableDialog from "../modal/ReusableDialog";
 const mockData = [
   {
     type: "route",
@@ -66,6 +69,10 @@ const ItemsGuideSchema = z.object({
 type ItemsGuideFormData = z.infer<typeof ItemsGuideSchema>;
 
 const ContentGuide = () => {
+  const [dialogStates, setDialogStates] = useState<{ [key: number]: boolean }>(
+    {}
+  );
+
   const form = useForm<ItemsGuideFormData>({
     resolver: zodResolver(ItemsGuideSchema),
     defaultValues: {
@@ -79,6 +86,10 @@ const ContentGuide = () => {
   });
 
   const { watch } = form;
+
+  const isDialogOpen = (index: number) => {
+    return dialogStates[index] || false;
+  };
   const itemsWatch = watch("items");
 
   const handleAddList = (type: "route" | "list") => {
@@ -235,6 +246,14 @@ const ContentGuide = () => {
                       </FormItem>
                     )}
                   ></FormField>
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      // set
+                    }}
+                  >
+                    <FaEllipsis />
+                  </Button>
                 </div>
               </Form>
             </div>
@@ -313,6 +332,17 @@ const ContentGuide = () => {
         />
 
         {index + 1 < fields?.length && <Separator className="my-1 mt-4" />}
+        {/* {isOpenDialog && (
+          <ReusableDialog
+            open={isOpenDialog}
+            setOpen={setIsOpenDialog}
+            data={{
+              title: "Add hotels or lodging",
+              content: <div>Hello</div>,
+              showCloseButton: false,
+            }}
+          />
+        )} */}
       </div>
     );
   };

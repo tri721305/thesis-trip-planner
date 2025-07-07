@@ -1,30 +1,93 @@
-import mongoose, { model, models, Schema, Types } from "mongoose";
+import { Document, model, models, Schema } from "mongoose";
+
+interface GeometryCoordinates {
+  Point: [number, number];
+  LineString: Array<[number, number]>;
+  Polygon: Array<Array<[number, number]>>;
+  MultiPolygon: Array<Array<Array<[number, number]>>>;
+}
 
 export interface IWard {
-  code: string;
-  name: string;
-  nameEn?: string;
-  fullName: string;
-  fullNameEn?: string;
-  codeName?: string;
-  districtCode: string;
-  administrativeUnitId: number;
+  matinh?: number;
+  ma?: string;
+  tentinh?: string;
+  loai?: string;
+  tenhc?: string;
+  cay?: string;
+  con?: string;
+  dientichkm2?: number;
+  dansonguoi?: number;
+  kinhdo?: number;
+  vido?: number;
+  truocsapnhap?: string;
+  geometry?: {
+    type: keyof GeometryCoordinates;
+    coordinates: GeometryCoordinates[keyof GeometryCoordinates];
+  };
+  geometry_type?: string;
+  geometry_coordinate_count?: number;
 }
+
+export interface IWardDoc extends IWard, Document {}
 
 const WardSchema = new Schema<IWard>(
   {
-    code: { type: String, required: true, unique: true },
-    name: { type: String, required: true },
-    nameEn: { type: String },
-    fullName: { type: String, required: true },
-    fullNameEn: { type: String },
-    codeName: { type: String },
-    districtCode: { type: String, required: true },
-    administrativeUnitId: { type: Number, required: true },
+    matinh: { type: Number },
+    ma: { type: String, trim: true },
+    tentinh: { type: String, trim: true },
+    loai: { type: String, trim: true },
+    tenhc: { type: String, trim: true },
+    cay: { type: String, trim: true },
+    con: { type: String, trim: true },
+    dientichkm2: { type: Number, min: 0 },
+    dansonguoi: { type: Number, min: 0 },
+    kinhdo: { type: Number, min: -180, max: 180 },
+    vido: { type: Number, min: -90, max: 90 },
+    truocsapnhap: { type: String, trim: true },
+    geometry: {
+      type: {
+        type: String,
+        enum: [
+          "Polygon",
+          "MultiPolygon",
+          "Point",
+          "LineString",
+          "MultiPoint",
+          "MultiLineString",
+        ],
+        required: false,
+      },
+      coordinates: {
+        type: Schema.Types.Mixed,
+        required: false,
+        validate: {
+          validator: function (coordinates: any) {
+            // Custom validation based on geometry type
+            const geometryType = this.geometry?.type;
+            if (geometryType === "Point") {
+              return Array.isArray(coordinates) && coordinates.length === 2;
+            }
+            // Add more validation for other types...
+            return true;
+          },
+          message: "Invalid coordinates format for geometry type",
+        },
+      },
+    },
+    geometry_type: { type: String, required: false },
+    geometry_coordinate_count: { type: Number, required: false, min: 0 },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
-const Ward = models?.Ward || model<IWard>("Ward", WardSchema);
+// Create index for geographic queries
+WardSchema.index({ geometry: "2dsphere" });
 
+// Create compound index for common queries
+WardSchema.index({ matinh: 1, loai: 1 });
+WardSchema.index({ tentinh: 1, tenhc: 1 });
+
+const Ward = models?.Ward || model<IWard>("Ward", WardSchema);
 export default Ward;

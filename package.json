@@ -7,7 +7,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "import-data": "ts-node lib/importdata.ts"
+    "import-data": "ts-node lib/importdata.ts",
+    "seed:province": "tsx scripts/run-seed.ts",
+    "seed:all-provinces": "tsx scripts/seed-all-provinces.ts",
+    "seed:hcm-wards": "tsx scripts/seed-hcm-wards.ts",
+    "seed:all-wards": "tsx scripts/seed-all-wards.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.816.0",

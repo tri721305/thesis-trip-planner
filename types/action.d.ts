@@ -22,3 +22,15 @@ interface CreateGuideParams {
   tags: string[];
   images1?: File[];
 }
+
+interface GetWardByProvinceIdParams {
+  provinceId: string;
+}
+
+interface GetWardAndPolygonByIdParams {
+  wardId: string;
+}
+
+interface GetWardByName {
+  wardName: string;
+}

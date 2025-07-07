@@ -319,3 +319,15 @@ export const AttractionSchema = z.object({
     number: z.string(),
   }),
 });
+
+export const GetWardByProvinceIdSchema = z.object({
+  provinceId: z.string().min(1, { message: "Province ID is required." }),
+});
+
+export const GetWardAndPolygonByIdSchema = z.object({
+  wardId: z.string().min(1, { message: "Ward ID is required." }),
+});
+
+export const GetWardByNameSchema = z.object({
+  wardName: z.string().min(1, { message: "Ward name is required." }),
+});

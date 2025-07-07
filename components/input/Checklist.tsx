@@ -4,7 +4,8 @@ import { Input } from "../ui/input";
 import { LucideDot, Plus, X } from "lucide-react";
 import { MdChecklist } from "react-icons/md";
 import InputWithIcon from "./InputIcon";
-
+import { Separator } from "../ui/separator";
+import { PiBagFill } from "react-icons/pi";
 interface ChecklistComponentProps {
   items: string[];
   onChange: (items: string[]) => void;
@@ -85,6 +86,12 @@ const Checklist: React.FC<ChecklistComponentProps> = ({
         />
         <Button onClick={addItem} disabled={!newItem.trim()}>
           <Plus className="" />
+        </Button>
+      </div>
+      <div className="flex items-start justify-center px-4 flex-col">
+        <Separator className="my-4 " />
+        <Button>
+          <PiBagFill /> Pre-made lists
         </Button>
       </div>
     </div>
