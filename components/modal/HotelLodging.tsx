@@ -7,9 +7,9 @@ import { MdHotel } from "react-icons/md";
 const HotelLodging = () => {
   return (
     <div className="px-20 flex flex-col ">
-      <Button className="bg-[#e9ecef] h-[48px] rounded-[100px] !text-[#212529] font-bold flex items-center">
-        <MdHotel className="ml-2" />
-        <div className="flex-1">Book hotel</div>
+      <Button className="background-light800_dark300 h-[48px] rounded-[100px] !text-[#212529] font-bold flex items-center">
+        <MdHotel className="ml-2 dark:text-white" size={20} />
+        <div className="dark:text-white">Book hotel</div>
       </Button>
       <Separator className="my-4" />
       <Input

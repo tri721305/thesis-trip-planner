@@ -13,11 +13,13 @@ interface InputIconProps {
 const InputWithIcon = ({ icon, ...props }: InputIconProps) => {
   return (
     <div className="relative w-full ">
-      <div className="background-form focus:background-light800_darkgradient hover:background-light800_darkgradient relative flex min-h-[48px] grow items-center gap-1 rounded-xl px-4">
+      <div
+        className={`${props?.hover && "item-hover-btn"} ${props?.background ? "" : "background-form"}  focus:background-light800_darkgradient hover:background-light800_darkgradient relative flex min-h-[48px] grow items-center gap-1 rounded-xl px-4 `}
+      >
         <Input
           type="text"
           //   placeholder="Search anything globally..."
-          className="paragraph-regular no-focus placeholder text-dark400_light700 border-none shadow-none outline-none"
+          className="paragraph-regular  no-focus placeholder text-dark400_light700 border-none shadow-none outline-none"
           {...props}
         />
         {icon}

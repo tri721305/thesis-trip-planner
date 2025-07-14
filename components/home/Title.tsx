@@ -4,10 +4,14 @@ import moment from "moment";
 import { Button } from "../ui/button";
 import NumberCard from "../cards/NumberCard";
 import SearchBar from "../search/SearchBar";
+import Recently from "./Recently";
+import MyGuideAndPlan from "./MyGuideAndPlan";
+import Explore from "./Explore";
+
 const Title = () => {
   return (
-    <section className=" flex flex-col gap-16 justify-between">
-      <section className=" flex justify-between px-16 max-md:flex-col max-md:gap-4">
+    <section className=" flex flex-col gap-20 justify-between">
+      <section className=" flex justify-between   max-md:flex-col max-md:gap-4">
         <section className="text-dark200-light800 font-extrabold flex flex-col gap-6 text-[3.5em]">
           <div>
             <h2 className="text-[1rem] tracking-wide">
@@ -39,6 +43,15 @@ const Title = () => {
       </section>
       <section className="flex-center">
         <SearchBar />
+      </section>
+      <section>
+        <Recently />
+      </section>
+      <section>
+        <MyGuideAndPlan />
+      </section>
+      <section>
+        <Explore />
       </section>
     </section>
   );

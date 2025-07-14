@@ -1,3 +1,4 @@
+import { ILodging } from "@/database/blog.model";
 import { NextResponse } from "next/server";
 
 declare global {
@@ -12,6 +13,19 @@ declare global {
     image: string;
   }
 
+  interface Blog {
+    _id: string;
+    title: string;
+    description: string;
+    note: string;
+    tags: Types.ObjectId[];
+    views: number;
+    upvotes: number;
+    downvotes: number;
+    comments: number;
+    author: Types.ObjectId;
+    lodging: ILodging[];
+  }
   interface Question {
     _id: string;
     title: string;
@@ -153,6 +167,22 @@ declare global {
 
   interface ItineraryFormData {
     routes: DayRoute[];
+  }
+
+  interface PaginatedSearchParams {
+    page?: number;
+    pageSize?: number;
+    query?: string;
+    filter?: string;
+  }
+  interface Hotel {
+    _id: string;
+    offerId: string;
+    name: string;
+    images: object[];
+    location: object;
+    priceRates: object[];
+    priceRate: object;
   }
 }
 

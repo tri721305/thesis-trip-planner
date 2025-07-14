@@ -1,5 +1,11 @@
 import { model, models, Schema, Types, Document } from "mongoose";
 
+export interface INote {
+  content: string;
+}
+
+export interface IChecklist {}
+
 export interface ILodging {
   name: string;
   checkIn: Date;

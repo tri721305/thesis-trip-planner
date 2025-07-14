@@ -39,7 +39,9 @@ const Checklist: React.FC<ChecklistComponentProps> = ({
     onChange(updatedItems);
   };
   return (
-    <div className={`background-form rounded-xl py-4 ${className}`}>
+    <div
+      className={`background-light800_darkgradient rounded-xl py-4 ${className}`}
+    >
       <div className="flex items-center justify-between px-4 mb-3">
         <div className="flex items-center gap-2">
           <span className="font-bold">Checklist ( {items.length} )</span>

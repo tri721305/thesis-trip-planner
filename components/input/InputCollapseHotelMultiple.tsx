@@ -31,11 +31,12 @@ import PriceInput from "./PriceInput";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { CalendarDatePicker } from "../calendar-date-picker";
 import { CurrencyDisplay } from "../CurrencyDisplay";
-import { Plus } from "lucide-react";
+import { Plus, Trash } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { BiSolidHotel } from "react-icons/bi";
 import ReusableDialog from "../modal/ReusableDialog";
 import HotelLodging from "../modal/HotelLodging";
+import { GoKebabHorizontal } from "react-icons/go";
 
 // Schema cho multiple hotels
 const MultipleHotelsSchema = z.object({
@@ -333,7 +334,7 @@ const InputCollapseHotelMultiple = () => {
       onOpenChange={setIsOpen}
       className="flex w-full flex-col gap-2"
     >
-      <div className="flex items-center justify-between gap-4 px-4">
+      <div className="item-hover-btn flex items-center justify-between gap-4 ">
         <CollapsibleTrigger asChild>
           <Button variant="ghost" size="icon" className="size-8 font-medium">
             {!isOpen ? <FaChevronRight /> : <FaChevronDown />}
@@ -341,10 +342,22 @@ const InputCollapseHotelMultiple = () => {
           </Button>
         </CollapsibleTrigger>
         <InputWithIcon
-          icon={<FaPen className="text-gray-600" size={14} />}
+          icon={<FaPen className="text-gray-600 hover-btn" size={14} />}
           placeholder="Hotels and lodging"
-          className="paragraph-regular no-focus placeholder text-dark400_light700 border-none shadow-none !font-bold outline-none"
+          value="Hotels and lodging"
+          background="none"
+          hover="true"
+          onChange={() => {}}
+          className=" !text-[24px] paragraph-regular no-focus placeholder text-dark400_light700 border-none shadow-none !font-bold outline-none"
         />
+        <Button
+          onClick={() => {
+            // removeItem(idx);
+          }}
+          className=" !bg-transparent border-none shadow-none text-light800_dark300  flex items-center justify-center"
+        >
+          <GoKebabHorizontal size={24} />
+        </Button>
       </div>
 
       <CollapsibleContent ref={divRef} className="flex  flex-col gap-2">

@@ -8,22 +8,16 @@ import {
   getWardById,
   getWardByName,
 } from "@/lib/actions/ward.action";
+import { getHotels } from "@/lib/actions/hotel.action";
 
 const SearchBar = async () => {
-  // const provinces = await getProvinces();
-  // const wards = await getWardById({
-  //   provinceId: "1",
-  // });
-  // const ward = await getWardAndPolygonById({
-  //   wardId: "6867457c1988c03a1a713466",
-  // });
-  // console.log("ward", ward);
-
-  const ward = await getWardByName({
-    wardName: "Vàm Cỏ",
+  const hotel = await getHotels({
+    page: 1,
+    pageSize: 10,
+    query: "Somerset",
+    filter: "",
   });
-  console.log("ward", ward);
-  // console.log("provinces", provinces, "Wards", wards);
+  console.log("hotel", hotel);
   return (
     <div>
       <div className="flex gap-2 items-center shadow-lg p-4 rounded-lg">

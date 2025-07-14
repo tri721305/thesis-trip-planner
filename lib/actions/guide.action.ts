@@ -1,7 +1,7 @@
 "use server";
 
 import action from "../handler/action";
-import { GuideSchema } from "../validation";
+// import { GuideSchema } from "../validation";
 import { handleError } from "../handler/error";
 import mongoose from "mongoose";
 import {
@@ -11,6 +11,7 @@ import {
 import Guide from "@/database/guide.model";
 import Tag from "@/database/tag.model";
 import TagGuide from "@/database/tag-guide.model";
+import { GuideSchema } from "../validation";
 
 export async function createGuide(
   params: CreateGuideParams

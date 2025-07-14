@@ -1,0 +1,4490 @@
+{
+  "id": "1545449",
+  "type": "geoCategory",
+  "title": "The 15 best serviced apartments in Ho Chi Minh City",
+  "sourceDomain": null,
+  "linkUrl": null,
+  "headerImageKey": "qHSZAvIHn5jP8xzYPwN2g225gKqHORNP",
+  "geo": {
+    "id": 16,
+    "name": "Ho Chi Minh City"
+  },
+  "placeMetadata": [
+    {
+      "id": 5581527,
+      "name": "Riverside Serviced Apartments",
+      "placePageType": "visible",
+      "placeId": "ChIJ0QvdN2smdTERfEQbpef8L8A",
+      "sources": [
+        {
+          "id": "474256",
+          "type": "webPlacesList",
+          "url": "http://www.bestrent.vn/top-10-best-apartment-estates-to-live-in-ho-chi-minh/",
+          "sourceSite": "Web",
+          "snippet": "The name of the apartment complex should give you an idea of the spectacular views of the Saigon River from your own balcony. Located at An Phu, Thao Dien Ward, District 2, the serviced apartments are a blend of the best features of both an apartment and a hotel. The residential complex also include the Blu Bar & Grill, a playground, fitness centre, gardens, a salon, tennis courts, shops, and the Riverside Community.",
+          "siteName": "bestrent.vn",
+          "shortName": "Top 10 Best Apartment Estates to Live in Ho Chi Minh",
+          "indexInSource": 0,
+          "iconSiteId": 49102,
+          "showIcon": false,
+          "showInternalLink": false,
+          "showExternalLink": true,
+          "showSiteNameOnWeb": true
+        },
+        {
+          "id": "474299",
+          "type": "webPlacesList",
+          "url": "https://mogi.vn/news/top-5-best-serviced-apartment-in-ho-chi-minh-city-7803/",
+          "sourceSite": "Web",
+          "snippet": "Located on the scenic Saigon River, the 4-star Riverside Serviced Apartments offers free Wi-Fi, an outdoor pool and 2 tennis courts. Free scheduled shuttle boat or bus transfers will take you to and from Bach Dang Harbor. Set in 13 buildings, air-conditioned apartments come with a living room and fully equipped kitchen.",
+          "siteName": "Mogi.vn",
+          "shortName": "Top 5 best serviced apartment for rent in Ho Chi Minh city",
+          "indexInSource": 2,
+          "iconSiteId": 49105,
+          "showIcon": false,
+          "showInternalLink": false,
+          "showExternalLink": true,
+          "showSiteNameOnWeb": true
+        },
+        {
+          "id": "474273",
+          "type": "webPlacesList",
+          "url": "http://www.propertylaunch.vn/10-best-serviced-apartments-in-ho-chi-minh-city/",
+          "sourceSite": "Web",
+          "snippet": "There are one-, two-, three-, four-, and five-bedroom units depending on how many people you want to accommodate and a 24-hour service from the friendly crew. Visit Riverside Serviced Apartments at 53 Vo Truong Toan at District 2.",
+          "siteName": "propertylaunch.vn",
+          "shortName": "10 Best Serviced Apartments in Ho Chi Minh City",
+          "indexInSource": 5,
+          "iconSiteId": 49103,
+          "showIcon": false,
+          "showInternalLink": false,
+          "showExternalLink": true,
+          "showSiteNameOnWeb": true
+        }
+      ],
+      "description": null,
+      "generatedDescription": "Riverside Serviced Apartments, located in An Phu, Thao Dien Ward, District 2, offers stunning views of the Saigon River from its balconies. This 4-star complex features an outdoor pool, two tennis courts, and free Wi-Fi. The apartments are air-conditioned with fully equipped kitchens and living rooms. The property also includes a playground, fitness center, gardens, salon, shops and the Blu Bar & Grill.",
+      "categories": ["Apartment complex"],
+      "hasDetails": true,
+      "minMinutesSpent": null,
+      "maxMinutesSpent": null,
+      "address": "53 Võ Trường Toản, P, Thủ Đức, Hồ Chí Minh 700000, Vietnam",
+      "rating": 4.4,
+      "numRatings": 303,
+      "tripadvisorRating": null,
+      "tripadvisorNumRatings": null,
+      "website": "http://www.riverside-apartments.com/",
+      "internationalPhoneNumber": "+84 28 3744 4111",
+      "priceLevel": null,
+      "imageKeys": ["oZb2509PvSBRwiKJzW1lansWNxjbB3X8"],
+      "images": [
+        {
+          "key": "oZb2509PvSBRwiKJzW1lansWNxjbB3X8",
+          "width": 1624,
+          "height": 1080
+        }
+      ],
+      "reviews": [
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUM3N2J5T3l3RRAB",
+          "time": "2024-08-18T04:09:00.000Z",
+          "reviewerName": "Beata Ufniarz",
+          "rating": 5,
+          "rank": 1,
+          "reviewText": "Riverside has been my home for the last 2 years. This unique spot offers short and long term accomodation right by beautiful Saigon River.\nSettled in a lush garden, with chirping birds and very special light is a perfect spot to relax outside of the busy city and to take mesmerizing pictures.\nThe management is very friendly and helpful beyond expectations.\nLast but not least: the swimming pool and the river boat make this place a true gem in Saigon."
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnSURqME12N0NREAE",
+          "time": "2024-04-28T09:58:48.000Z",
+          "reviewerName": "Oscar Brown",
+          "rating": 5,
+          "rank": 2,
+          "reviewText": "Riverside serviced apartments is a resort within the bustling city! Super nice pool and restaurant with fantastic views over the Saigon River! Great security and facilities. Also very close to restaurants and great boat service into District 1. Great value!"
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnSUNkck5xR0ZBEAE",
+          "time": "2024-02-13T10:56:02.000Z",
+          "reviewerName": "Steve Hunt (Issac)",
+          "rating": 5,
+          "rank": 3,
+          "reviewText": "My 5th time staying at this lovely residence / apartment facility.  The staff are always super helpful, the public areas are clean and tidy, the addition of lovely pool and restaurant it has all the ingredients for a wonderful stay.\n\nGreat location, great people and excellent value for money 👍"
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnSURoNjl6SERnEAE",
+          "time": "2023-03-18T06:39:05.000Z",
+          "reviewerName": "Viviane Weller",
+          "rating": 5,
+          "rank": 4,
+          "reviewText": "A wonderful place for a short or long stay. The apartments are spacious, clean and practical. The facilities are great, particularly if you have children. The restaurant by the river is fantastic, but also great bars and restaurants around. And an incredibly helpful and friendly staff!"
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUNCbmJ2S2pBRRAB",
+          "time": "2023-01-02T06:10:33.000Z",
+          "reviewerName": "Tiffany Vang",
+          "rating": 5,
+          "rank": 5,
+          "reviewText": "I stayed here with my 2 kids for a few nights. The place is enjoyable, peaceful and convenient with hammock, coconut trees, bamboo, free laundry, play-yard for kids, pets area... There are optional boat trips to go along Saigon River. It's worth every penny."
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnSUN1NWFYQUJ3EAE",
+          "time": "2022-08-02T10:43:24.000Z",
+          "reviewerName": "Gregory Nathan",
+          "rating": 5,
+          "rank": 6,
+          "reviewText": "Love the location and the park like atmosphere with a real feeling of community.\n\nI hear the apartments are huge... and it is right on the river... such a peaceful pretty location. wonderful playground great for kids, dog run, tennis courts, all very nice...\n\nPierre the Manager of the Complex is just a nice, thoughtful man."
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnSUNVeDZPblZBEAE",
+          "time": "2019-08-07T02:27:48.000Z",
+          "reviewerName": "jcena",
+          "rating": 5,
+          "rank": 7,
+          "reviewText": "Stayed for a week for a business trip (client's location was within 1 km ) so didn't expect much - but left quite happy with the place.\n\n1. Quiet -it is a residential area so I was surprised the place was still pretty quiet and relaxed,\n2. Location and view - wonderful view of the river, taxis easy to get, and can walk (if you dare cross the highway on foot!!!! - that was an experience in itself)\n3. Nice restaurant within the compound\n4. Complete amenities for the easy traveller - laundry, food, minishop, tennis/basketball court/gym, coffee shop, tennis instructors, swimming pool\n5. Rooms were decent and fairly large (I was alone but I can imagine the my suite able to take 4 people quite easily)\n6. Internet everywhere.\n7.  Price is quite reasonable.\n8. Not quite HCMC center but taxis are quite affordable.\n9 . Staff quite helpful (and very polite)\n\nOverall, pretty happy with my stay. And I will surely try to come back if I want some R&R."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSURRX1BtX2h3RRAB",
+          "time": "2016-02-11T07:39:03.000Z",
+          "reviewerName": "Claire Hughes",
+          "rating": 5,
+          "rank": 8,
+          "reviewText": "Low rise blocks of large tasteful apartments surrounded by well groomed gardens. Blu restaurant expensive compared to city places but good international selection in generous portions. Meal & a drink about 200,000VND.\nA perfect spot having spent a couple  of days staying in the centre of town. Lovely very welcomed pool area and courtesy bus/boat back into city centre. Free use of washing machines & driers also a bonus. Coffee shop very good and mini mart with limited food selection. We are enjoying our stay very much"
+        }
+      ],
+      "geo": null,
+      "permanentlyClosed": false,
+      "businessStatus": "OPERATIONAL",
+      "ratingDistribution": {
+        "Google": {
+          "1": 12,
+          "2": 4,
+          "3": 21,
+          "4": 72,
+          "5": 194
+        }
+      },
+      "utcOffset": 420,
+      "openingPeriods": [
+        {
+          "open": {
+            "day": 0,
+            "time": "0000"
+          }
+        },
+        {
+          "open": {
+            "day": 1,
+            "time": "0000"
+          }
+        },
+        {
+          "open": {
+            "day": 2,
+            "time": "0000"
+          }
+        },
+        {
+          "open": {
+            "day": 3,
+            "time": "0000"
+          }
+        },
+        {
+          "open": {
+            "day": 4,
+            "time": "0000"
+          }
+        },
+        {
+          "open": {
+            "day": 5,
+            "time": "0000"
+          }
+        },
+        {
+          "open": {
+            "day": 6,
+            "time": "0000"
+          }
+        }
+      ]
+    },
+    {
+      "id": 1082334,
+      "name": "Homestead Parkview",
+      "placePageType": "visible",
+      "placeId": "ChIJFQ-PDzwvdTERYD1e-pRhrBM",
+      "sources": [
+        {
+          "id": "474273",
+          "type": "webPlacesList",
+          "url": "http://www.propertylaunch.vn/10-best-serviced-apartments-in-ho-chi-minh-city/",
+          "sourceSite": "Web",
+          "snippet": "Another award-winning apartment in Ho Chi Minh City, Homestead Parkview is all you need for fully-serviced apartments at competitive rates. Reserve now and book one of their units such as luxury apartment, studio, deluxe apartment, deluxe king suite, family two-bedroom suite, two-bedroom apartment, and executive room.",
+          "siteName": "propertylaunch.vn",
+          "shortName": "10 Best Serviced Apartments in Ho Chi Minh City",
+          "indexInSource": 4,
+          "iconSiteId": 49103,
+          "showIcon": false,
+          "showInternalLink": false,
+          "showExternalLink": true,
+          "showSiteNameOnWeb": true
+        },
+        {
+          "id": "474299",
+          "type": "webPlacesList",
+          "url": "https://mogi.vn/news/top-5-best-serviced-apartment-in-ho-chi-minh-city-7803/",
+          "sourceSite": "Web",
+          "snippet": "Strategically located in the city center, Homestead Parkview offers homely and modern accommodation with free Wi-Fi access throughout the property. It features a 24-hour front desk and a business center. Rooms are fitted with a kitchen with amenities such as a fridge, hob, baking oven and electric kettle",
+          "siteName": "Mogi.vn",
+          "shortName": "Top 5 best serviced apartment for rent in Ho Chi Minh city",
+          "indexInSource": 1,
+          "iconSiteId": 49105,
+          "showIcon": false,
+          "showInternalLink": false,
+          "showExternalLink": true,
+          "showSiteNameOnWeb": true
+        }
+      ],
+      "description": "Straightforward hotel featuring informal quarters, plus a restaurant & a rooftop terrace.",
+      "generatedDescription": "Homestead Parkview is a straightforward hotel with informal accommodations, a restaurant, and a rooftop terrace. The property offers beautiful views of Tao Dan Park and provides various neatly designed apartments suitable for families and business travelers. It is known for its fully-serviced apartments at competitive rates, including luxury, studio, deluxe, family two-bedroom suites, and executive rooms. The hotel's location is convenient, close to boutique shops and eateries within walking distance of Ben Thanh Market.",
+      "categories": ["Hotel", "Apartment complex"],
+      "hasDetails": true,
+      "minMinutesSpent": null,
+      "maxMinutesSpent": null,
+      "address": "149 Đ. Nguyễn Du, Phường Bến Thành, Quận 1, Hồ Chí Minh, Vietnam",
+      "rating": 3.9,
+      "numRatings": 414,
+      "tripadvisorRating": null,
+      "tripadvisorNumRatings": null,
+      "website": null,
+      "internationalPhoneNumber": "+84 28 3823 5220",
+      "priceLevel": null,
+      "imageKeys": [],
+      "images": [],
+      "reviews": [
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnSUNOazdiRldnEAE",
+          "time": "2024-01-17T14:22:17.000Z",
+          "reviewerName": "David Mark",
+          "rating": 5,
+          "rank": 6,
+          "reviewText": "Nice hotel staff was very friendly and helpful in giving directions for city. Hotel is very centrally located and on a quiet street. Breakfast was really good too. Enjoyed stay and ended up booking extra night."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSURmNkpleXNBRRAB",
+          "time": "2025-01-03T19:17:25.000Z",
+          "reviewerName": "sara maree",
+          "rating": 1,
+          "rank": 1,
+          "reviewText": "The hotel is shut down, power and phone bill unpaid. Do not come here. My husband and our two young sons were left stranded on the phone for 2 hours to rearrange accomodation during the busy period, we had to stay in the city away from the tourist area that we wanted to stay. We were stuck from 9pm - 11pm in a dodgy area. As we waited people approached us and it felt unsafe. They allow people to book their room even though they are closed."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUQ5aUxqZDhBRRAB",
+          "time": "2024-03-12T16:05:03.000Z",
+          "reviewerName": "Himalayan Eco Cultural Tours and Travels",
+          "rating": 4,
+          "rank": 2,
+          "reviewText": "Very nice and clean hotel! Staffs are also very nice!\n\nThere is a school next to the hotel, so if you are not the early bird , and likes to sleep late in the morning, the school kids noise will disturb your sleep!\n\nTalking about breakfast, I really enjoyed their breakfast! And being vegetarian I must say they have quite decent options for vegetarian too!\n\nRestaurant staff and receptionist were nice!"
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUMxcy0ya3p3RRAB",
+          "time": "2024-01-03T12:04:18.000Z",
+          "reviewerName": "Minati Saha",
+          "rating": 4,
+          "rank": 3,
+          "reviewText": "We booked the apartment with 2 separate bedrooms, 2 toilets (one with bathtub)  and a living room and kitchen.\nThe master bedroom is big and comfortable. However the same cannot be said for the smaller bedroom. It is much smaller and you cannot close and lock the door. Also there are small holes for decoration in the wall which faces the living room so there is no privacy.\nKeep that in mind before taking the smaller bedroom\nThe breakfast is ordinary and the service is slow. I don't like the system where you have to order the food and then it comes to you. A simple buffet where all the options are available  is much better and simpler. Also the food from the à la carte menu took a lot of time\nLocation is good and is close to the Ben Thành market."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUNkaFpmT3JBRRAB",
+          "time": "2024-02-16T17:48:10.000Z",
+          "reviewerName": "Devan Bauer",
+          "rating": 4,
+          "rank": 4,
+          "reviewText": "We spent over a week here, great rooms for the price, comfy beds, stocked fridge, quick laundry service. The only complaint is the lack of water pressure and hot water when showering on higher floors. Would stay here for a shorter stay again!"
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSURseXV2Um9nRRAB",
+          "time": "2023-12-01T09:26:07.000Z",
+          "reviewerName": "Edo Karura",
+          "rating": 1,
+          "rank": 5,
+          "reviewText": "Been coming here for years but things don’t improve though the prices increase.. Internet is so slow it’s almost worthless. Want a dining table where the dining table is supposed to be? The staff has got to steal one from an unoccupied room. Want a privacy curtain? Ditto. Or a second lamp for the second bedside table? Same. The owner seems to just refuse to spend any money on fixing these basic things. And somehow they’re rated as a 4-star hotel?!?"
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUNlaVplZ25nRRAB",
+          "time": "2022-09-17T08:58:42.000Z",
+          "reviewerName": "Lam Lionel",
+          "rating": 4,
+          "rank": 7,
+          "reviewText": "Hotel location is good, near small boutique shops & eatery. Walking distance to Ben Thanh Market. Hotel rooms need further upgrade as certain facilities are rather old & infested with ants. The hotel staffs are very responsive & helpful & a handful of them can speak simple English, namely Johnny, the front office helper & the young slim fit man helping out in the restaurant at level one. Generally, the front office & restaurant staffs are very polite, good & ready to serve. Johnny specifically helped to change my room after the first night to a brighter & cleaner room. He is attentive & can recognise me when I stepped into the hotel as this is the 3rd time staying in this same hotel. The restaurant at level one is newly renovated, i supposed as previously the breakfast was served at the hugest floor."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUR4NE5QSjhnRRAB",
+          "time": "2023-05-30T16:54:32.000Z",
+          "reviewerName": "anand thirani",
+          "rating": 2,
+          "rank": 8,
+          "reviewText": "The place is not a 4 star and it is difficult to get 2 rooms of the same category on the same floor and will be asked to upgrade . The hotel is getting old and needs a refurbished work. The hot water takes 2 mins in the taps.\nMost of the team members can connect in English.\nThe staff are helpful too .\nThere is no swimming pool , bar or dedicated support staff for luggage or misc  .\nThe stairs are high ...10 stairs .so could be difficult with big suitcases.\nThe breakfast  buffet was dull , but the main attendant was prompt to get a option for us .\nSo vegetarian people do ask and get the extra care.\nOverall it's a average."
+        }
+      ],
+      "geo": null,
+      "permanentlyClosed": false,
+      "businessStatus": "OPERATIONAL",
+      "ratingDistribution": {
+        "Google": {
+          "1": 38,
+          "2": 17,
+          "3": 61,
+          "4": 120,
+          "5": 178
+        }
+      },
+      "utcOffset": 420,
+      "openingPeriods": null
+    },
+    {
+      "id": 1083065,
+      "name": "Somerset Ho Chi Minh City",
+      "placePageType": "visible",
+      "placeId": "ChIJjcFsvLQodTER1NOL5Iaxeok",
+      "sources": [
+        {
+          "id": "474299",
+          "type": "webPlacesList",
+          "url": "https://mogi.vn/news/top-5-best-serviced-apartment-in-ho-chi-minh-city-7803/",
+          "sourceSite": "Web",
+          "snippet": "Each apartment has a kitchen, home entertainment system, free broadband internet access and a work desk. Conveniently located in the commercial and shopping district, Somerset Ho Chi Minh City offers serviced apartment in Ho Chi Minh city with free high-speed internet access and an outdoor pool with spa bath. Each apartment has a kitchen, home entertainment system, free broadband internet access and a work desk.",
+          "siteName": "Mogi.vn",
+          "shortName": "Top 5 best serviced apartment for rent in Ho Chi Minh city",
+          "indexInSource": 0,
+          "iconSiteId": 49105,
+          "showIcon": false,
+          "showInternalLink": false,
+          "showExternalLink": true,
+          "showSiteNameOnWeb": true
+        },
+        {
+          "id": "474273",
+          "type": "webPlacesList",
+          "url": "http://www.propertylaunch.vn/10-best-serviced-apartments-in-ho-chi-minh-city/",
+          "sourceSite": "Web",
+          "snippet": "One of the best accommodations in Ho Chi Minh City, Somerset is located at No. 8A Nguyen Binh Khiem St. at District 1. You can choose from a number of apartment types such as one-bedroom deluxe, two-bedroom executive, two-bedroom executive suite, two-bedroom premier, three-bedroom executive, three-bedroom executive suite, and three-bedroom premier.",
+          "siteName": "propertylaunch.vn",
+          "shortName": "10 Best Serviced Apartments in Ho Chi Minh City",
+          "indexInSource": 2,
+          "iconSiteId": 49103,
+          "showIcon": false,
+          "showInternalLink": false,
+          "showExternalLink": true,
+          "showSiteNameOnWeb": true
+        }
+      ],
+      "description": "Polished units with kitchens in a relaxed apartment hotel with an outdoor pool & a gym.",
+      "generatedDescription": "Somerset Ho Chi Minh City is a relaxed apartment hotel located in the commercial and shopping district of Ho Chi Minh City. The polished units feature kitchens, home entertainment systems, free broadband internet access, and work desks. The property offers an outdoor pool with a spa bath and a gym for guests to enjoy. It's known for its spacious serviced apartments that cater to both tourists and expats, providing comfort and ample space for relaxation.",
+      "categories": ["Serviced accommodation"],
+      "hasDetails": true,
+      "minMinutesSpent": null,
+      "maxMinutesSpent": null,
+      "address": "No 8A Đ. Nguyễn Bỉnh Khiêm, Đa Kao, Quận 1, Hồ Chí Minh 71007, Vietnam",
+      "rating": 4.4,
+      "numRatings": 1231,
+      "tripadvisorRating": null,
+      "tripadvisorNumRatings": null,
+      "website": "https://www.discoverasr.com/en/somerset-serviced-residence/vietnam/somerset-ho-chi-minh-city?utm_source=google&utm_medium=maps&utm_campaign=hq-google-gbp-alwayson-all-en-vn-vn-somersethochiminhcity-gbp",
+      "internationalPhoneNumber": "+84 28 3822 8899",
+      "priceLevel": null,
+      "imageKeys": [
+        "qHSZAvIHn5jP8xzYPwN2g225gKqHORNP",
+        "gMpHaEekMaOoaZuFHIfZVWkw5GOLaIyO",
+        "2X5SVlcmwf4s5m5aHGqzQmqpilRAhrEO"
+      ],
+      "images": [
+        {
+          "key": "qHSZAvIHn5jP8xzYPwN2g225gKqHORNP",
+          "width": 1440,
+          "height": 1080
+        },
+        {
+          "key": "gMpHaEekMaOoaZuFHIfZVWkw5GOLaIyO",
+          "width": 1619,
+          "height": 1080
+        },
+        {
+          "key": "2X5SVlcmwf4s5m5aHGqzQmqpilRAhrEO",
+          "width": 1619,
+          "height": 1080
+        }
+      ],
+      "reviews": [
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnSUNfaWJDV0V3EAE",
+          "time": "2025-01-17T04:20:24.000Z",
+          "reviewerName": "Shiny Thannikal Varghese",
+          "rating": 5,
+          "rank": 1,
+          "reviewText": "We had an absolutely wonderful stay at Somerset Ho Chi Minh City! From the moment we arrived, the staff made us feel so welcome and comfortable. The room was immaculate—spotlessly clean and equipped with all the amenities needed for a truly relaxing stay.\n\nThe location was ideal, conveniently close to everything we wanted to explore. The buffet breakfast was delicious, with a wide variety of options to start the day perfectly. The pool was fantastic as well—a great spot to relax and unwind.\n\nOverall, we thoroughly enjoyed our stay and would highly recommend Somerset Ho Chi Minh City to anyone visiting the area. A heartfelt thank you to the entire team for making our experience so memorable!"
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnTURROE1DVXZ3RRAB",
+          "time": "2025-03-08T14:04:52.000Z",
+          "reviewerName": "Fiona carroll",
+          "rating": 5,
+          "rank": 1,
+          "reviewText": "Myself and 2 friends booked The Somerset for the month of February  mainly to escape the cold month at home in Scotland. We had a lovely 3 bedroom apartment. There was a very well fitted kitchen and a spacious dining/livingroom an en suite bathroom in one of the bedrooms a separate shower room and also a small toilet with wash basin and shower. We had a washing machine and had rails to hang washing out on balcony to dry. It really was a \"home from home\". The pool area was very clean and well looked after with plenty sun loungers. We made use of the gym which was well equipped. The staff were polite and friendly and really happy to help with any requests we had. We had an amazing month and would love to return again sometime."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnTURvOUt6QTdRRRAB",
+          "time": "2025-04-22T09:37:15.000Z",
+          "reviewerName": "lorraine cruickshank",
+          "rating": 5,
+          "rank": 1,
+          "reviewText": "Excellent stay, thank you.\n\nStayed here for 2 nights in March 2025 before flying to Phu Quoc.\n\nThe rooms are beautiful, very clean, Fully fitted kitchen, bedrooms very comfortable, lovely spotless bathrooms.\nFood was delicious, tasty and very reasonably priced.\nThe staff were extremely friendly and helpful.\n\nThe swimming pool was beautiful and a welcome from the heat of HCMC.\n\nHighly recommend"
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnTURveTgyVE93EAE",
+          "time": "2025-04-28T23:07:13.000Z",
+          "reviewerName": "Susan Tran-Rohrbaugh",
+          "rating": 5,
+          "rank": 1,
+          "reviewText": "Central location - would have been easy to get around if not for the Liberation Day prep two weekends beforehand…resulted in the roads being closed so it was hard to get a Grab. The hotel and property itself was nicely maintained and all staff were wonderful and friendly. We stayed in the 3 bedroom suite and appreciated having a washer and dryer and the complimentary water and instant ramen! The front desk and reception staff is truly so accommodating and made our stay comfortable. There is a convenience store onsite that's convenient. The hotel hosted an Easter egg hunt when we were visiting - my son enjoyed and and it was such a nice touch!"
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUNfdTVQMTdRRRAB",
+          "time": "2025-01-19T09:15:45.000Z",
+          "reviewerName": "Chloe",
+          "rating": 5,
+          "rank": 2,
+          "reviewText": "stayed for two nights the staff are super nice the people at the door and in the lobby are so respectful and kind. The breakfast was okay definitely could be better but to some people it may be good. rooms were amazing very spacious and big. overall good place to stay nice staff though the location is some distance to the main parts of the city."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnTURJd1p2dWtRRRAB",
+          "time": "2025-04-10T13:02:14.000Z",
+          "reviewerName": "Robert Blackwell",
+          "rating": 5,
+          "rank": 2,
+          "reviewText": "These serviced apartments are astonishingly well priced. We had a two-bedroom apartment, which measured about 85 square metres. It had two bathrooms and was equipped for long-term use, with oven, hob, washing machine and full-size fridge-freezer. All the appliances were very good quality. Although the pool had a shallow end, you could still swim laps. For me, location isn't such a critical factor as it is in, say, Bangkok since it is very easy to move around the city with Grab. You never have to wait more than two minutes for a ride anywhere. We only ate at the restaurant once and, as mentioned by many reviewers, found it to be substandard. Given the number of options in the vicinity I would not consider that a deal breaker. I would thoroughly recommend these serviced apartments."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUR2NE5uQmlnRRAB",
+          "time": "2024-12-16T17:08:38.000Z",
+          "reviewerName": "Jonathan Stewart",
+          "rating": 3,
+          "rank": 3,
+          "reviewText": "As a father of three, I am always thinking about safety and health for my kids.  The main reason for my low rating is the service and food at the hotel restaurant.  Please note that on the night of the bad experience we had there was a party, sponsored by the hotel.  We could not attend as there was no table for us and they claimed to be full.\n\nWe went to the hotel restaurant and ordered 4 different dishes.  Total time before first plate arrived was 1 hour 20 minutes.  My wife, speaking fluent Vietnamese asked them to prepare the food with no spice or anything spicy.  I took one bite of the food and had to stop eating any more.  It was too spicy and one bite started making my stomach sick.  The additional dishes were bought out at 1 hour 30 minutes and the last dish was never brought out.\n\nWhen I brought my concerns to the wait staff, we had to argue to remove the food we never received and still had to pay for the spicy dish.\n\nIt’s not the money, it’s the principle of it all.  If they could not serve us because of the event, they should have told us to begin with.  Then, not taking ownership of their bad service made matters worse.\n\nAll the hotel can offer is good will and they let us down.  No reason to patronize them, so we cancelled the remainder of our trip with them and found a larger apartment at less cost in D4."
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnTUNZbk5QM2NREAE",
+          "time": "2025-05-02T10:25:01.000Z",
+          "reviewerName": "Wong Goh",
+          "rating": 5,
+          "rank": 6,
+          "reviewText": "We recently had the pleasure of staying 3 nites at this well maintained, lovely apartment.\nThe staff at the reception were friendly, helpful and we were being served by Vivien who did the check in for us, and we were glad that we had the privilege to meet Vivien again who handle our check out. Vivien was very efficient, friendly and accommodating which made us feel at ease, welcome and comfortable.\n\nRoom was clean, firm mattress which gave restful night sleep, kitchen well fitted, bathroom clean well maintained.\n\nWe called for room service once, had the pho which tasted flavoursome, there is also a convenient shop located on site.\n\nWe enjoyed our stayed and would recommend it to our friends and others."
+        }
+      ],
+      "geo": null,
+      "permanentlyClosed": false,
+      "businessStatus": "OPERATIONAL",
+      "ratingDistribution": {
+        "Google": {
+          "1": 46,
+          "2": 22,
+          "3": 85,
+          "4": 286,
+          "5": 792
+        }
+      },
+      "utcOffset": 420,
+      "openingPeriods": null
+    },
+    {
+      "id": 5452036,
+      "name": "A&EM Hotel & Spa",
+      "placePageType": "visible",
+      "placeId": "ChIJdRwKvz4vdTERbRc78CVyOsI",
+      "sources": [
+        {
+          "id": "474256",
+          "type": "webPlacesList",
+          "url": "http://www.bestrent.vn/top-10-best-apartment-estates-to-live-in-ho-chi-minh/",
+          "sourceSite": "Web",
+          "snippet": "Located near the Ben Thanh Street Food Market, Fine Arts Museum, General Science Library, Reunification Palace, Benh Thanh Market, Notre Dame Church, and many more, the apartments are the best place to stay if you have an adventurous spirit. Travel experts consider it one of the best locations in Ho Chi Minh City to stay, and the units include perks such as free WiFi and a fully-fitted kitchen and entertainment set. With additional charges, guests can also enjoy massage and spa services and access to the wellness center.",
+          "siteName": "bestrent.vn",
+          "shortName": "Top 10 Best Apartment Estates to Live in Ho Chi Minh",
+          "indexInSource": 6,
+          "iconSiteId": 49102,
+          "showIcon": false,
+          "showInternalLink": false,
+          "showExternalLink": true,
+          "showSiteNameOnWeb": true
+        },
+        {
+          "id": "474273",
+          "type": "webPlacesList",
+          "url": "http://www.propertylaunch.vn/10-best-serviced-apartments-in-ho-chi-minh-city/",
+          "sourceSite": "Web",
+          "snippet": "This four-star hotel and apartment is located at 59-61 Thu Koan Huan Street in District 1, you are guaranteed the best service at the heart of Ho Chi Minh City. A&Em Hotel and Apartments include fully-furnished units, restaurant, wellness center, spa, fitness center, massage services, outdoor swimming pool, and airport shuttle services.",
+          "siteName": "propertylaunch.vn",
+          "shortName": "10 Best Serviced Apartments in Ho Chi Minh City",
+          "indexInSource": 1,
+          "iconSiteId": 49103,
+          "showIcon": false,
+          "showInternalLink": false,
+          "showExternalLink": true,
+          "showSiteNameOnWeb": true
+        }
+      ],
+      "description": "Polished rooms in a chic property featuring dining, a spa & a cafe/bar, plus free Wi-Fi.",
+      "generatedDescription": "A&EM Hotel & Spa is a stylish property offering well-appointed rooms, dining options, and a spa. Situated near popular attractions like Ben Thanh Street Food Market and Reunification Palace, it's an ideal choice for adventurous travelers. The hotel provides free Wi-Fi, fully-equipped kitchens in the units, and entertainment sets. Guests can also access massage and spa services at an additional cost.",
+      "categories": ["Hotel"],
+      "hasDetails": true,
+      "minMinutesSpent": null,
+      "maxMinutesSpent": null,
+      "address": "33 Đ. Lê Anh Xuân, Phường Bến Thành, Quận 1, Hồ Chí Minh, Vietnam",
+      "rating": 3.8,
+      "numRatings": 222,
+      "tripadvisorRating": null,
+      "tripadvisorNumRatings": null,
+      "website": null,
+      "internationalPhoneNumber": "+84 28 3824 2424",
+      "priceLevel": null,
+      "imageKeys": [
+        "YBj9idzkALsQvBB7QvIdHceFufKLo4LC",
+        "LiRGVSFIZFs3wYNUdOSjqTegYs7rMZoT"
+      ],
+      "images": [
+        {
+          "key": "YBj9idzkALsQvBB7QvIdHceFufKLo4LC",
+          "width": 1080,
+          "height": 1080
+        },
+        {
+          "key": "LiRGVSFIZFs3wYNUdOSjqTegYs7rMZoT",
+          "width": 1618,
+          "height": 1080
+        }
+      ],
+      "reviews": [
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnSURPamV6MlN3EAE",
+          "time": "2022-07-11T07:18:41.000Z",
+          "reviewerName": "jivat k",
+          "rating": 5,
+          "rank": 3,
+          "reviewText": "Kudos to the staff especially the male receptionst Mr. Hieu, the doorman (sorry didnt catch his name) as well as the lady cleaner. They were all welcoming and cheerful despite working hard through out the day.\n\nMr. Hieu, from day 1, treated us with the best service. He even gave his personal number to me so that I can contact him if I have any issues. Never once in my stays, even in 5 star hotels, have the staff reached out to me and connected with clients to this extent.\n\nWith respect to rooms, they were reasonable for the price. Cleanliness wise, I am pretty impressed with the lady cleaner on how my room is always in top condition everytime I return back after my breakfast. The beds were so comfortable and they are generous with the pillows in the room as well. The best part of security of the room will be the buzzer noise that indicates that you haven't closed the room door properly.\n\nOverall, I had a fantastic stay at this hotel and no doubt I will be returning to stay here again given the professionalism of the staff. It still warms my heart on how the staff made me feel like the hotel was my second home and a safe place.\n\nSide note: When I return next time, I will definately want to bring the entire team who assisted me for dinner\n\nKeep up the good work guys and see you again☺️"
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUNBOVBlSXV3RRAB",
+          "time": "2023-01-04T05:49:06.000Z",
+          "reviewerName": "Huoye Tan",
+          "rating": 4,
+          "rank": 1,
+          "reviewText": "Rooms is new and clean, location is not bad... near banh thah market...\n\nWanted late check out timing but was told room was fully booked thus unable to accommodate. However, when I wanted to pay for half day use, it was available. Not very honest I will say\n\nPaid and get on with it."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUN4MC1fSW1nRRAB",
+          "time": "2023-05-25T13:39:42.000Z",
+          "reviewerName": "Phuong Hirovanaa",
+          "rating": 1,
+          "rank": 2,
+          "reviewText": "I’m Vietnamese. Living in Australia.\nI been stayed in A& em Group seen 2012 for at least minimum 1 time/ year( accepted during Covid times).\nthis time I stayed for 11 nights. But, they changed 3 times for my room. I end up to stayed in the room with:\n- The room on the top level of the hotel :only my room, the fitness & hotel stores\n- Very very hot\n- the electric turned off in the middle of the night till next morning\n- the bathroom have waters all over on the floor when i have showered\n- the door can’t locked when I’m inside the room 😣😣😣\n- when I asked to fixed the problem: the accountant lady ( her name: Oanh) & Receptionist man( his name: Sang). Both answer my request super Rude.Special the accountant lady, that is not her responsibility, but her actions really really ridiculous. She act like she is the owner of the hotel🤬🤬🤬\n- I stayed 11 nights, but they didn’t changed my bed sheets. 😢😢😢.\n- the television not clear to watching.. event that the Vietnamese chanel🤯🤯🤯\n\nThe only Best thing in this hotel is : Breakfast. Although, I’m not have Breakfast every day when I’m in there, but the lady ( her name: Phuong-work in there every day ) she Super Friendly.& the Foods really really nice.\n\nSuper super angry! I don’t think I will come back here again in future!"
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSURnck9QQXBBRRAB",
+          "time": "2017-12-22T17:08:11.000Z",
+          "reviewerName": "Nima B",
+          "rating": 3,
+          "rank": 4,
+          "reviewText": "It's in a convenient location and close to many points of interest by foot if you don't mind walking. The cleaning staff tend to get together in the morning and have their breakfast and chat on the floor. They don't have any other place to congregate I suppose so their talking and walkie talkie chatter will take you up between 8am to 9am. The shower is very low so if you're tall then you'll just need to hold the handle. Very small bathroom but it is clean. You can find cheaper and better accommodation if you look."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUNKX3FpdzdBRRAB",
+          "time": "2023-06-28T08:45:31.000Z",
+          "reviewerName": "Calvin Lok",
+          "rating": 4,
+          "rank": 5,
+          "reviewText": "Split between a road, there are 2 A&EM. Depending on which you spent the night, one will need to head to another building for breakfast. And that's where it disappoints. For the price of 1.7 million/night, the breakfast was below par. Cafe was very small which made dining not comfortable."
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnSURVenZmaVFREAE",
+          "time": "2019-08-23T20:32:09.000Z",
+          "reviewerName": "Patrick Manijo",
+          "rating": 5,
+          "rank": 6,
+          "reviewText": "On November 2018, February 2019 and August 2019 I booked reservations at A&EM Corner Hotel. From the moment I arrived I was  pleased at the warm welcome I received from the staff at the front desk. I was taken to my room  and noticed right away how clean the room and the toilet area was. I cannot say enough for the house cleaning department.  Binh Nguyen who cleaned my room and was very polite and greeted me with a warm welcome . Her smile and pleasant personality sets her above all others. A&EM Hotel is very lucky to have a wonderful employee like Binh Nguyen"
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnSURnZ3NpWUdREAE",
+          "time": "2018-03-22T15:13:52.000Z",
+          "reviewerName": "Thắng Phan",
+          "rating": 2,
+          "rank": 7,
+          "reviewText": "Hotel is in good location, convenient to visit several tourist places and room condition is acceptable.\nHowever, I am sorry to say that the breakfast is not tasty. And the thing made me really disappointed is internet quality. I was in business trip and internet working was necessary but the connection was always lost. My colleges got the same terrible situation.\nIn considering above issues, I think the room price is high."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUNlbWRfcmh3RRAB",
+          "time": "2022-09-18T04:50:44.000Z",
+          "reviewerName": "Mohan Mahadeva",
+          "rating": 4,
+          "rank": 8,
+          "reviewText": "Great location in district 1. Very lively area and walkable. Ben Thanh is very close by. Room was spacious with jacuzzi in toilet."
+        }
+      ],
+      "geo": null,
+      "permanentlyClosed": false,
+      "businessStatus": "OPERATIONAL",
+      "ratingDistribution": {
+        "Google": {
+          "1": 15,
+          "2": 6,
+          "3": 48,
+          "4": 82,
+          "5": 71
+        }
+      },
+      "utcOffset": 420,
+      "openingPeriods": null
+    },
+    {
+      "id": 1082351,
+      "name": "JW Marriott Hotel & Suites Saigon (Apartment Tower)",
+      "placePageType": "visible",
+      "placeId": "ChIJ5ZwSAZ8vdTER_T8c0FMHYfY",
+      "sources": [
+        {
+          "id": "474273",
+          "type": "webPlacesList",
+          "url": "http://www.propertylaunch.vn/10-best-serviced-apartments-in-ho-chi-minh-city/",
+          "sourceSite": "Web",
+          "snippet": "Achieve luxurious living at Intercontinental Saigon Residences located at Corner Nguyen Du and Ha Ba Trung Streets in District 1.",
+          "siteName": "propertylaunch.vn",
+          "shortName": "10 Best Serviced Apartments in Ho Chi Minh City",
+          "indexInSource": 6,
+          "iconSiteId": 49103,
+          "showIcon": false,
+          "showInternalLink": false,
+          "showExternalLink": true,
+          "showSiteNameOnWeb": true
+        }
+      ],
+      "description": "Sleek units with kitchens & city views in an upscale apartment hotel offering a pool & a gym.",
+      "generatedDescription": "InterContinental Saigon Residences, an IHG Hotel, offers sleek units with kitchens and city views in an upscale apartment hotel. The property features a pool and a gym for guests to enjoy. Additionally, the hotel is centrally located near famous architectural complexes of old Saigon from the French colonial period, such as Notre Dame Cathedral, Saigon Post Office, and the Independence Palace.",
+      "categories": ["Hotel", "Conference center", "Wedding venue"],
+      "hasDetails": true,
+      "minMinutesSpent": null,
+      "maxMinutesSpent": null,
+      "address": "Corner Nguyen Du St. &, Đ. Lê Văn Hưu, St, Quận 1, Hồ Chí Minh, Vietnam",
+      "rating": 4.6,
+      "numRatings": 874,
+      "tripadvisorRating": null,
+      "tripadvisorNumRatings": null,
+      "website": "https://www.ihg.com/intercontinental/hotels/us/en/ho-chi-minh-city/sgnhb/hoteldetail?cm_mmc=GoogleMaps-_-IC-_-VN-_-SGNHB",
+      "internationalPhoneNumber": "+84 28 3520 9999",
+      "priceLevel": null,
+      "imageKeys": [
+        "uLFXJS91cCC1gyQK4op4lsmtK10BTh90",
+        "wCrLQhF7bKzf8W2YVy8aZI38yNq38IoG"
+      ],
+      "images": [
+        {
+          "key": "uLFXJS91cCC1gyQK4op4lsmtK10BTh90",
+          "width": 1920,
+          "height": 1080
+        },
+        {
+          "key": "wCrLQhF7bKzf8W2YVy8aZI38yNq38IoG",
+          "width": 1024,
+          "height": 720
+        }
+      ],
+      "reviews": [
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUNIdkpMbXFnRRAB",
+          "time": "2024-09-02T13:15:09.000Z",
+          "reviewerName": "Nikhil Jindal",
+          "rating": 5,
+          "rank": 1,
+          "reviewText": "Exceptional Stay with Outstanding Service and Birthday Surprises\n\nI recently had the pleasure of staying at the InterContinental Saigon Residences, and I must say, it was an unforgettable experience! From the moment I arrived, the hospitality was top-notch. A special shoutout to Sabrina and her amazing team who truly went above and beyond to make my stay exceptional.\n\nI was delighted to receive a complimentary upgrade, which made my stay even more comfortable. The residence itself was beautifully appointed, offering all the amenities one could ask for. The attention to detail in the room was impeccable, making it feel like a home away from home.\n\nWhat really made my stay special was the thoughtful birthday amenity I received. It was a wonderful surprise that made my birthday even more memorable. Additionally, the team was incredibly accommodating by offering a late checkout, allowing me to enjoy the property just a little bit longer.\n\nOverall, the InterContinental Saigon Residences exceeded my expectations in every way. The service was impeccable, the accommodations luxurious, and the little personal touches made all the difference. I can’t thank Sabrina and her team enough for making my stay so special. I highly recommend this property to anyone looking for an exceptional experience in Saigon."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VPQ0h4Skw0N19HbXFnRRAB",
+          "time": "2025-05-19T12:03:35.000Z",
+          "reviewerName": "Catarina Meleiro",
+          "rating": 5,
+          "rank": 1,
+          "reviewText": "Exceptional service, room, facilities.\nThe executive lounge is superb. Breakfast is fab.\nThe staff if very nice and helpful.\nLocation is very central and at walking distance from main tourist spots.\nLoved my stay."
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnSUQ3bWItQUhBEAE",
+          "time": "2024-08-26T00:10:42.000Z",
+          "reviewerName": "Atif Rashid",
+          "rating": 4,
+          "rank": 2,
+          "reviewText": "I am staying with Intercontinental residences & has a mixed experience. On the positive side, the apartment is spacious and well-furnished, making it a comfortable stay for us. The housekeeping service was also good and attentive.\n\nHowever, I an disappointed with a few aspects. Despite the high rent, the hotel does not provide basic amenities like water, detergents , dish ckeaner, and washroom accessories. Instead, they expect you to buy these essentials from outside, which I found unreasonable.\n\nAdditionally, the hotel has a very strict visitor policy, which was inconvenient for us. The apartments, although spacious, felt more like hotel rooms.\n\nOverall, while residence has its positives, the drawbacks left a sour taste. If they could revisit their policies and provide basic amenities, I would consider staying here again."
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnTUNvemVYVlhREAE",
+          "time": "2025-04-19T02:21:24.000Z",
+          "reviewerName": "Bent Seng",
+          "rating": 5,
+          "rank": 2,
+          "reviewText": "The Apartment has a lot of space for my family of 5, breakfast is great. Definately recommend the apartment part of the hotel for family travel!!!"
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnSUM3b2JHalZ3EAE",
+          "time": "2024-08-16T10:49:48.000Z",
+          "reviewerName": "Puja Thakkar",
+          "rating": 5,
+          "rank": 3,
+          "reviewText": "Great hotel with great staff a must stay with the family!\nThey were attentive and helpful. My kids got sick and the manager personally walked up to my room help me get the medication I needed from the Vietnamese app. We are vegetarian so they definitely made a great effort every day to provide us food.  Duy in the breakfast buffet area was fantastic-He was attentive and made sure we all had what we needed. He also sometimes sent out take away coffees with us! Highly recommend the hotel"
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSURMajlfVWl3RRAB",
+          "time": "2024-07-02T10:19:47.000Z",
+          "reviewerName": "David T.",
+          "rating": 5,
+          "rank": 6,
+          "reviewText": "Excellent hotel. Love the super comfy bed and pillow. Very clean. Big toilet with bath tub and shower area. Love their staff from porter, concierge to housekeeping and counter staff. Excellent gym. 9/10 rating. Will return to stay again. Breakfast can be better to have more variety and toilet should have shelve in shower room and extra tissue box on the desk."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUR0Z295dXlnRRAB",
+          "time": "2024-02-03T08:21:16.000Z",
+          "reviewerName": "Stephen Choi",
+          "rating": 5,
+          "rank": 6,
+          "reviewText": "Amazing staff - they do everything to make sure you feel like you are at a five star luxury residence. We were thee for New Year and saw the fireworks from our balcony. Even though fully packed, felt they knew every detail. Even the breakfast buffet is a harmony of working parts during peak times. I don't have the slightest bad thing to say during my four day stay. Location is near great food, tourist sites and a mall. The front desk was so accommodating. We are definitely staying here again soon."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUNMMGNicW5nRRAB",
+          "time": "2024-06-20T08:27:23.000Z",
+          "reviewerName": "Nicholas Crowe",
+          "rating": 5,
+          "rank": 7,
+          "reviewText": "Staying here as I review, we have a two bedroom apartment on the 18th floor. Great room. Breakfast is really great. There’s some extra restaurants and a wee shop part of the building which is hand as. Pools are good for the kids, a very shallow one and the other 1.4m deep end. Gym is great with good treadmills. 😉"
+        }
+      ],
+      "geo": null,
+      "permanentlyClosed": false,
+      "businessStatus": "OPERATIONAL",
+      "ratingDistribution": {
+        "Google": {
+          "1": 40,
+          "2": 9,
+          "3": 17,
+          "4": 137,
+          "5": 669
+        }
+      },
+      "utcOffset": 420,
+      "openingPeriods": null
+    },
+    {
+      "id": 1846271,
+      "name": "Sherwood Residence",
+      "placePageType": "visible",
+      "placeId": "ChIJ_XgLOTEvdTERVgs7aSdoyDk",
+      "sources": [
+        {
+          "id": "474273",
+          "type": "webPlacesList",
+          "url": "http://www.propertylaunch.vn/10-best-serviced-apartments-in-ho-chi-minh-city/",
+          "sourceSite": "Web",
+          "snippet": "Conveniently located at 127 Pasteur Street in District 3 of Saigon, Sherwood Residence boasts of spacious, quality, and fully-furnished units for you and your family. The five-star services and accommodation include a choice between a three-bedroom or a two-bedroom serviced penthouses or apartments.",
+          "siteName": "propertylaunch.vn",
+          "shortName": "10 Best Serviced Apartments in Ho Chi Minh City",
+          "indexInSource": 0,
+          "iconSiteId": 49103,
+          "showIcon": false,
+          "showInternalLink": false,
+          "showExternalLink": true,
+          "showSiteNameOnWeb": true
+        }
+      ],
+      "description": "Warm apartments in a polished hotel offering a pool, dining & a free local shuttle, plus a gym.",
+      "generatedDescription": "Sherwood Residence is a luxury serviced apartments in District 3 of Ho Chi Minh City. It offers all the amenities families need for a great stay, such as a pool, kids playroom and cinema. The property is located just a 25-minute walk from the large 'Ben Thanh Market'.",
+      "categories": [
+        "Hotel",
+        "Apartment building",
+        "Holiday apartment rental",
+        "Lodging",
+        "Serviced accommodation"
+      ],
+      "hasDetails": true,
+      "minMinutesSpent": null,
+      "maxMinutesSpent": null,
+      "address": "127 Pasteur, Phường Võ Thị Sáu, Quận 3, Hồ Chí Minh 700000, Vietnam",
+      "rating": 4.4,
+      "numRatings": 265,
+      "tripadvisorRating": null,
+      "tripadvisorNumRatings": null,
+      "website": "https://www.sherwoodresidence.com/",
+      "internationalPhoneNumber": "+84 28 3823 2288",
+      "priceLevel": null,
+      "imageKeys": [
+        "ZANhhq8nvpptSeKCJJrLDlEG9rqxQpGg",
+        "E4204r45NJChjDdqLAKg70LdCoJyuTUM",
+        "Qmwpp3y9jqqZeYaRHKHeFH8N0LbdnWJi"
+      ],
+      "images": [
+        {
+          "key": "ZANhhq8nvpptSeKCJJrLDlEG9rqxQpGg",
+          "width": 1618,
+          "height": 1080
+        },
+        {
+          "key": "E4204r45NJChjDdqLAKg70LdCoJyuTUM",
+          "width": 1875,
+          "height": 959
+        },
+        {
+          "key": "Qmwpp3y9jqqZeYaRHKHeFH8N0LbdnWJi",
+          "width": 1440,
+          "height": 1080
+        }
+      ],
+      "reviews": [
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSURfOVppSjZnRRAB",
+          "time": "2025-01-26T01:17:49.000Z",
+          "reviewerName": "N Pham",
+          "rating": 5,
+          "rank": 1,
+          "reviewText": "It was among the best stays ever!\n\nWe stayed at the Majestic Presidential Suite in Saigon and the JW Marriott luxury suite in Dubai, so we have some reference points.\n...\nThis three-bedroom apartment, while not as luxurious, won our satisfaction in other aspects with its immense space and superior location.\n\nWe loved the staff here, from the reception desk to the cleaning staff to the security staff. Everyone made our five-night stay easy, welcoming, and comfortable.\n\nHere are highlights:\n* Very clean and spacious\n* Friendly and professional staff\n* Facilities such as a fully functional kitchen, washer, dryer, and refrigerator are all top-quality\n* Water pressure and temperature are very satisfactory\n* Elevators are very fast and clean\n* Daily cleanings were superb\n\nWe'd love to stay here again."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnTUN3a0lqeDlBRRAB",
+          "time": "2025-03-16T01:16:28.000Z",
+          "reviewerName": "Nicole Sattler",
+          "rating": 5,
+          "rank": 1,
+          "reviewText": "We enjoyed our stay here, especially the large suites to accommodate our large group (and laundry in each suite). The pool was great, and we enjoyed the breakfast buffet one day. They are a little particular about room keys and towels in a way that reminds us we are not in a fancy hotel, but overall I was very happy with our experience and we would definitely stay here again."
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnTURvNE82d1FnEAE",
+          "time": "2025-04-21T08:57:46.000Z",
+          "reviewerName": "G B",
+          "rating": 5,
+          "rank": 1,
+          "reviewText": "Our final hotel at the end of a month travelling with my wife down from Hanoi, and one of our favourites! Huge 3 bed apartment. Acres of space. Lovely pool for the hot afternoons. Gym, games rooms, even a guest cinema room ! The staff are incredibly helpful. Breakfast is very good. We also had a few lunches which were great as well. Very central location near to the War Remnants museum, Independence Palace, cathedral etc. Perfect for families. My teenager & friend on their gap years joined us here for a few days and were delighted to find the apartment had a washing machine and tumble drier. Very good value for money. A bit of noise from the ubiquitous karaoke bars but you are in a big city, and our apartment had double-double glazing which helped."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VPNzRnTUdpcjdUZ2hnRRAB",
+          "time": "2025-05-14T23:51:54.000Z",
+          "reviewerName": "Ka Go",
+          "rating": 5,
+          "rank": 2,
+          "reviewText": "Would love to be able to rate even higher! Location is excellent- rooms are quiet, coop supermarket around the corner, great facilities, lovely pool, and very clean and comfortable rooms. Convenient location to be able to get good food and explore. Lovely staff"
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VQTzU0ZTNhX042NC1BRRAB",
+          "time": "2025-05-31T08:35:18.000Z",
+          "reviewerName": "Thien Le",
+          "rating": 5,
+          "rank": 2,
+          "reviewText": "My friends and I stayed here from May 18-31 with a three bed rooms executive. The hotel staff was very friendly, helpful, and accommodating our needs. The hotel was very clean, nice, and modern. Definitely we will stay here again if we come back to Saigon. People complains for almost everything but we are happy with this hotel."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSURmZ2RUSzlRRRAB",
+          "time": "2025-01-07T04:09:09.000Z",
+          "reviewerName": "Khaidar Zorig",
+          "rating": 5,
+          "rank": 5,
+          "reviewText": "Very happy with my stay at this time place. Apartment was huge, more than spacious enough for my family of 5 - 3 separate bedrooms (1 king, 2 singles and 1 twin), 2 big bathrooms, huge living room and a fully furnished kitchen. Nice swimming pool and fitness. There is an entertainment area too. Breakfast good - fruits selection can be improved though. Location - within walking distance to Independance palace, Ben Than market, Opera House and Cathedral. Not far from airport. Great price to quality ratio. Would definitely consider staying again."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnTURnaklySm53RRAB",
+          "time": "2025-02-22T23:06:16.000Z",
+          "reviewerName": "Luật sư Hồ Thị Bích Hạnh",
+          "rating": 5,
+          "rank": 6,
+          "reviewText": "Rooms are very clean. Place close to everything. The arrangement of rooms in the appartment is logical. Beds are comfy which helped me sleep well after an 8 hours flight. Reception and service is excellent. I already booked to stay here another two times in Vietnam for March and December this year. Just to show how much I like this place. Keep up with your good work Sherwood Residence!"
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnSURfNzUyT053EAE",
+          "time": "2025-01-28T20:58:38.000Z",
+          "reviewerName": "Phyllis Le",
+          "rating": 5,
+          "rank": 8,
+          "reviewText": "Hotel is well maintained throughout, rooms are comfortable, clean and spacious, comes with kitchen and laundry (very handy). Pool is refreshing after a long day of walking and site seeing, lots of activities for kids- billiards, table tennis, games room, yoga room. Buffet breakfast was also good but would have loved to see more Vietnamese options.  Staff were professional and helpful during our stay."
+        }
+      ],
+      "geo": null,
+      "permanentlyClosed": false,
+      "businessStatus": "OPERATIONAL",
+      "ratingDistribution": {
+        "Google": {
+          "1": 21,
+          "2": 4,
+          "3": 11,
+          "4": 45,
+          "5": 184
+        }
+      },
+      "utcOffset": 420,
+      "openingPeriods": null
+    },
+    {
+      "id": 4175672,
+      "name": "Luxury The One Ben Thanh Apartments",
+      "placePageType": "visible",
+      "placeId": "ChIJafkwhZAvdTERV7ZnzNKJaNQ",
+      "sources": [
+        {
+          "id": "474256",
+          "type": "webPlacesList",
+          "url": "http://www.bestrent.vn/top-10-best-apartment-estates-to-live-in-ho-chi-minh/",
+          "sourceSite": "Web",
+          "snippet": "One of the best apartments in District 1, the complex is situated near the Fine Arts Museum, Mariamman Hindu Temple, and Ben Thanh Market, making it the best place to stay if you enjoy food, shopping, and nightlife. The accommodation includes free WiFi, a fully-furnished modern kitchen, private bathroom, balcony with a seating area, a full laundry room, and access to the outdoor pool and fitness centre. The guests can also enjoy the best Vietnamese cuisine at the apartment restaurant.",
+          "siteName": "bestrent.vn",
+          "shortName": "Top 10 Best Apartment Estates to Live in Ho Chi Minh",
+          "indexInSource": 5,
+          "iconSiteId": 49102,
+          "showIcon": false,
+          "showInternalLink": false,
+          "showExternalLink": true,
+          "showSiteNameOnWeb": true
+        }
+      ],
+      "description": null,
+      "generatedDescription": "Luxury The One Ben Thanh Apartments is a top choice in District 1, conveniently located near popular attractions like the Fine Arts Museum and Ben Thanh Market. The apartments offer modern amenities including free WiFi, a fully-equipped kitchen, private bathroom, balcony with seating area, and access to an outdoor pool and fitness center. Guests can also savor delicious Vietnamese cuisine at the on-site restaurant.",
+      "categories": [
+        "Holiday apartment rental",
+        "Short term apartment rental agency"
+      ],
+      "hasDetails": true,
+      "minMinutesSpent": null,
+      "maxMinutesSpent": null,
+      "address": "45 Đ. Đặng Thị Nhu, Phường Nguyễn Thái Bình, Quận 1, Hồ Chí Minh 70010, Vietnam",
+      "rating": 3.4,
+      "numRatings": 50,
+      "tripadvisorRating": null,
+      "tripadvisorNumRatings": null,
+      "website": null,
+      "internationalPhoneNumber": null,
+      "priceLevel": null,
+      "imageKeys": [],
+      "images": [],
+      "reviews": [
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUNuOTR5R3FBRRAB",
+          "time": "2024-10-01T05:09:41.000Z",
+          "reviewerName": "Manh Le",
+          "rating": 5,
+          "rank": 3,
+          "reviewText": "I was very happy with the room, so clean and spacious. The host was lovely, she really took care of the client. Would definitely recommended."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUNqdThENHJBRRAB",
+          "time": "2024-04-26T09:00:03.000Z",
+          "reviewerName": "Lexi Smith",
+          "rating": 2,
+          "rank": 1,
+          "reviewText": "Location was good. Price was ok.\n2br apartment was clean, but weirdly designed.  A bedroom in a round glass room in the lounge room, and shower over the toilet.\nVery minimal interaction with any staff. So can't say anything on that.\nNeed security to give you access to the roof top pool. So you have to come down to reception, then go up again. Pool doesnt look all that used. The rooftop bar was closed and looks like it has been for a long time.\nAnd these 2 items were the reason for booking this place.\nI'd probably look at another place if you want to have a drink by the pool while kids have a swim."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnTURRd1ptam9RRRAB",
+          "time": "2025-03-11T13:28:38.000Z",
+          "reviewerName": "Amar Biseswar",
+          "rating": 1,
+          "rank": 1,
+          "reviewText": "Made the reservation through booking.com, everything was confirmed and I also had contact with the owner through chat.\nUpon arrival i was told that the room was not ready yet and that I had to wait one hour. I waited over 2 and a half hours, but still no room. I wasn't offered and alternatieve, so I left and had to book a room somewhere else. Now the owner acuses me saying that I refused the room that she offered, that is simply not true. I was not offered a room. After traveling for 26 hours I would have accepted any place where I could sleep. I spoke to 3 more people while I was there, and they had the same problem. I would stay away from this place."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSURmNk1fQXR3RRAB",
+          "time": "2025-01-03T19:25:55.000Z",
+          "reviewerName": "sara maree",
+          "rating": 1,
+          "rank": 2,
+          "reviewText": "Useless, will not answer phone to confirm booking. You get a different room than what you pay for. Sometimes you even get directed to a different location not near the tourist area. Stay away."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSURweE9QYjdnRRAB",
+          "time": "2023-08-16T10:33:25.000Z",
+          "reviewerName": "TONY LIM",
+          "rating": 1,
+          "rank": 4,
+          "reviewText": "Beware, this apartment is owned by various tenants and each tenant is using all kinds of room booking websites to have the customers.\n\nThere is no way to get your room cleaned, old filthy furnitures and shower booth are covered by stains.\n\nThis was the biggest waste of money ever."
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnSUNzZ2FPNUxBEAE",
+          "time": "2020-02-04T03:32:27.000Z",
+          "reviewerName": "Connie Le",
+          "rating": 1,
+          "rank": 5,
+          "reviewText": "We booked one of the apartment 2 bedroom on level 16. When we checked in we noticed that one of the bathroom have blocked drainage. We reported to receptionist and was told that there will be plumber coming to fix the next day, but no one show up. Because of the water doesn't drain causing the bedroom smell like a rubbish bin. Disgusting!!! I have to sleep on the couch cause I couldn't stand the smell. Would not recommend this place. And will never come back to this place."
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnSURBN3JqUklnEAE",
+          "time": "2018-04-26T01:03:36.000Z",
+          "reviewerName": "Bamson T",
+          "rating": 3,
+          "rank": 6,
+          "reviewText": "PROs: large rooms with full kitchen and a nice view (if you get one of the higher floors). Rooftop pool and view also very great.\n\nCONs: our room had ants in the kitchen on the 12th floor, can't imagine how bad the lower floors are. Not very English friendly. 2/3 of our washroom lights were burnt out and when I went to ask they said to ask the next day, which should have been  caught when they cleaned the room (so did they even clean it or did they just make up the beds?)\n\nConclusion: we only took the room for a place to sleep for 2 nights for a decent price. If you are planning a longer trip I do not recommend this place."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSURJOEozNHN3RRAB",
+          "time": "2018-12-18T12:27:15.000Z",
+          "reviewerName": "Jenny Lee",
+          "rating": 4,
+          "rank": 7,
+          "reviewText": "Interior is the same as pictures. Unfortunately, noise from the street can be heard clearly in room on the 5th floor. It is noisier in the living area. Luckily, I could sleep with earplugs as the bedroom has better noise insulation. Glass partition and door between living room and bedroom. A futon is placed in the living room."
+        }
+      ],
+      "geo": null,
+      "permanentlyClosed": false,
+      "businessStatus": "OPERATIONAL",
+      "ratingDistribution": {
+        "Google": {
+          "1": 10,
+          "2": 4,
+          "3": 9,
+          "4": 11,
+          "5": 16
+        }
+      },
+      "utcOffset": 420,
+      "openingPeriods": null
+    },
+    {
+      "id": 4310718,
+      "name": "Masteri Thao Dien - T3",
+      "placePageType": "visible",
+      "placeId": "ChIJW0nc_hMmdTERuxWxE7yFBxw",
+      "sources": [
+        {
+          "id": "474256",
+          "type": "webPlacesList",
+          "url": "http://www.bestrent.vn/top-10-best-apartment-estates-to-live-in-ho-chi-minh/",
+          "sourceSite": "Web",
+          "snippet": "Located at Hanoi Highway, Thao Dien, Masteri Thao Dien is the best place to stay near the Tan Son Nhat International Airport and the famous Golden Dragon Water Puppet Theater. The rental packages include a private parking space, a fully-furnished kitchen, dining area, complete media and technology, and free WiFi.",
+          "siteName": "bestrent.vn",
+          "shortName": "Top 10 Best Apartment Estates to Live in Ho Chi Minh",
+          "indexInSource": 2,
+          "iconSiteId": 49102,
+          "showIcon": false,
+          "showInternalLink": false,
+          "showExternalLink": true,
+          "showSiteNameOnWeb": true
+        }
+      ],
+      "description": null,
+      "generatedDescription": "Masteri Thao Dien - T3 is a top choice for accommodation near Tan Son Nhat International Airport and the Golden Dragon Water Puppet Theater. The rental packages offer amenities such as private parking, a fully-equipped kitchen, dining area, media and technology facilities, and complimentary WiFi. With tight security measures in place, residents feel safe at all times. The complex features a well-maintained gym and pool.",
+      "categories": ["Apartment complex", "Apartment building"],
+      "hasDetails": true,
+      "minMinutesSpent": null,
+      "maxMinutesSpent": null,
+      "address": "159 Đ. Võ Nguyên Giáp, Thảo Điền, Thủ Đức, Hồ Chí Minh, Vietnam",
+      "rating": 4.3,
+      "numRatings": 441,
+      "tripadvisorRating": null,
+      "tripadvisorNumRatings": null,
+      "website": "https://masterisehomes.com/masteri-thao-dien/lien-he-masteri-thao-dien",
+      "internationalPhoneNumber": "+84 28 3744 6888",
+      "priceLevel": null,
+      "imageKeys": [
+        "VIGPYmKHJEF0knEhL5ikUffJUA1i5lqp",
+        "c5QnlFEFIReXm79hgNc5oQx09hkquVBy",
+        "h2VktxBSTP0vAmWmp6viG1z1rSJ2nPyi"
+      ],
+      "images": [
+        {
+          "key": "VIGPYmKHJEF0knEhL5ikUffJUA1i5lqp",
+          "width": 1280,
+          "height": 960
+        },
+        {
+          "key": "c5QnlFEFIReXm79hgNc5oQx09hkquVBy",
+          "width": 1440,
+          "height": 1080
+        },
+        {
+          "key": "h2VktxBSTP0vAmWmp6viG1z1rSJ2nPyi",
+          "width": 1440,
+          "height": 1080
+        }
+      ],
+      "reviews": [
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnSUNWaXNfc0J3EAE",
+          "time": "2023-12-06T14:10:48.000Z",
+          "reviewerName": "Afnan Shah",
+          "rating": 5,
+          "rank": 3,
+          "reviewText": "Best place to live in HO CHI MINH city"
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSURobmJmMWpnRRAB",
+          "time": "2023-03-15T13:36:51.000Z",
+          "reviewerName": "Amy P",
+          "rating": 3,
+          "rank": 1,
+          "reviewText": "This is a decent, cheap place to stay if you’re visiting the area. Very safe, located right next to a mall, big rooms. The pool (on floor 3) is stunning.\n\nNow for the not-so-good stuff: the room we stayed in was pretty bare bones although it did have an amazing view and balcony. The beds are hard as rocks, one toilet was temperamental when it came to flushing and there were no extra towels or bedding. You may also not be able to get a key card for each person. Really the biggest issue was the bed, I struggled to sleep in it unless I was drunk 😬\n\nLastly, there is a gym (also on floor 3), but it is teeny tiny and not air conditioned."
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnTURJdXMzNEhBEAE",
+          "time": "2025-04-09T04:28:40.000Z",
+          "reviewerName": "Anh Nguyễn",
+          "rating": 1,
+          "rank": 1,
+          "reviewText": "Management is the worst. They did nothing to protect residents that live around an apartment that has construction ongoing for 2 months. And please do not rent A28.01 (T3). The landlord (i) has absolutely 0 awareness about the fact that his apt construction is causing inconvenience and (ii) doesnt comply with construction policy at all (construction happens even on the weekend). I am very uncertain a landlord like him will honor a lease agreement."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnTURJamNXdDNnRRAB",
+          "time": "2025-04-12T02:48:35.000Z",
+          "reviewerName": "Xanh Mướt Saigon",
+          "rating": 5,
+          "rank": 3,
+          "reviewText": "Quite big apartment with balcony\nWe are having many Customers stay here.\nThis place is nice & very convinience, and next to Vincom Shopping Center"
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUR6aUlTQV9BRRAB",
+          "time": "2024-06-07T03:23:55.000Z",
+          "reviewerName": "Sync Sins",
+          "rating": 1,
+          "rank": 4,
+          "reviewText": "One of the worst pet policy. I tried to register my dog but they denied and they also fined me 1,000,000 vnd just because I didn't have the dog registered. If I can't register and I can't take it through the lift so then what can I do?"
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUMzNl9UTzB3RRAB",
+          "time": "2025-04-11T12:22:13.000Z",
+          "reviewerName": "Grace Tan",
+          "rating": 5,
+          "rank": 4,
+          "reviewText": "Want to give a big shout out to Receptionist Minh Thy for helping me with an urgent matter today. I dropped my bunch of keys (mail box, main door, room, office keys, etc.) into the gap of the elevator doors. I was feeling helpless as I had no spare keys, won't be around until 10pm at night, and would not be able to enter my apartment. Furthermore, elevator maintenance period was only slated to be a couple of days later.\n\nMinh Thy understood the emergency and alongside building management, helped to coordinate with lift maintenance crew to retrieve my keys. I am beyond thankful that she dispelled my worries! I didn't have to call a 24/7 locksmith too."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUMtamNPMTRnRRAB",
+          "time": "2022-11-10T07:47:25.000Z",
+          "reviewerName": "Tharindu Dassanayake (Dilen)",
+          "rating": 3,
+          "rank": 5,
+          "reviewText": "Place is surely convenient to many locations (Brownie point is the Vincom mall). If you are lucky enough to have good neighbors it’s a good place to say if not would be a nightmare with the disturbances. The pool is decent but you can not list the gym as a amenity since it's pretty disappointing. What I like the most is the staff, very humble and helpful."
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnSUNZOF9xNWVREAE",
+          "time": "2019-04-19T15:17:35.000Z",
+          "reviewerName": "Di Espy",
+          "rating": 5,
+          "rank": 6,
+          "reviewText": "Been living here since February 2019. We feel pretty safe here, lots of security at all times. Has a gym and a pool which are well taken care of. Love the location of this Tower in particular compared to the other 4 towers of the complex. Overall, very nice apartment complex in HCMC!"
+        }
+      ],
+      "geo": null,
+      "permanentlyClosed": false,
+      "businessStatus": "OPERATIONAL",
+      "ratingDistribution": {
+        "Google": {
+          "1": 23,
+          "2": 6,
+          "3": 43,
+          "4": 98,
+          "5": 271
+        }
+      },
+      "utcOffset": 420,
+      "openingPeriods": null
+    },
+    {
+      "id": 5639109,
+      "name": "Song Hung Luxury Hotel & Apartments",
+      "placePageType": "visible",
+      "placeId": "ChIJ4QRmGZEvdTER5kq0TYdvRc0",
+      "sources": [
+        {
+          "id": "474256",
+          "type": "webPlacesList",
+          "url": "http://www.bestrent.vn/top-10-best-apartment-estates-to-live-in-ho-chi-minh/",
+          "sourceSite": "Web",
+          "snippet": "Want to enjoy the privacy of apartments and the comfort of hotels?. Song Hung Luxury Hotel & Serviced Apartments is the best place to stay in District 7. Facilities include free parking space, free WiFi, and a fully-furnished sun terrace.",
+          "siteName": "bestrent.vn",
+          "shortName": "Top 10 Best Apartment Estates to Live in Ho Chi Minh",
+          "indexInSource": 3,
+          "iconSiteId": 49102,
+          "showIcon": false,
+          "showInternalLink": false,
+          "showExternalLink": true,
+          "showSiteNameOnWeb": true
+        }
+      ],
+      "description": null,
+      "generatedDescription": "If you're looking for a blend of hotel comfort and apartment privacy, Song Hung Luxury Hotel & Apartments in District 7 is the perfect choice. The property offers spacious and clean accommodations with fully-furnished sun terraces. Guests can enjoy free parking and WiFi during their stay. The friendly staff provides excellent service, ensuring that the rooms are clean and high-class. Additionally, the hotel features a nice coffee shop for guests to relax in.",
+      "categories": ["Hotel"],
+      "hasDetails": true,
+      "minMinutesSpent": null,
+      "maxMinutesSpent": null,
+      "address": "78-80 Lê Văn Thiêm, Phú Mỹ Hưng, Quận 7, Hồ Chí Minh 700000, Vietnam",
+      "rating": 4.2,
+      "numRatings": 43,
+      "tripadvisorRating": null,
+      "tripadvisorNumRatings": null,
+      "website": null,
+      "internationalPhoneNumber": "+84 28 5410 6238",
+      "priceLevel": null,
+      "imageKeys": ["HdAVhvEThr4E5TH65UNIpXUJQf7c1Z6V"],
+      "images": [
+        {
+          "key": "HdAVhvEThr4E5TH65UNIpXUJQf7c1Z6V",
+          "width": 761,
+          "height": 428
+        }
+      ],
+      "reviews": [
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUNNMjVLdGpnRRAB",
+          "time": "2019-12-07T06:02:05.000Z",
+          "reviewerName": "kiyoung Chang",
+          "rating": 5,
+          "rank": 1,
+          "reviewText": "Spacious and clean. Very kind staff! But airconditioner was a bit noisy, pillow was a little higher for me. Overall, I am so much satisfied"
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnSUMwbl82Tkl3EAE",
+          "time": "2019-10-16T01:46:30.000Z",
+          "reviewerName": "Trung Kien Vo",
+          "rating": 3,
+          "rank": 2,
+          "reviewText": "The place feels old and dirty.\n\nWhen I checked in the room was not properly done, the pillows were without cover, towels and hand towels were missing..."
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnSURRNEpYYUh3EAE",
+          "time": "2018-03-11T23:19:14.000Z",
+          "reviewerName": "Tuan Philippe",
+          "rating": 5,
+          "rank": 3,
+          "reviewText": "very good service and the room very clean and high class"
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnSUMtMnZpdkJREAE",
+          "time": "2022-11-01T17:21:15.000Z",
+          "reviewerName": "차순혁",
+          "rating": 5,
+          "rank": 4,
+          "reviewText": "Good"
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUNVd2JYQnBBRRAB",
+          "time": "2019-07-26T03:47:54.000Z",
+          "reviewerName": "Nội Thất Văn Phòng",
+          "rating": 5,
+          "rank": 5,
+          "reviewText": "Ok"
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnSUMyei1Iek1nEAE",
+          "time": "2022-05-01T13:31:44.000Z",
+          "reviewerName": "AM TRADING CO.,",
+          "rating": 5,
+          "rank": 6,
+          "reviewText": "Nice coffee shop"
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUN3c2MyMzRnRRAB",
+          "time": "2017-07-05T07:00:15.000Z",
+          "reviewerName": "Thành Long Mai Nguyễn",
+          "rating": 5,
+          "rank": 7,
+          "reviewText": "Good Services !"
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUN3OV9temhRRRAB",
+          "time": "2018-01-10T17:41:34.000Z",
+          "reviewerName": "quoc ngo van",
+          "rating": 5,
+          "rank": 8,
+          "reviewText": "Love this place"
+        }
+      ],
+      "geo": null,
+      "permanentlyClosed": false,
+      "businessStatus": "OPERATIONAL",
+      "ratingDistribution": {
+        "Google": {
+          "1": 2,
+          "2": 1,
+          "3": 6,
+          "4": 11,
+          "5": 23
+        }
+      },
+      "utcOffset": 420,
+      "openingPeriods": null
+    },
+    {
+      "id": 6204311,
+      "name": "Landmark 1 – Vinhomes Central Park",
+      "placePageType": "visible",
+      "placeId": "ChIJCS-35IspdTERdMnZaF9aj1E",
+      "sources": [
+        {
+          "id": "474273",
+          "type": "webPlacesList",
+          "url": "http://www.propertylaunch.vn/10-best-serviced-apartments-in-ho-chi-minh-city/",
+          "sourceSite": "Web",
+          "snippet": "Located at Binh Thanh’s 202 Nguyen Huu Canh, Vinhomes Central Park is known for its garden views and world-class accommodation.",
+          "siteName": "propertylaunch.vn",
+          "shortName": "10 Best Serviced Apartments in Ho Chi Minh City",
+          "indexInSource": 7,
+          "iconSiteId": 49103,
+          "showIcon": false,
+          "showInternalLink": false,
+          "showExternalLink": true,
+          "showSiteNameOnWeb": true
+        }
+      ],
+      "description": null,
+      "generatedDescription": "Located in the vibrant Binh Thanh district, Vinhomes Central Park is a modern apartment complex offering easy access to cultural attractions like the War Remnants Museum. The property boasts an infinity and outdoor swimming pool, as well as proximity to Vincom Landmark 81 for shopping and dining options. Visitors can enjoy various amenities such as an ice skating rink and stunning views from the top floor.",
+      "categories": ["Apartment complex", "Apartment building"],
+      "hasDetails": true,
+      "minMinutesSpent": null,
+      "maxMinutesSpent": null,
+      "address": "208 Nguyễn Hữu Cảnh, Phường 22, Bình Thạnh, Hồ Chí Minh 72324, Vietnam",
+      "rating": 4.6,
+      "numRatings": 129,
+      "tripadvisorRating": null,
+      "tripadvisorNumRatings": null,
+      "website": null,
+      "internationalPhoneNumber": null,
+      "priceLevel": null,
+      "imageKeys": [
+        "mhGZwYfg2JFdUlg51zjkk6lpUCCDlvXn",
+        "xDWyt5fls1QP9nLgMbgKDFtHV9GXTFmQ",
+        "8DvXwg6Hj4VE7IXUEr8kAaOdP3qAhu8d"
+      ],
+      "images": [
+        {
+          "key": "mhGZwYfg2JFdUlg51zjkk6lpUCCDlvXn",
+          "width": 1152,
+          "height": 864
+        },
+        {
+          "key": "xDWyt5fls1QP9nLgMbgKDFtHV9GXTFmQ",
+          "width": 1440,
+          "height": 1080
+        },
+        {
+          "key": "8DvXwg6Hj4VE7IXUEr8kAaOdP3qAhu8d",
+          "width": 1242,
+          "height": 699
+        }
+      ],
+      "reviews": [
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSURYNTZTLWpBRRAB",
+          "time": "2024-10-31T18:31:12.000Z",
+          "reviewerName": "tran tran",
+          "rating": 5,
+          "rank": 1,
+          "reviewText": "Landmark 1 Bdg is right across from the park and next to Landmark 81. Great location with unobstructed view of the river and Saigon bridge."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnTUR3N0t2aTRRRRAB",
+          "time": "2025-03-24T09:55:05.000Z",
+          "reviewerName": "Tony",
+          "rating": 5,
+          "rank": 1,
+          "reviewText": "Very great area right behind Landmark 81. Very lively night life with a huge park right across the street. Local Marts are on ground floor to provide excellent convenience."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSURoNE1UdzVRRRAB",
+          "time": "2023-02-27T01:47:56.000Z",
+          "reviewerName": "SANDRINE",
+          "rating": 4,
+          "rank": 2,
+          "reviewText": "Nice area, you have a large selections of restaurant, possibility to go on the top floor to enjoy the view. They also have a ice skating place and the price is not too expensive . Good experience with kids"
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnTUNvX01uaFlBEAE",
+          "time": "2025-04-15T14:17:16.000Z",
+          "reviewerName": "Nabilla Habsyi",
+          "rating": 4,
+          "rank": 2,
+          "reviewText": "Nice place to take a picture of landmark 81 building"
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUNKaXJpMzFnRRAB",
+          "time": "2023-06-24T16:09:41.000Z",
+          "reviewerName": "V T (The Big Bad Beard)",
+          "rating": 4,
+          "rank": 3,
+          "reviewText": "It's like a standard westfield shopping center, but it isn't westfield, its landmark. If you miss the west, go here. Park is good, bring a kite, a picnic blanket, some snacks and the kids."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUNUaXJEOGd3RRAB",
+          "time": "2024-05-13T05:31:40.000Z",
+          "reviewerName": "James Reede",
+          "rating": 5,
+          "rank": 4,
+          "reviewText": "Great place to stay in a really hopping area of HCMC. Lots of restaurants to choose from and ideal for shopping."
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnSURkb0pLR1FnEAE",
+          "time": "2024-02-20T04:33:39.000Z",
+          "reviewerName": "Anton Dolenko",
+          "rating": 5,
+          "rank": 5,
+          "reviewText": "Good location"
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUREMllMMzBBRRAB",
+          "time": "2024-04-11T14:29:38.000Z",
+          "reviewerName": "HaiNam Mai",
+          "rating": 5,
+          "rank": 6,
+          "reviewText": "Beautiful outdoor riverside"
+        }
+      ],
+      "geo": null,
+      "permanentlyClosed": false,
+      "businessStatus": "OPERATIONAL",
+      "ratingDistribution": {
+        "Google": {
+          "1": 6,
+          "2": 1,
+          "3": 2,
+          "4": 22,
+          "5": 99
+        }
+      },
+      "utcOffset": 420,
+      "openingPeriods": [
+        {
+          "open": {
+            "day": 0,
+            "time": "0000"
+          }
+        },
+        {
+          "open": {
+            "day": 1,
+            "time": "0000"
+          }
+        },
+        {
+          "open": {
+            "day": 2,
+            "time": "0000"
+          }
+        },
+        {
+          "open": {
+            "day": 3,
+            "time": "0000"
+          }
+        },
+        {
+          "open": {
+            "day": 4,
+            "time": "0000"
+          }
+        },
+        {
+          "open": {
+            "day": 5,
+            "time": "0000"
+          }
+        },
+        {
+          "open": {
+            "day": 6,
+            "time": "0000"
+          }
+        }
+      ]
+    },
+    {
+      "id": 6874375,
+      "name": "Signature by M Village Lê Thánh Tôn",
+      "placePageType": "visible",
+      "placeId": "ChIJIxTNELcvdTER9QHiIRrzIa8",
+      "sources": [
+        {
+          "id": "474273",
+          "type": "webPlacesList",
+          "url": "http://www.propertylaunch.vn/10-best-serviced-apartments-in-ho-chi-minh-city/",
+          "sourceSite": "Web",
+          "snippet": "Book now at Amena Residences & Suites if you’re staying at District 1. Located at 24 Le Thanh Ton Street, amenities and services include Encore Restaurant, Pool Lounge Café, and swimming pool.",
+          "siteName": "propertylaunch.vn",
+          "shortName": "10 Best Serviced Apartments in Ho Chi Minh City",
+          "indexInSource": 3,
+          "iconSiteId": 49103,
+          "showIcon": false,
+          "showInternalLink": false,
+          "showExternalLink": true,
+          "showSiteNameOnWeb": true
+        }
+      ],
+      "description": "Upscale hotel offering modern quarters, a restaurant & an indoor pool, plus river views.",
+      "generatedDescription": "Signature by M Village Lê Thánh Tôn is an elegant hotel with contemporary rooms, a restaurant, and an indoor pool that offers stunning river views. Guests have praised the helpful and friendly staff who provided assistance upon late-night arrival. The spacious rooms with adjustable temperature settings and well-maintained bathrooms were highlighted. The central location in District 1 of HCMH allows for easy exploration of the city, although dining options within the hotel are limited.",
+      "categories": ["Hotel"],
+      "hasDetails": true,
+      "minMinutesSpent": null,
+      "maxMinutesSpent": null,
+      "address": "24 Lê Thánh Tôn, Bến Nghé, Quận 1, Hồ Chí Minh 700000, Vietnam",
+      "rating": 4.8,
+      "numRatings": 753,
+      "tripadvisorRating": null,
+      "tripadvisorNumRatings": null,
+      "website": "https://mvillage.vn/",
+      "internationalPhoneNumber": "+84 865 999 445",
+      "priceLevel": null,
+      "imageKeys": ["zMSQKZBC9M42yS11SWSDJDbt27gfaYtu"],
+      "images": [
+        {
+          "key": "zMSQKZBC9M42yS11SWSDJDbt27gfaYtu",
+          "width": 1132,
+          "height": 853
+        }
+      ],
+      "reviews": [
+        {
+          "reviewId": "ChZDSUhNMG9nS0VPYnltTk9GLVBmR1pnEAE",
+          "time": "2025-05-07T05:31:24.000Z",
+          "reviewerName": "Thuy Nguyen",
+          "rating": 5,
+          "rank": 1,
+          "reviewText": "Loved my stay! Spacious room, strong A/C, great water pressure, and fast lift. Service was top-notch, special thanks to Tina at the front desk, super accommodating with the brightest smile (and the cutest dimples!). Tons of street food nearby (mostly Japanese), but Grab or a 5-min walk gets you more variety. Even got a personal welcome email, never had that, not even from 5–6 star hotels. Impressed!"
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnTURvb3NEazlnRRAB",
+          "time": "2025-04-23T05:42:49.000Z",
+          "reviewerName": "Jovis Tay",
+          "rating": 5,
+          "rank": 2,
+          "reviewText": "Had an amazing long weekend stay here, the most commendable factor has to be the customer service staff who are friendly and helpful. Special thanks to Jay who went out of his way to help me post a card even though he has not done it before, I really appreciate that. He is very kind, meticulous and readily offered his assistance. Also the staff who brings up our grabfood orders every time, thank you.\n\nThe room layout is great and kept very clean. Because of the national day rehearsals we got to watch the fireworks from our room. Hotel is well located too, walking distance to many things and convenience stores right beside and opposite. 10/10."
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnTUNvcXVUQUpREAE",
+          "time": "2025-04-16T08:51:28.000Z",
+          "reviewerName": "major deegan",
+          "rating": 5,
+          "rank": 3,
+          "reviewText": "I've just stayed there for a long week, and I must say how much I appreciated the staff (hi Irene!). They were very kind, attentive, helpful, often beyond simple good business practice.\nThe staff was also interacting with me via whatsapp to help in any way they could.\nThe location is great for visiting the city center (I was here on business, so I didn't do much of this) and is directly across from the Little Tokyo enclave, which has countless japanese restaurants (and bars, if you're into that kind of thing), and walking distance from most city attractions and museums.\nMy room (a studio) was modern, large, well maintained (aging a bit, but still in perfect condition) and the room staff was discreet and efficient. Comfortable bed and linen, quiet. Good shower.\nBreakfast is a changing buffet, with stations where they'll make you vietnamese soups etc. Mix of western and eastern food.\nThere is a pool in open air on the 10th floor, which I did not use, but it seemed lovely.\nAlso on the 10th floor you have access to a free laundry, which I used a lot (you'll likely sweat a lot in VN.)\nI spent most of my time in district 2 while not working, and using Grab to drive me around was super easy, and quite cheaper than a taxi.\nOverall, the Signature M Village Le Thanh Ton deserves my 5 stars."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnTURJN3ZUNXpBRRAB",
+          "time": "2025-04-10T00:50:56.000Z",
+          "reviewerName": "Đức Duy Hà",
+          "rating": 5,
+          "rank": 4,
+          "reviewText": "Located right in the heart of the city, this M Village property offers great convenience for getting around, especially to popular tourist spots. There are also many restaurants nearby, catering to a wide range of budgets. The swimming pool is spacious and beautifully designed, providing a refreshing retreat. The rooms are incredibly spacious and well-equipped, ensuring a comfortable stay. One of the standout features is the room's view, which offers a stunning panoramic view of the city skyline. The staff here are exceptionally friendly and proactive, always ready to assist with any needs. Overall, a fantastic stay that combines convenience, comfort, and exceptional service."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnTURJMmFXVXpBRRAB",
+          "time": "2025-04-11T09:57:04.000Z",
+          "reviewerName": "Nguyên Nguyễn",
+          "rating": 5,
+          "rank": 5,
+          "reviewText": "During a recent business trip to Ho Chi Minh City, I had the opportunity to stay at the Signature M Village Hotel. The first impression was the luxurious and professional space right from the reception hall. The staff was enthusiastic, the check-in procedure was smooth - this is very important when the work schedule is tight. The room was clean, modern, fully equipped with a desk, high-speed wifi - very suitable for business needs. The light was good, ensuring a good night's sleep after a stressful day at work. A big plus is the central location in District 1, near office buildings and the airport, making travel much more convenient. In addition, the hotel also supports setting up a pick-up car, which is very convenient."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnTURJc1lLVzJnRRAB",
+          "time": "2025-04-10T20:15:51.000Z",
+          "reviewerName": "Linh Lê Khánh",
+          "rating": 5,
+          "rank": 6,
+          "reviewText": "I had a wonderful stay at this hotel. The staff were incredibly friendly and professional, always ready to help and made me feel very welcome. The location is perfect — super convenient for exploring nearby attractions. The room was spacious, clean, and well-equipped with everything I needed. What impressed me the most was how helpful the staff were in recommending places to visit — their suggestions were absolutely spot-on and really added to my experience. I would definitely come back!"
+        },
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnTURvdWJ6Z1F3EAE",
+          "time": "2025-04-26T15:49:24.000Z",
+          "reviewerName": "Nick",
+          "rating": 5,
+          "rank": 7,
+          "reviewText": "I stayed here for 2 nights, everything was very good and comfortable. The staff at the lobby were very friendly and recommended good restaurants to me. Although the road was closed on holidays, they were still enthusiastic in helping me move around. The room was clean and tidy, the housekeeping staff were cheerful and lovely. I really recommend everyone to come and I will come back on my next stay."
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnTUR3b29LN2xnRRAB",
+          "time": "2025-04-05T20:23:00.000Z",
+          "reviewerName": "Chau Nguyen",
+          "rating": 5,
+          "rank": 8,
+          "reviewText": "We rented a 1 Bedroom Apartment and we were not close to being disappointed. The room was really clean and modern. The view was wonderful. The staff was really friendly and welcoming. The breakfast buffet was amazing. Easily my favorite hotel in Sài Gòn and an easy recommendation for anyone visiting the city and wanting to stay in District 1.\n\nEdited:\nAfter a couple more weeks of reflecting on my stay, Signature by M Village Lê Thánh Tôn has become my favorite hotel not just in Saigon, but in Vietnam. It's that good. Hopefully, it stays that way until the next time I am able to return."
+        }
+      ],
+      "geo": null,
+      "permanentlyClosed": false,
+      "businessStatus": "OPERATIONAL",
+      "ratingDistribution": {
+        "Google": {
+          "1": 20,
+          "2": 2,
+          "3": 13,
+          "4": 51,
+          "5": 740
+        }
+      },
+      "utcOffset": 420,
+      "openingPeriods": null
+    },
+    {
+      "id": 12614767,
+      "name": "Luxury Apartment",
+      "placePageType": "visible",
+      "placeId": "ChIJfd6mAQApdTERmgYpkdla3zU",
+      "sources": [
+        {
+          "id": "2142763",
+          "type": "webPlacesList",
+          "url": "https://www.sherwoodresidence.com/",
+          "sourceSite": "Web",
+          "snippet": "Designed for a short holiday stay or long-term business engagement in Saigon, Sherwood Residence’s spacious, beautifully appointed serviced apartments and penthouse units offer the perfect blend of 5-star luxury and home-style comfort. Overlooking scenic Pasteur Street in the heart of Ho Chi Minh City, our apartments for rent are appointed with elegant furnishings, fully equipped kitchens, comfortable living rooms and private balconies with sweeping views of the cityscape.",
+          "siteName": "Sherwood Residence",
+          "shortName": "Luxury Hotel Saigon",
+          "indexInSource": 0,
+          "iconSiteId": 55520,
+          "showIcon": false,
+          "showInternalLink": false,
+          "showExternalLink": true,
+          "showSiteNameOnWeb": true
+        }
+      ],
+      "description": null,
+      "generatedDescription": "Experience the charm of Ho Chi Minh in a Luxury Apartment that accommodates up to 6 guests. This spacious accommodation features 3 bedrooms and 2 bathrooms, offering comfort and convenience for a reunion, Asian tour, or staycation. Admire the colonial architecture, traditional styles, and exotic decor while appreciating the intricate Vietnamese tiles and monochromatic color scheme throughout the space. Ideal for interior decorating enthusiasts seeking a unique and stylish retreat.",
+      "categories": ["Apartment rental agency"],
+      "hasDetails": true,
+      "minMinutesSpent": null,
+      "maxMinutesSpent": null,
+      "address": "71/5 Đ. Nguyễn Công Hoan, Phường 7, Phú Nhuận, Hồ Chí Minh 00700, Vietnam",
+      "rating": 5,
+      "numRatings": 1,
+      "tripadvisorRating": null,
+      "tripadvisorNumRatings": null,
+      "website": null,
+      "internationalPhoneNumber": "+84 384 007 777",
+      "priceLevel": null,
+      "imageKeys": [
+        "p5KMm6fb7xqQdlDFP0ZivZCRWPidQpij",
+        "PIemLeuioZlitelghmgA3EWS3g90xZVu",
+        "s5PwSjaGVGaysyKw10u7BdWlXU7WIYBj",
+        "FvYoCcpBtYxwoMO44ReBTshWJ5yz2kBr"
+      ],
+      "images": [
+        {
+          "key": "p5KMm6fb7xqQdlDFP0ZivZCRWPidQpij",
+          "width": 1440,
+          "height": 1080
+        },
+        {
+          "key": "PIemLeuioZlitelghmgA3EWS3g90xZVu",
+          "width": 1440,
+          "height": 1080
+        },
+        {
+          "key": "s5PwSjaGVGaysyKw10u7BdWlXU7WIYBj",
+          "width": 1440,
+          "height": 1080
+        },
+        {
+          "key": "FvYoCcpBtYxwoMO44ReBTshWJ5yz2kBr",
+          "width": 1440,
+          "height": 1080
+        }
+      ],
+      "reviews": [],
+      "geo": null,
+      "permanentlyClosed": false,
+      "businessStatus": "OPERATIONAL",
+      "ratingDistribution": {
+        "Google": {
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0,
+          "5": 1
+        }
+      },
+      "utcOffset": 420,
+      "openingPeriods": null
+    },
+    {
+      "id": 12680285,
+      "name": "Happy Home",
+      "placePageType": "visible",
+      "placeId": "ChIJwyzXDrAvdTERP29Fu7IXifs",
+      "sources": [
+        {
+          "id": "474256",
+          "type": "webPlacesList",
+          "url": "http://www.bestrent.vn/top-10-best-apartment-estates-to-live-in-ho-chi-minh/",
+          "sourceSite": "Web",
+          "snippet": "Located at 81 Ho Hao Hon, District 1, Happy Homes Serviced Apartment includes a free parking space, free WiFi, a 24-hour reception, laundry services, and a mini bar. The apartment is also near the Mariamman Hindu Temple, Benh Thanh Market, Fine Arts Museum, and the Thai Binh Market.",
+          "siteName": "bestrent.vn",
+          "shortName": "Top 10 Best Apartment Estates to Live in Ho Chi Minh",
+          "indexInSource": 7,
+          "iconSiteId": 49102,
+          "showIcon": false,
+          "showInternalLink": false,
+          "showExternalLink": true,
+          "showSiteNameOnWeb": true
+        }
+      ],
+      "description": null,
+      "generatedDescription": "Situated at 81 Ho Hao Hon, District 1, Happy Home offers a range of amenities including complimentary parking, free WiFi, around-the-clock reception, laundry facilities, and a mini bar. Its proximity to attractions like the Mariamman Hindu Temple, Benh Thanh Market, Fine Arts Museum and Thai Binh Market makes it an ideal choice for travelers looking to explore the area.",
+      "categories": ["Apartment building"],
+      "hasDetails": true,
+      "minMinutesSpent": null,
+      "maxMinutesSpent": null,
+      "address": "36 Đ. B7, Phước Kiển, Nhà Bè, Hồ Chí Minh, Vietnam",
+      "rating": 5,
+      "numRatings": 1,
+      "tripadvisorRating": null,
+      "tripadvisorNumRatings": null,
+      "website": null,
+      "internationalPhoneNumber": null,
+      "priceLevel": null,
+      "imageKeys": [
+        "tV9dyvPCp4NuFywwb5nG6d70nXRg9nTg",
+        "6GLCKzk0QB1C4QJHwDgFMn4XWksLo465"
+      ],
+      "images": [
+        {
+          "key": "tV9dyvPCp4NuFywwb5nG6d70nXRg9nTg",
+          "width": 810,
+          "height": 1080
+        },
+        {
+          "key": "6GLCKzk0QB1C4QJHwDgFMn4XWksLo465",
+          "width": 286,
+          "height": 510
+        }
+      ],
+      "reviews": [],
+      "geo": null,
+      "permanentlyClosed": false,
+      "businessStatus": "OPERATIONAL",
+      "ratingDistribution": {
+        "Google": {
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0,
+          "5": 1
+        }
+      },
+      "utcOffset": 420,
+      "openingPeriods": null
+    },
+    {
+      "id": 12680286,
+      "name": "The Green View VIII - Serviced Apartments & Office Buildings - サービスアパートメント",
+      "placePageType": "visible",
+      "placeId": "ChIJxzwzRC8vdTERqjGR1Ske-kY",
+      "sources": [
+        {
+          "id": "474256",
+          "type": "webPlacesList",
+          "url": "http://www.bestrent.vn/top-10-best-apartment-estates-to-live-in-ho-chi-minh/",
+          "sourceSite": "Web",
+          "snippet": "Located at The Vista, 628 Hanoi Highway, District 2, the Green Apartment at The Vista An Phu is one of the best accommodations in Ho Chi Minh City. Not only does the apartment offer breathtaking views of the city, it also includes free WiFi, fully-furnished kitchen, bath and spa, and access to the fitness facilities, sauna, and outdoor pool. The site is also near the famous Jade Emperor Pagoda and the History Museum.",
+          "siteName": "bestrent.vn",
+          "shortName": "Top 10 Best Apartment Estates to Live in Ho Chi Minh",
+          "indexInSource": 4,
+          "iconSiteId": 49102,
+          "showIcon": false,
+          "showInternalLink": false,
+          "showExternalLink": true,
+          "showSiteNameOnWeb": true
+        }
+      ],
+      "description": null,
+      "generatedDescription": "The Green View VIII - Serviced Apartments & Office Buildings - サービスアパートメント is a top accommodation option in Ho Chi Minh City, situated at The Vista, 628 Hanoi Highway, District 2. It offers stunning city views and amenities such as complimentary WiFi, a fully-equipped kitchen, spa access, and fitness facilities including a sauna and outdoor pool. Additionally, it's conveniently located near attractions like the Jade Emperor Pagoda and the History Museum.",
+      "categories": [
+        "Apartment building",
+        "Apartment rental agency",
+        "Condominium rental agency",
+        "Corporate office"
+      ],
+      "hasDetails": true,
+      "minMinutesSpent": null,
+      "maxMinutesSpent": null,
+      "address": "8A/A8 Đ. Thái Văn Lung, Bến Nghé, Quận 1, Hồ Chí Minh 700000, Vietnam",
+      "rating": 5,
+      "numRatings": 2,
+      "tripadvisorRating": null,
+      "tripadvisorNumRatings": null,
+      "website": "https://greenview-building.com/",
+      "internationalPhoneNumber": "+84 28 3910 3512",
+      "priceLevel": null,
+      "imageKeys": [
+        "8x5zSHaNFYNVLv5CSlIQ8dzo6g4A6xbN",
+        "GvX2lTn6DRRzIbPLVzkA1iF9cF96xsIs",
+        "KfUFrBLXNhmXtfTAmcx2v65o0nqo9pMF",
+        "Fpp9dxQLDiPEqyVcTkQYdlrezPW1kSlF"
+      ],
+      "images": [
+        {
+          "key": "8x5zSHaNFYNVLv5CSlIQ8dzo6g4A6xbN",
+          "width": 1024,
+          "height": 683
+        },
+        {
+          "key": "GvX2lTn6DRRzIbPLVzkA1iF9cF96xsIs",
+          "width": 1024,
+          "height": 683
+        },
+        {
+          "key": "KfUFrBLXNhmXtfTAmcx2v65o0nqo9pMF",
+          "width": 1620,
+          "height": 1080
+        },
+        {
+          "key": "Fpp9dxQLDiPEqyVcTkQYdlrezPW1kSlF",
+          "width": 1620,
+          "height": 1080
+        }
+      ],
+      "reviews": [
+        {
+          "reviewId": "ChZDSUhNMG9nS0VJQ0FnSUNocWVEbE5BEAE",
+          "time": "2023-02-16T09:38:05.000Z",
+          "reviewerName": "trúc nguyễn",
+          "rating": 5,
+          "rank": 1,
+          "reviewText": "(Translated by Google) Good service. The staff also spoke Japanese and I felt at ease with everything.\n\n(Original)\nサービスがいいね。スタッフも日本語ができ、どんなことも安心だった。"
+        },
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSUNSMGZLWjNBRRAB",
+          "time": "2023-04-04T09:09:47.000Z",
+          "reviewerName": "Ngọc Yến Trần Thị",
+          "rating": 5,
+          "rank": 2,
+          "reviewText": "(Translated by Google) Rooms are clean, staff are friendly and enthusiastic\n\n(Original)\nPhòng ốc sạch sẽ, nhân viên thân thiệt nhiệt tình"
+        }
+      ],
+      "geo": null,
+      "permanentlyClosed": false,
+      "businessStatus": "OPERATIONAL",
+      "ratingDistribution": {
+        "Google": {
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0,
+          "5": 2
+        }
+      },
+      "utcOffset": 420,
+      "openingPeriods": null
+    },
+    {
+      "id": 12680304,
+      "name": "Thiên Hà Hotel & Apartment",
+      "placePageType": "visible",
+      "placeId": "ChIJVVWlS3kldTEROulwcoRSs0M",
+      "sources": [
+        {
+          "id": "474299",
+          "type": "webPlacesList",
+          "url": "https://mogi.vn/news/top-5-best-serviced-apartment-in-ho-chi-minh-city-7803/",
+          "sourceSite": "Web",
+          "snippet": "Located near shopping and entertainment centers, Thien Ha Hotel & Apartment offers modern rooms and apartments with free Wi-Fi. Guests have free access to the swimming pool and fitness center. The hotel also has a restaurant and free private parking.",
+          "siteName": "Mogi.vn",
+          "shortName": "Top 5 best serviced apartment for rent in Ho Chi Minh city",
+          "indexInSource": 3,
+          "iconSiteId": 49105,
+          "showIcon": false,
+          "showInternalLink": false,
+          "showExternalLink": true,
+          "showSiteNameOnWeb": true
+        }
+      ],
+      "description": null,
+      "generatedDescription": "Thiên Hà Hotel & Apartment is a contemporary accommodation option situated in close proximity to popular shopping and entertainment hubs. The property provides well-equipped modern rooms and apartments, complete with complimentary Wi-Fi access. Guests can take advantage of the on-site swimming pool and fitness center at no extra cost. Additionally, the hotel features a restaurant for convenient dining options and offers complimentary private parking facilities for added convenience.",
+      "categories": [],
+      "hasDetails": true,
+      "minMinutesSpent": null,
+      "maxMinutesSpent": null,
+      "address": "516-518, 516 Huỳnh Tấn Phát, P. Phú Thuận, Quận 7, Hồ Chí Minh, Vietnam",
+      "rating": 3.5,
+      "numRatings": 2,
+      "tripadvisorRating": null,
+      "tripadvisorNumRatings": null,
+      "website": null,
+      "internationalPhoneNumber": null,
+      "priceLevel": null,
+      "imageKeys": [
+        "4l1bbZtv12I4B1fPUORtGqf9ftOQsJrI",
+        "p70rfZMkQynxdoii3b7pQMsVpA0ikMfS",
+        "3GYVB7ulyNh38k3mRZdD79k4dBuafp0z",
+        "dd3xXwViugWLnYfov687y8KDEdfUnAHc"
+      ],
+      "images": [
+        {
+          "key": "4l1bbZtv12I4B1fPUORtGqf9ftOQsJrI",
+          "width": 1440,
+          "height": 1080
+        },
+        {
+          "key": "p70rfZMkQynxdoii3b7pQMsVpA0ikMfS",
+          "width": 1440,
+          "height": 1080
+        },
+        {
+          "key": "3GYVB7ulyNh38k3mRZdD79k4dBuafp0z",
+          "width": 1440,
+          "height": 1080
+        },
+        {
+          "key": "dd3xXwViugWLnYfov687y8KDEdfUnAHc",
+          "width": 1440,
+          "height": 1080
+        }
+      ],
+      "reviews": [
+        {
+          "reviewId": "ChdDSUhNMG9nS0VJQ0FnSURfdG9peWx3RRAB",
+          "time": "2025-01-24T02:41:28.000Z",
+          "reviewerName": "Daniela Pirker",
+          "rating": 4,
+          "rank": 1,
+          "reviewText": "(Translated by Google) Very nice, helpful staff, spacious rooms, additional room & laundry service, very good value for money\n\n(Original)\nSehr nettes, hilfsbereites Personal, großzügige Zimmer, zusätzlich Zimmer & Wäsche-Service, sehr gutes Preis-Leistungsverhältnis"
+        }
+      ],
+      "geo": null,
+      "permanentlyClosed": false,
+      "businessStatus": "OPERATIONAL",
+      "ratingDistribution": {
+        "Google": {
+          "1": 0,
+          "2": 0,
+          "3": 1,
+          "4": 1,
+          "5": 0
+        }
+      },
+      "utcOffset": 420,
+      "openingPeriods": null
+    }
+  ],
+  "date": null,
+  "startDate": null,
+  "endDate": null,
+  "tripPlanKey": null,
+  "distinction": null,
+  "boardSections": [
+    {
+      "type": "normal",
+      "id": 0,
+      "heading": "",
+      "text": {
+        "ops": [
+          {
+            "insert": "\n"
+          }
+        ]
+      },
+      "placeMarkerColor": "#e23e57",
+      "placeMarkerIcon": "map-marker",
+      "blocks": [
+        {
+          "id": 0,
+          "type": "place",
+          "place": {
+            "name": "Riverside Serviced Apartments",
+            "placeId": "ChIJ0QvdN2smdTERfEQbpef8L8A",
+            "longitude": 106.74665,
+            "latitude": 10.806756
+          },
+          "text": {
+            "ops": [
+              {
+                "insert": "\n"
+              }
+            ]
+          },
+          "addedBy": {
+            "type": "unknown"
+          },
+          "upvotedBy": [],
+          "selectedImageKey": "oZb2509PvSBRwiKJzW1lansWNxjbB3X8",
+          "imageKeys": ["oZb2509PvSBRwiKJzW1lansWNxjbB3X8"],
+          "travelMode": null,
+          "attachments": [],
+          "imageSize": "large"
+        },
+        {
+          "id": 1,
+          "type": "place",
+          "place": {
+            "name": "Somerset Ho Chi Minh City",
+            "placeId": "ChIJjcFsvLQodTER1NOL5Iaxeok",
+            "longitude": 106.703184,
+            "latitude": 10.789728
+          },
+          "text": {
+            "ops": [
+              {
+                "insert": "Polished units with kitchens in a relaxed apartment hotel with an outdoor pool & a gym.\n"
+              }
+            ]
+          },
+          "addedBy": {
+            "type": "unknown"
+          },
+          "upvotedBy": [],
+          "selectedImageKey": "qHSZAvIHn5jP8xzYPwN2g225gKqHORNP",
+          "imageKeys": [
+            "qHSZAvIHn5jP8xzYPwN2g225gKqHORNP",
+            "gMpHaEekMaOoaZuFHIfZVWkw5GOLaIyO",
+            "2X5SVlcmwf4s5m5aHGqzQmqpilRAhrEO"
+          ],
+          "travelMode": null,
+          "attachments": [],
+          "imageSize": "large"
+        },
+        {
+          "id": 2,
+          "type": "place",
+          "place": {
+            "name": "Homestead Parkview",
+            "placeId": "ChIJFQ-PDzwvdTERYD1e-pRhrBM",
+            "longitude": 106.693026,
+            "latitude": 10.77242
+          },
+          "text": {
+            "ops": [
+              {
+                "insert": "Straightforward hotel featuring informal quarters, plus a restaurant & a rooftop terrace.\n"
+              }
+            ]
+          },
+          "addedBy": {
+            "type": "unknown"
+          },
+          "upvotedBy": [],
+          "imageKeys": [],
+          "travelMode": null,
+          "attachments": [],
+          "imageSize": "large"
+        },
+        {
+          "id": 3,
+          "type": "place",
+          "place": {
+            "name": "A&EM Hotel & Spa",
+            "placeId": "ChIJdRwKvz4vdTERbRc78CVyOsI",
+            "longitude": 106.695359,
+            "latitude": 10.77188
+          },
+          "text": {
+            "ops": [
+              {
+                "insert": "Polished rooms in a chic property featuring dining, a spa & a cafe/bar, plus free Wi-Fi.\n"
+              }
+            ]
+          },
+          "addedBy": {
+            "type": "unknown"
+          },
+          "upvotedBy": [],
+          "selectedImageKey": "YBj9idzkALsQvBB7QvIdHceFufKLo4LC",
+          "imageKeys": [
+            "YBj9idzkALsQvBB7QvIdHceFufKLo4LC",
+            "LiRGVSFIZFs3wYNUdOSjqTegYs7rMZoT"
+          ],
+          "travelMode": null,
+          "attachments": [],
+          "imageSize": "large"
+        },
+        {
+          "id": 4,
+          "type": "place",
+          "place": {
+            "name": "JW Marriott Hotel & Suites Saigon (Apartment Tower)",
+            "placeId": "ChIJ5ZwSAZ8vdTER_T8c0FMHYfY",
+            "longitude": 106.701318,
+            "latitude": 10.78146
+          },
+          "text": {
+            "ops": [
+              {
+                "insert": "Sleek units with kitchens & city views in an upscale apartment hotel offering a pool & a gym.\n"
+              }
+            ]
+          },
+          "addedBy": {
+            "type": "unknown"
+          },
+          "upvotedBy": [],
+          "selectedImageKey": "uLFXJS91cCC1gyQK4op4lsmtK10BTh90",
+          "imageKeys": [
+            "uLFXJS91cCC1gyQK4op4lsmtK10BTh90",
+            "wCrLQhF7bKzf8W2YVy8aZI38yNq38IoG"
+          ],
+          "travelMode": null,
+          "attachments": [],
+          "imageSize": "large"
+        },
+        {
+          "id": 5,
+          "type": "place",
+          "place": {
+            "name": "Signature by M Village Lê Thánh Tôn",
+            "placeId": "ChIJIxTNELcvdTER9QHiIRrzIa8",
+            "longitude": 106.704345,
+            "latitude": 10.780452
+          },
+          "text": {
+            "ops": [
+              {
+                "insert": "Upscale hotel offering modern quarters, a restaurant & an indoor pool, plus river views.\n"
+              }
+            ]
+          },
+          "addedBy": {
+            "type": "unknown"
+          },
+          "upvotedBy": [],
+          "selectedImageKey": "zMSQKZBC9M42yS11SWSDJDbt27gfaYtu",
+          "imageKeys": ["zMSQKZBC9M42yS11SWSDJDbt27gfaYtu"],
+          "travelMode": null,
+          "attachments": [],
+          "imageSize": "large"
+        },
+        {
+          "id": 6,
+          "type": "place",
+          "place": {
+            "name": "Masteri Thao Dien - T3",
+            "placeId": "ChIJW0nc_hMmdTERuxWxE7yFBxw",
+            "longitude": 106.741436,
+            "latitude": 10.803356
+          },
+          "text": {
+            "ops": [
+              {
+                "insert": "\n"
+              }
+            ]
+          },
+          "addedBy": {
+            "type": "unknown"
+          },
+          "upvotedBy": [],
+          "selectedImageKey": "VIGPYmKHJEF0knEhL5ikUffJUA1i5lqp",
+          "imageKeys": [
+            "VIGPYmKHJEF0knEhL5ikUffJUA1i5lqp",
+            "c5QnlFEFIReXm79hgNc5oQx09hkquVBy",
+            "h2VktxBSTP0vAmWmp6viG1z1rSJ2nPyi"
+          ],
+          "travelMode": null,
+          "attachments": [],
+          "imageSize": "large"
+        },
+        {
+          "id": 7,
+          "type": "place",
+          "place": {
+            "name": "Sherwood Residence",
+            "placeId": "ChIJ_XgLOTEvdTERVgs7aSdoyDk",
+            "longitude": 106.693151,
+            "latitude": 10.782718
+          },
+          "text": {
+            "ops": [
+              {
+                "insert": "Warm apartments in a polished hotel offering a pool, dining & a free local shuttle, plus a gym.\n"
+              }
+            ]
+          },
+          "addedBy": {
+            "type": "unknown"
+          },
+          "upvotedBy": [],
+          "selectedImageKey": "ZANhhq8nvpptSeKCJJrLDlEG9rqxQpGg",
+          "imageKeys": [
+            "ZANhhq8nvpptSeKCJJrLDlEG9rqxQpGg",
+            "E4204r45NJChjDdqLAKg70LdCoJyuTUM",
+            "Qmwpp3y9jqqZeYaRHKHeFH8N0LbdnWJi"
+          ],
+          "travelMode": null,
+          "attachments": [],
+          "imageSize": "large"
+        },
+        {
+          "id": 8,
+          "type": "place",
+          "place": {
+            "name": "Landmark 1 – Vinhomes Central Park",
+            "placeId": "ChIJCS-35IspdTERdMnZaF9aj1E",
+            "longitude": 106.72201,
+            "latitude": 10.793703
+          },
+          "text": {
+            "ops": [
+              {
+                "insert": "\n"
+              }
+            ]
+          },
+          "addedBy": {
+            "type": "unknown"
+          },
+          "upvotedBy": [],
+          "selectedImageKey": "mhGZwYfg2JFdUlg51zjkk6lpUCCDlvXn",
+          "imageKeys": [
+            "mhGZwYfg2JFdUlg51zjkk6lpUCCDlvXn",
+            "xDWyt5fls1QP9nLgMbgKDFtHV9GXTFmQ",
+            "8DvXwg6Hj4VE7IXUEr8kAaOdP3qAhu8d"
+          ],
+          "travelMode": null,
+          "attachments": [],
+          "imageSize": "large"
+        },
+        {
+          "id": 9,
+          "type": "place",
+          "place": {
+            "name": "Luxury The One Ben Thanh Apartments",
+            "placeId": "ChIJafkwhZAvdTERV7ZnzNKJaNQ",
+            "longitude": 106.697148,
+            "latitude": 10.768913
+          },
+          "text": {
+            "ops": [
+              {
+                "insert": "\n"
+              }
+            ]
+          },
+          "addedBy": {
+            "type": "unknown"
+          },
+          "upvotedBy": [],
+          "imageKeys": [],
+          "travelMode": null,
+          "attachments": [],
+          "imageSize": "large"
+        },
+        {
+          "id": 10,
+          "type": "place",
+          "place": {
+            "name": "Song Hung Luxury Hotel & Apartments",
+            "placeId": "ChIJ4QRmGZEvdTER5kq0TYdvRc0",
+            "longitude": 106.70732,
+            "latitude": 10.731164
+          },
+          "text": {
+            "ops": [
+              {
+                "insert": "\n"
+              }
+            ]
+          },
+          "addedBy": {
+            "type": "unknown"
+          },
+          "upvotedBy": [],
+          "selectedImageKey": "HdAVhvEThr4E5TH65UNIpXUJQf7c1Z6V",
+          "imageKeys": ["HdAVhvEThr4E5TH65UNIpXUJQf7c1Z6V"],
+          "travelMode": null,
+          "attachments": [],
+          "imageSize": "large"
+        },
+        {
+          "id": 11,
+          "type": "place",
+          "place": {
+            "name": "The Green View VIII - Serviced Apartments & Office Buildings - サービスアパートメント",
+            "placeId": "ChIJxzwzRC8vdTERqjGR1Ske-kY",
+            "longitude": 106.704969,
+            "latitude": 10.779806
+          },
+          "text": {
+            "ops": [
+              {
+                "insert": "\n"
+              }
+            ]
+          },
+          "addedBy": {
+            "type": "unknown"
+          },
+          "upvotedBy": [],
+          "selectedImageKey": "8x5zSHaNFYNVLv5CSlIQ8dzo6g4A6xbN",
+          "imageKeys": [
+            "8x5zSHaNFYNVLv5CSlIQ8dzo6g4A6xbN",
+            "GvX2lTn6DRRzIbPLVzkA1iF9cF96xsIs",
+            "KfUFrBLXNhmXtfTAmcx2v65o0nqo9pMF",
+            "Fpp9dxQLDiPEqyVcTkQYdlrezPW1kSlF"
+          ],
+          "travelMode": null,
+          "attachments": [],
+          "imageSize": "large"
+        },
+        {
+          "id": 12,
+          "type": "place",
+          "place": {
+            "name": "Thiên Hà Hotel & Apartment",
+            "placeId": "ChIJVVWlS3kldTEROulwcoRSs0M",
+            "longitude": 106.729591,
+            "latitude": 10.739679
+          },
+          "text": {
+            "ops": [
+              {
+                "insert": "\n"
+              }
+            ]
+          },
+          "addedBy": {
+            "type": "unknown"
+          },
+          "upvotedBy": [],
+          "selectedImageKey": "4l1bbZtv12I4B1fPUORtGqf9ftOQsJrI",
+          "imageKeys": [
+            "4l1bbZtv12I4B1fPUORtGqf9ftOQsJrI",
+            "p70rfZMkQynxdoii3b7pQMsVpA0ikMfS",
+            "3GYVB7ulyNh38k3mRZdD79k4dBuafp0z",
+            "dd3xXwViugWLnYfov687y8KDEdfUnAHc"
+          ],
+          "travelMode": null,
+          "attachments": [],
+          "imageSize": "large"
+        },
+        {
+          "id": 13,
+          "type": "place",
+          "place": {
+            "name": "Luxury Apartment",
+            "placeId": "ChIJfd6mAQApdTERmgYpkdla3zU",
+            "longitude": 106.690871,
+            "latitude": 10.800225
+          },
+          "text": {
+            "ops": [
+              {
+                "insert": "\n"
+              }
+            ]
+          },
+          "addedBy": {
+            "type": "unknown"
+          },
+          "upvotedBy": [],
+          "selectedImageKey": "p5KMm6fb7xqQdlDFP0ZivZCRWPidQpij",
+          "imageKeys": [
+            "p5KMm6fb7xqQdlDFP0ZivZCRWPidQpij",
+            "PIemLeuioZlitelghmgA3EWS3g90xZVu",
+            "s5PwSjaGVGaysyKw10u7BdWlXU7WIYBj",
+            "FvYoCcpBtYxwoMO44ReBTshWJ5yz2kBr"
+          ],
+          "travelMode": null,
+          "attachments": [],
+          "imageSize": "large"
+        },
+        {
+          "id": 14,
+          "type": "place",
+          "place": {
+            "name": "Happy Home",
+            "placeId": "ChIJwyzXDrAvdTERP29Fu7IXifs",
+            "longitude": 106.706879,
+            "latitude": 10.7097
+          },
+          "text": {
+            "ops": [
+              {
+                "insert": "\n"
+              }
+            ]
+          },
+          "addedBy": {
+            "type": "unknown"
+          },
+          "upvotedBy": [],
+          "selectedImageKey": "tV9dyvPCp4NuFywwb5nG6d70nXRg9nTg",
+          "imageKeys": [
+            "tV9dyvPCp4NuFywwb5nG6d70nXRg9nTg",
+            "6GLCKzk0QB1C4QJHwDgFMn4XWksLo465"
+          ],
+          "travelMode": null,
+          "attachments": [],
+          "imageSize": "large"
+        }
+      ]
+    }
+  ],
+  "headerTemplate": {
+    "type": "geoCategory",
+    "subType": "Serviced apartment",
+    "updatedAt": "2024-12-01T23:09:44.000Z",
+    "geo": {
+      "id": 16,
+      "name": "Ho Chi Minh City"
+    },
+    "blurbTemplate": "Are you looking for the best [autocompleteTerm] in [geoNameWithThe]? You’re not alone! Many of us love traveling on the Wanderlog team, so naturally we’re always on the hunt to find the most popular spots anytime we travel somewhere new. We’ve looked through different sources to find the best options, including favorites like [examplePlaceNames].",
+    "topBlurb": "Ho Chi Minh City, a vibrant blend of history and modernity, offers a unique experience for travelers seeking comfort and convenience. With its bustling streets, rich culture, and mouthwatering street food, this city is a feast for the senses. Whether you're exploring the historic Ben Thanh Market or enjoying the lively atmosphere at the Ben Thanh Street Food Market, having a cozy place to call home during your stay is essential. That's where serviced apartments come in, providing the perfect balance of luxury and practicality for families and solo travelers alike.\n\nFrom the upscale Sherwood Residence in District 3, which boasts a pool and kids' playroom, to the stylish A&EM Saigon Hotel, located near popular attractions, there’s a range of options to suit every traveler's needs. Imagine unwinding after a day of exploration in a spacious apartment with modern amenities, or enjoying a refreshing dip in a rooftop pool with stunning city views. The Wanderlog team is passionate about helping you discover the best places to stay, so you can focus on making unforgettable memories in this dynamic city. Get ready to explore Ho Chi Minh City and find the perfect serviced apartment for your adventure!",
+    "placeName": "serviced apartment",
+    "source": "autocompleteWebPlacesLists",
+    "sourcesMerged": false
+  },
+  "author": null,
+  "providerTitle": null,
+  "relatedPagesData": {
+    "drives": [
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 4,
+          "name": "Bangkok",
+          "englishName": "Bangkok"
+        },
+        "freeImageKey": "NzYgP5R1QE8bUb3QIfWOe4RoZZA13zUY",
+        "geoPairId": 194
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 11,
+          "name": "Siem Reap",
+          "englishName": "Siem Reap"
+        },
+        "freeImageKey": "gMuvSyhAUJ5Xy9gxqV29gtQbgvIOi76I",
+        "geoPairId": 685
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 44,
+          "name": "Phnom Penh",
+          "englishName": "Phnom Penh"
+        },
+        "freeImageKey": "9WVJlSj96wlfgLibVR9COylWZmfn6vIm",
+        "geoPairId": 916
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 7,
+          "name": "Singapore",
+          "englishName": "Singapore"
+        },
+        "freeImageKey": "2XfDHZA7UmGnP13Pxr9XqoxmrC8SBZ0O",
+        "geoPairId": 385
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 15,
+          "name": "Hong Kong",
+          "englishName": "Hong Kong"
+        },
+        "freeImageKey": "hPR4xga5p53FRBJKZCZmt1YKXlJbmUeH",
+        "geoPairId": 880
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 8,
+          "name": "Hanoi",
+          "englishName": "Hanoi"
+        },
+        "freeImageKey": "vCj4fm6pEMMNAdi5BQhIlOWF1xMpjq55",
+        "geoPairId": 472
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 93,
+          "name": "Nha Trang",
+          "englishName": "Nha Trang"
+        },
+        "freeImageKey": "nC5ZRyxCwWTazjdcxOH79pMkk4AOij7q",
+        "geoPairId": 926
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 80,
+          "name": "Pattaya",
+          "englishName": "Pattaya"
+        },
+        "freeImageKey": "64bS7BGFhCAXT1yvIdJKOHtyY3Kb7Ynz",
+        "geoPairId": 924
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 33,
+          "name": "Kuala Lumpur",
+          "englishName": "Kuala Lumpur"
+        },
+        "freeImageKey": "N59DsrppN9BkfeNuRtjv8la1n4mJspor",
+        "geoPairId": 914
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 21,
+          "name": "Hoi An",
+          "englishName": "Hoi An"
+        },
+        "freeImageKey": "92Ew55jhhTIdpTrmbRbCtxKjBXecTREP",
+        "geoPairId": 913
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 277,
+          "name": "Phan Thiet",
+          "englishName": "Phan Thiet"
+        },
+        "freeImageKey": "eMLC5JvW6z7lQfgdFDJVuoljUzLn0h0q",
+        "geoPairId": 939
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 174,
+          "name": "Da Lat",
+          "englishName": "Da Lat"
+        },
+        "freeImageKey": "TlKFjUP0MEHWcv1z8UQpyw2JWP06gaR0",
+        "geoPairId": 931
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 53,
+          "name": "Kathu",
+          "englishName": "Kathu"
+        },
+        "freeImageKey": "u4SZZuq7NoENFy0L2XF7EFiemfTi0xZM",
+        "geoPairId": 921
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 19,
+          "name": "Chiang Mai",
+          "englishName": "Chiang Mai"
+        },
+        "freeImageKey": "eoI04dDjC6PLWT1PQjFkfteKpM4dWIQ2",
+        "geoPairId": 912
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 79,
+          "name": "Krabi Town",
+          "englishName": "Krabi Town"
+        },
+        "freeImageKey": "nZ7g8B4VZqE26G4qwK5tTUy823IRWUt6",
+        "geoPairId": 923
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 92,
+          "name": "Hue",
+          "englishName": "Hue"
+        },
+        "freeImageKey": "IXcdWWrv4cH4uTeZM35fG2a3SRd5xUCN",
+        "geoPairId": 925
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 184,
+          "name": "Luang Prabang",
+          "englishName": "Luang Prabang"
+        },
+        "freeImageKey": "M9tDHSsizbVFJp8SKDMPp2HPQKdrw6BM",
+        "geoPairId": 934
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 128,
+          "name": "Hua Hin",
+          "englishName": "Hua Hin"
+        },
+        "freeImageKey": "Ik9ECwlFEcX90omuYhTIYeRzAwvRMhr2",
+        "geoPairId": 929
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 52,
+          "name": "Yangon (Rangoon)",
+          "englishName": "Yangon (Rangoon)"
+        },
+        "freeImageKey": "jAeueHgf9P1psWjvQkfFJgwbuAGWI8oe",
+        "geoPairId": 920
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 105,
+          "name": "Macau",
+          "englishName": "Macau"
+        },
+        "freeImageKey": "0Ikyab6z9iGrxfBKhVXcHNo45Ida00Mj",
+        "geoPairId": 927
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 468,
+          "name": "Ayutthaya",
+          "englishName": "Ayutthaya"
+        },
+        "freeImageKey": "RL5lOhGFMfXBd42nUjDz5ylGWERCZDwX",
+        "geoPairId": 943
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 137,
+          "name": "George Town",
+          "englishName": "George Town"
+        },
+        "freeImageKey": "6sWspNx65TzFHZCZO4ZKMizTeY8YZ69f",
+        "geoPairId": 930
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 584,
+          "name": "Kanchanaburi",
+          "englishName": "Kanchanaburi"
+        },
+        "freeImageKey": "bVJjcG8DbZdvy9kRuB0n7RObzBU3pZwX",
+        "geoPairId": 944
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 257,
+          "name": "Chiang Rai",
+          "englishName": "Chiang Rai"
+        },
+        "freeImageKey": "tIJaiAgHcoCihQMkBlUWlk9yHaO7KGUm",
+        "geoPairId": 937
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 263,
+          "name": "Sihanoukville",
+          "englishName": "Sihanoukville"
+        },
+        "freeImageKey": "LcKlV0sVyQYnSZ6ArusRApS7QbE7PYii",
+        "geoPairId": 163587
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 456,
+          "name": "Vung Tau",
+          "englishName": "Vung Tau"
+        },
+        "freeImageKey": "N4jMb1YE0CcBaX8OlgFfe3XAKE15qf3i",
+        "geoPairId": 2379505
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 292,
+          "name": "Vientiane",
+          "englishName": "Vientiane"
+        },
+        "freeImageKey": "w93BSoXnVkHPFOSkDk0zFhRDzsn2TffZ",
+        "geoPairId": 940
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 1447,
+          "name": "Kep",
+          "englishName": "Kep"
+        },
+        "freeImageKey": "JOe5f1Bl1GFAmyLlAwNI34BHCs93i0s8",
+        "geoPairId": 2379541
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 187,
+          "name": "Melaka",
+          "englishName": "Melaka"
+        },
+        "freeImageKey": "Qv2D54posQMwfgPkwlj5T34PJ3arEw4p",
+        "geoPairId": 935
+      },
+      {
+        "type": "betweenGeos",
+        "fromGeo": {
+          "id": 16,
+          "name": "Ho Chi Minh City",
+          "englishName": "Ho Chi Minh City"
+        },
+        "toGeo": {
+          "id": 180,
+          "name": "Halong Bay",
+          "englishName": "Halong Bay"
+        },
+        "freeImageKey": "qyfBru3mcQ8JxDrt9aVFlB8eAU2WTx18",
+        "geoPairId": 933
+      }
+    ],
+    "categories": [
+      {
+        "id": 737,
+        "name": "Restaurants",
+        "shortName": "Restaurants",
+        "emoji": "fork-and-knife-with-plate",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "Where to eat: the  best restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 104401,
+        "name": "Attractions",
+        "shortName": "Attractions",
+        "emoji": "round-pushpin",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "Top  things to do and attractions in Ho Chi Minh City"
+      },
+      {
+        "id": 738,
+        "name": "Cafes",
+        "shortName": "Cafes",
+        "emoji": "hot-beverage",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "cafes",
+        "geoCategoryName": "The  best coffee shops and best cafes in Ho Chi Minh City"
+      },
+      {
+        "id": 160170,
+        "name": "Photo spots",
+        "shortName": "Photo spots",
+        "emoji": "camera-with-flash",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "The  best photo spots in Ho Chi Minh City"
+      },
+      {
+        "id": 765,
+        "name": "Cheap food",
+        "shortName": "Cheap eats",
+        "emoji": "cheapEats",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best cheap eats in Ho Chi Minh City"
+      },
+      {
+        "id": 734,
+        "name": "Breakfast and brunch",
+        "shortName": "Breakfast and brunch",
+        "emoji": "cooking",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best breakfast and brunch in Ho Chi Minh City"
+      },
+      {
+        "id": 739,
+        "name": "Bakeries",
+        "shortName": "Bakeries",
+        "emoji": "croissant",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "cafes",
+        "geoCategoryName": "The  best bakeries in Ho Chi Minh City"
+      },
+      {
+        "id": 741,
+        "name": "Breweries and beer",
+        "shortName": "Breweries and beer",
+        "emoji": "beer-mug",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "bars",
+        "geoCategoryName": "The  best Ho Chi Minh City breweries and craft beer"
+      },
+      {
+        "id": 32920,
+        "name": "Family restaurants",
+        "shortName": "Family restaurants",
+        "emoji": "chickenDrumStick",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best family restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 167366,
+        "name": "Shopping",
+        "shortName": "Shopping",
+        "emoji": "shopping-bags",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": null,
+        "geoCategoryName": "The  best shopping and stores in Ho Chi Minh City"
+      },
+      {
+        "id": 745,
+        "name": "Bars",
+        "shortName": "Bars",
+        "emoji": "tropical-drink",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "bars",
+        "geoCategoryName": "The  best bars and drinks in Ho Chi Minh City"
+      },
+      {
+        "id": 142180,
+        "name": "Museums",
+        "shortName": "Museums",
+        "emoji": "classical-building",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "The  best museums in Ho Chi Minh City"
+      },
+      {
+        "id": 138582,
+        "name": "Kid-friendly attractions",
+        "shortName": "Kid-friendly attractions",
+        "emoji": "carousel-horse",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "The  best things to do with kids in Ho Chi Minh City"
+      },
+      {
+        "id": 152974,
+        "name": "Nightlife",
+        "shortName": "Nightlife",
+        "emoji": "night-with-stars",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "bars",
+        "geoCategoryName": "The  best nightlife in Ho Chi Minh City"
+      },
+      {
+        "id": 751,
+        "name": "Outdoor dining",
+        "shortName": "Outdoor dining",
+        "emoji": null,
+        "keywordCategoryGroup": "otherEats",
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best outdoor dining in Ho Chi Minh City"
+      },
+      {
+        "id": 149376,
+        "name": "Neighborhoods",
+        "shortName": "Neighborhoods",
+        "emoji": "houses",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": null,
+        "geoCategoryName": "The  best neighborhoods to see in Ho Chi Minh City"
+      },
+      {
+        "id": 181758,
+        "name": "Zoos",
+        "shortName": "Zoos",
+        "emoji": "monkey",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "The  best zoos in and around Ho Chi Minh City"
+      },
+      {
+        "id": 97205,
+        "name": "Architectural buildings",
+        "shortName": "Architectural buildings",
+        "emoji": "classical-building",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "The  best architecture in Ho Chi Minh City"
+      },
+      {
+        "id": 100803,
+        "name": "Art museums",
+        "shortName": "Art museums",
+        "emoji": "framed-picture",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "The  best art museums in Ho Chi Minh City"
+      },
+      {
+        "id": 804639,
+        "name": "Spanish restaurants",
+        "shortName": "Spanish",
+        "emoji": null,
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best Spanish foods and restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 740,
+        "name": "Seafood restaurants",
+        "shortName": "Seafood restaurants",
+        "emoji": "shrimp",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best seafood restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 161969,
+        "name": "Photography museums",
+        "shortName": "Photography museums",
+        "emoji": "film-frames",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "The  best photography galleries and museums in Ho Chi Minh City"
+      },
+      {
+        "id": 1845656,
+        "name": "Bed and breakfast",
+        "shortName": "Bed and breakfast",
+        "emoji": "bed",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": null,
+        "geoCategoryName": "The  best bed and breakfasts in Ho Chi Minh City"
+      },
+      {
+        "id": 813634,
+        "name": "Live music venues",
+        "shortName": "Live music",
+        "emoji": null,
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "bars",
+        "geoCategoryName": "The  best live music venues and concert halls in Ho Chi Minh City"
+      },
+      {
+        "id": 1849109,
+        "name": "Boutiques",
+        "shortName": "Boutiques",
+        "emoji": "shopping-bags",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": null,
+        "geoCategoryName": "The  best boutiques in Ho Chi Minh City"
+      },
+      {
+        "id": 1852609,
+        "name": "Spa hotels",
+        "shortName": "Spa hotels",
+        "emoji": "hotel",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": null,
+        "geoCategoryName": "The  best spa hotels in Ho Chi Minh City"
+      },
+      {
+        "id": 817232,
+        "name": "Bars with live music",
+        "shortName": "Music bars",
+        "emoji": null,
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "bars",
+        "geoCategoryName": "The  best bars with live music in Ho Chi Minh City"
+      },
+      {
+        "id": 742,
+        "name": "Sushi",
+        "shortName": "Sushi",
+        "emoji": "sushi",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best sushi restaurants and sushi bars in Ho Chi Minh City"
+      },
+      {
+        "id": 170964,
+        "name": "Spas",
+        "shortName": "Spas",
+        "emoji": "woman-getting-massage-light-skin-tone",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": null,
+        "geoCategoryName": "The  best spas in Ho Chi Minh City"
+      },
+      {
+        "id": 172763,
+        "name": "Street markets",
+        "shortName": "Street markets",
+        "emoji": "oden",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "The  best street markets in Ho Chi Minh City"
+      },
+      {
+        "id": 1854404,
+        "name": "Cooking classes",
+        "shortName": "Cooking classes",
+        "emoji": "cooking",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": null,
+        "geoCategoryName": "The  best cooking classes in Ho Chi Minh City"
+      },
+      {
+        "id": 824428,
+        "name": "Food trucks",
+        "shortName": "Food trucks",
+        "emoji": null,
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best food trucks in Ho Chi Minh City"
+      },
+      {
+        "id": 743,
+        "name": "Dinner",
+        "shortName": "Dinner",
+        "emoji": null,
+        "keywordCategoryGroup": "otherEats",
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best restaurants to have dinner in Ho Chi Minh City"
+      },
+      {
+        "id": 1856201,
+        "name": "Crepes",
+        "shortName": "Crepes",
+        "emoji": "pancakes",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best spots for crepes in Ho Chi Minh City"
+      },
+      {
+        "id": 833423,
+        "name": "Paddle sports",
+        "shortName": "Paddling",
+        "emoji": null,
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": null,
+        "geoCategoryName": "The  best paddle sports, kayak rentals, and SUP in Ho Chi Minh City"
+      },
+      {
+        "id": 744,
+        "name": "Ice cream",
+        "shortName": "Ice cream",
+        "emoji": "soft-ice-cream",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "desserts",
+        "geoCategoryName": "The  best ice cream shops in Ho Chi Minh City"
+      },
+      {
+        "id": 746,
+        "name": "Fine dining",
+        "shortName": "Fine dining",
+        "emoji": null,
+        "keywordCategoryGroup": "otherEats",
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "Nice restaurants and fine dining in Ho Chi Minh City"
+      },
+      {
+        "id": 747,
+        "name": "Places to eat",
+        "shortName": "Places to eat",
+        "emoji": "drooling-face",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best places to eat in Ho Chi Minh City"
+      },
+      {
+        "id": 748,
+        "name": "Desserts",
+        "shortName": "Desserts",
+        "emoji": "cupcake",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "desserts",
+        "geoCategoryName": "The  best desserts and snacks in Ho Chi Minh City"
+      },
+      {
+        "id": 749,
+        "name": "Lunch",
+        "shortName": "Lunch",
+        "emoji": null,
+        "keywordCategoryGroup": "otherEats",
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best spots for lunch in Ho Chi Minh City"
+      },
+      {
+        "id": 754,
+        "name": "Japanese restaurants",
+        "shortName": "Japanese restaurants",
+        "emoji": "bento-box",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best Japanese food and restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 776,
+        "name": "Diners",
+        "shortName": "Diners",
+        "emoji": null,
+        "keywordCategoryGroup": "otherEats",
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best diners to try in Ho Chi Minh City"
+      },
+      {
+        "id": 752,
+        "name": "Donuts",
+        "shortName": "Donuts",
+        "emoji": "doughnut",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "desserts",
+        "geoCategoryName": "The  best donut places in Ho Chi Minh City"
+      },
+      {
+        "id": 837021,
+        "name": "Historic buildings",
+        "shortName": "Historic buildings",
+        "emoji": null,
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "The  most historic buildings and sites in Ho Chi Minh City"
+      },
+      {
+        "id": 756,
+        "name": "Bread",
+        "shortName": "Bread",
+        "emoji": "bread",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "cafes",
+        "geoCategoryName": "The  best bread shops in Ho Chi Minh City"
+      },
+      {
+        "id": 778,
+        "name": "Fast food",
+        "shortName": "Fast food",
+        "emoji": "french-fries",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best fast food restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 753,
+        "name": "New restaurants",
+        "shortName": "New restaurants",
+        "emoji": null,
+        "keywordCategoryGroup": "otherEats",
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best new restaurants to visit in Ho Chi Minh City"
+      },
+      {
+        "id": 844217,
+        "name": "Seasonal attractions",
+        "shortName": "Seasonal attractions",
+        "emoji": null,
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "The  best seasonal attractions and holiday events in Ho Chi Minh City"
+      },
+      {
+        "id": 847815,
+        "name": "Fun attractions",
+        "shortName": "Fun things to do",
+        "emoji": "circus-tent",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "Fun things to do in Ho Chi Minh City:  fun attractions and activities"
+      },
+      {
+        "id": 757,
+        "name": "Cakes",
+        "shortName": "Cakes",
+        "emoji": "birthday-cake",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "desserts",
+        "geoCategoryName": "The  best cake shops and cake bakeries in Ho Chi Minh City"
+      },
+      {
+        "id": 779,
+        "name": "Trendy restaurants",
+        "shortName": "Trendy restaurants",
+        "emoji": null,
+        "keywordCategoryGroup": "otherEats",
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "Trendy restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 853212,
+        "name": "Resorts",
+        "shortName": "Resorts",
+        "emoji": null,
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best resorts and all-inclusive vacations in Ho Chi Minh City"
+      },
+      {
+        "id": 758,
+        "name": "Famous restaurants",
+        "shortName": "Famous restaurants",
+        "emoji": null,
+        "keywordCategoryGroup": "otherEats",
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  most famous restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 780,
+        "name": "Vegetarian restaurants",
+        "shortName": "Vegetarian restaurants",
+        "emoji": "green-salad",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best vegetarian restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 860408,
+        "name": "Public squares",
+        "shortName": "Squares",
+        "emoji": null,
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "The  best public squares in Ho Chi Minh City"
+      },
+      {
+        "id": 759,
+        "name": "Bubble tea or boba",
+        "shortName": "Bubble tea or boba",
+        "emoji": "boba-tea",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "desserts",
+        "geoCategoryName": "The  best bubble tea (boba) in Ho Chi Minh City"
+      },
+      {
+        "id": 781,
+        "name": "Popular restaurants",
+        "shortName": "Popular restaurants",
+        "emoji": null,
+        "keywordCategoryGroup": "otherEats",
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  most popular restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 869403,
+        "name": "Night markets",
+        "shortName": "Night markets",
+        "emoji": null,
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "The  best night markets in Ho Chi Minh City"
+      },
+      {
+        "id": 760,
+        "name": "Sweets",
+        "shortName": "Sweets",
+        "emoji": "candy",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "desserts",
+        "geoCategoryName": "The  best sweets spots in Ho Chi Minh City"
+      },
+      {
+        "id": 782,
+        "name": "Buffets",
+        "shortName": "Buffets",
+        "emoji": "drooling-face",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "places to eat the best buffet in Ho Chi Minh City"
+      },
+      {
+        "id": 871202,
+        "name": "Food halls",
+        "shortName": "Food halls",
+        "emoji": null,
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best food halls, market halls, and food courts in Ho Chi Minh City"
+      },
+      {
+        "id": 762,
+        "name": "Restaurants with a view",
+        "shortName": "Restaurants with a view",
+        "emoji": null,
+        "keywordCategoryGroup": "otherEats",
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best restaurants with a view in Ho Chi Minh City"
+      },
+      {
+        "id": 783,
+        "name": "American restaurants",
+        "shortName": "American restaurants",
+        "emoji": "hamburger",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best American restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 1503126,
+        "name": "Steak",
+        "shortName": "Steak",
+        "emoji": "cut-of-meat",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best places for steak in Ho Chi Minh City"
+      },
+      {
+        "id": 763,
+        "name": "Romantic restaurants",
+        "shortName": "Romantic restaurants",
+        "emoji": null,
+        "keywordCategoryGroup": "otherEats",
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best romantic restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 785,
+        "name": "Pancakes",
+        "shortName": "Pancakes",
+        "emoji": "pancakes",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best pancakes in Ho Chi Minh City"
+      },
+      {
+        "id": 788,
+        "name": "Street food",
+        "shortName": "Street food",
+        "emoji": "hot-dog",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best street food in Ho Chi Minh City"
+      },
+      {
+        "id": 127788,
+        "name": "Farms",
+        "shortName": "Farms",
+        "emoji": "cow",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": null,
+        "geoCategoryName": "The  best farms near Ho Chi Minh City area"
+      },
+      {
+        "id": 1797268,
+        "name": "Markets",
+        "shortName": "Markets",
+        "emoji": "shopping-bags",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": null,
+        "geoCategoryName": "The  best markets in Ho Chi Minh City"
+      },
+      {
+        "id": 1859616,
+        "name": "Pizzas",
+        "shortName": "Pizzas",
+        "emoji": "pizza",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best pizza spots in Ho Chi Minh City"
+      },
+      {
+        "id": 1507796,
+        "name": "Ramen",
+        "shortName": "Ramen",
+        "emoji": "steaming-bowl",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best spots for ramen in Ho Chi Minh City"
+      },
+      {
+        "id": 752468,
+        "name": "Scenic lookouts",
+        "shortName": null,
+        "emoji": "sunrise-over-mountains",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "The  best views, scenic lookouts, and viewpoints in Ho Chi Minh City"
+      },
+      {
+        "id": 764,
+        "name": "Pastries",
+        "shortName": "Pastries",
+        "emoji": "shortcake",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "desserts",
+        "geoCategoryName": "The  best pastries and patisseries in Ho Chi Minh City"
+      },
+      {
+        "id": 129587,
+        "name": "Free attractions",
+        "shortName": "Free attractions",
+        "emoji": "fountain",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "The  best free attractions in Ho Chi Minh City"
+      },
+      {
+        "id": 1798945,
+        "name": "Pasta",
+        "shortName": "Pasta",
+        "emoji": "spaghetti",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best places for pasta in Ho Chi Minh City"
+      },
+      {
+        "id": 1861416,
+        "name": "Coffee roasters",
+        "shortName": "Coffee roasters",
+        "emoji": "hot-beverage",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": null,
+        "geoCategoryName": "The  best coffee roasters in Ho Chi Minh City"
+      },
+      {
+        "id": 1518153,
+        "name": "Dim sum",
+        "shortName": "Dim sum",
+        "emoji": "dumpling",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best spots for dim sum in Ho Chi Minh City"
+      },
+      {
+        "id": 754267,
+        "name": "Shopping streets",
+        "shortName": "Shopping streets",
+        "emoji": null,
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "The  best shopping streets and areas in Ho Chi Minh City"
+      },
+      {
+        "id": 766,
+        "name": "Chinese restaurants",
+        "shortName": "Chinese restaurants",
+        "emoji": "takeout-box",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best Chinese food in Ho Chi Minh City"
+      },
+      {
+        "id": 131386,
+        "name": "Free museums",
+        "shortName": "Free museums",
+        "emoji": "classical-building",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "The  best free museums in Ho Chi Minh City"
+      },
+      {
+        "id": 1805148,
+        "name": "Rooftops",
+        "shortName": "Rooftops",
+        "emoji": "house",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "bars",
+        "geoCategoryName": "The  best rooftop spots in Ho Chi Minh City"
+      },
+      {
+        "id": 1863217,
+        "name": "Places to propose",
+        "shortName": "Places to propose",
+        "emoji": "ring",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": null,
+        "geoCategoryName": "The  best places to propose in Ho Chi Minh City"
+      },
+      {
+        "id": 1518274,
+        "name": "Massage",
+        "shortName": "Massage",
+        "emoji": "person-getting-massage",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": null,
+        "geoCategoryName": "The  best places for massage in Ho Chi Minh City"
+      },
+      {
+        "id": 757865,
+        "name": "Pet-friendly places",
+        "shortName": "Pet-Friendly",
+        "emoji": null,
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best pet-friendly places and activities in Ho Chi Minh City"
+      },
+      {
+        "id": 1533040,
+        "name": "Pho",
+        "shortName": "Pho",
+        "emoji": "steaming-bowl",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best spots for pho in Ho Chi Minh City"
+      },
+      {
+        "id": 761463,
+        "name": "Indian restaurants",
+        "shortName": "Indian",
+        "emoji": null,
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best Indian foods and restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 768,
+        "name": "French restaurants",
+        "shortName": "French restaurants",
+        "emoji": "shallow-pan-of-food",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best French restaurants and bistros in Ho Chi Minh City"
+      },
+      {
+        "id": 99004,
+        "name": "Art galleries",
+        "shortName": "Art galleries",
+        "emoji": "artist-palette",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "The  best art galleries in Ho Chi Minh City"
+      },
+      {
+        "id": 133185,
+        "name": "History museums",
+        "shortName": "History museums",
+        "emoji": "mantelpiece-clock",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "The  best history museums in Ho Chi Minh City"
+      },
+      {
+        "id": 1806914,
+        "name": "Croissant",
+        "shortName": "Croissant",
+        "emoji": "croissant",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "cafes",
+        "geoCategoryName": "The  best spots for croissants in Ho Chi Minh City"
+      },
+      {
+        "id": 1780350,
+        "name": "Lounges",
+        "shortName": "Lounges",
+        "emoji": "cocktail-glass",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "bars",
+        "geoCategoryName": "The  best lounges in Ho Chi Minh City"
+      },
+      {
+        "id": 763262,
+        "name": "Middle Eastern restaurants",
+        "shortName": "Middle Eastern",
+        "emoji": null,
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best Middle Eastern foods and restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 769,
+        "name": "Gelato",
+        "shortName": "Gelato",
+        "emoji": "ice-cream",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "desserts",
+        "geoCategoryName": "places to have the best gelato in Ho Chi Minh City"
+      },
+      {
+        "id": 136783,
+        "name": "Hotels",
+        "shortName": "Hotels",
+        "emoji": "hotel",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": null,
+        "geoCategoryName": "The  best hotels in Ho Chi Minh City"
+      },
+      {
+        "id": 1816909,
+        "name": "Fried chicken",
+        "shortName": "Fried chicken",
+        "emoji": "poultry-leg",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best spots for fried chicken in Ho Chi Minh City"
+      },
+      {
+        "id": 1781981,
+        "name": "Tacos",
+        "shortName": "Tacos",
+        "emoji": "taco",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best spots for tacos in Ho Chi Minh City"
+      },
+      {
+        "id": 765061,
+        "name": "Thai restaurants",
+        "shortName": "Thai",
+        "emoji": null,
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best Thai foods and restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 771,
+        "name": "Vegan restaurants",
+        "shortName": "Vegan restaurants",
+        "emoji": "broccoli",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best vegan restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 102602,
+        "name": "Arts and culture",
+        "shortName": "Arts and culture",
+        "emoji": "performing-arts",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "The  best places to visit for arts and culture in Ho Chi Minh City"
+      },
+      {
+        "id": 1818389,
+        "name": "Casual restaurants",
+        "shortName": "Casual restaurants",
+        "emoji": "face-savoring-food",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best casual restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 1821751,
+        "name": "Places to go out",
+        "shortName": "Places to go out",
+        "emoji": "night-with-stars",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "bars",
+        "geoCategoryName": "The  best places to go out in Ho Chi Minh City"
+      },
+      {
+        "id": 1786056,
+        "name": "Hostel",
+        "shortName": "Hostel",
+        "emoji": "person-in-bed",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": null,
+        "geoCategoryName": "The  best hostels in Ho Chi Minh City"
+      },
+      {
+        "id": 774056,
+        "name": "Barbecue restaurants",
+        "shortName": "BBQ",
+        "emoji": null,
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best BBQ restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 772,
+        "name": "Asian food",
+        "shortName": "Asian food",
+        "emoji": "steaming-bowl",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best Asian food in Ho Chi Minh City"
+      },
+      {
+        "id": 140381,
+        "name": "Malls",
+        "shortName": "Malls",
+        "emoji": "department-store",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": null,
+        "geoCategoryName": "The  best malls in Ho Chi Minh City"
+      },
+      {
+        "id": 1828312,
+        "name": "Place to exchange money",
+        "shortName": "Place to exchange money",
+        "emoji": "currency-exchange",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": null,
+        "geoCategoryName": "The  best places to exchange money in Ho Chi Minh City"
+      },
+      {
+        "id": 1789264,
+        "name": "Noodles",
+        "shortName": "Noodles",
+        "emoji": "steaming-bowl",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best noodle spots in Ho Chi Minh City"
+      },
+      {
+        "id": 775855,
+        "name": "Mexican restaurants",
+        "shortName": "Mexican",
+        "emoji": null,
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best Mexican foods and restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 773,
+        "name": "Rooftop bars",
+        "shortName": "Rooftop bars",
+        "emoji": "cocktail-glass",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "bars",
+        "geoCategoryName": "The  best rooftop bars in Ho Chi Minh City"
+      },
+      {
+        "id": 111597,
+        "name": "Buildings",
+        "shortName": "Buildings",
+        "emoji": "office-building",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "Ho Chi Minh City skyline: the  most iconic buildings and best views in Ho Chi Minh City"
+      },
+      {
+        "id": 1830086,
+        "name": "Soup",
+        "shortName": "Soup",
+        "emoji": "pot-of-food",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best spots for soup in Ho Chi Minh City"
+      },
+      {
+        "id": 1792690,
+        "name": "Fish and chips",
+        "shortName": "Fish and chips",
+        "emoji": "fish",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best spots for fish and chips in Ho Chi Minh City"
+      },
+      {
+        "id": 779453,
+        "name": "Turkish restaurants",
+        "shortName": "Turkish",
+        "emoji": null,
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best Turkish foods and restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 774,
+        "name": "French bakeries",
+        "shortName": "French bakeries",
+        "emoji": "baguette-bread",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "cafes",
+        "geoCategoryName": "The  best French bakeries in Ho Chi Minh City"
+      },
+      {
+        "id": 120592,
+        "name": "Churches",
+        "shortName": "Churches",
+        "emoji": "church",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "The  best churches in Ho Chi Minh City"
+      },
+      {
+        "id": 122391,
+        "name": "Clothing stores",
+        "shortName": "Clothing stores",
+        "emoji": "womans-clothes",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": null,
+        "geoCategoryName": "The  coolest clothing stores and boutiques in Ho Chi Minh City"
+      },
+      {
+        "id": 151175,
+        "name": "Nightclubs",
+        "shortName": "Nightclubs",
+        "emoji": "woman-dancing",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "bars",
+        "geoCategoryName": "The  best clubs and nightclubs in Ho Chi Minh City"
+      },
+      {
+        "id": 1831777,
+        "name": "Chicken wings",
+        "shortName": "Chicken wings",
+        "emoji": "chicken",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best spots for chicken wings in Ho Chi Minh City"
+      },
+      {
+        "id": 1795882,
+        "name": "Walks",
+        "shortName": "Walks",
+        "emoji": "person-walking",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "The  best walking spots in Ho Chi Minh City"
+      },
+      {
+        "id": 783051,
+        "name": "Fusion restaurants",
+        "shortName": "Fusion foods",
+        "emoji": null,
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best fusion and Asian fusion restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 736,
+        "name": "Italian restaurants",
+        "shortName": "Italian restaurants",
+        "emoji": "spaghetti",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best Italian restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 775,
+        "name": "Fun restaurants",
+        "shortName": "Fun restaurants",
+        "emoji": null,
+        "keywordCategoryGroup": "otherEats",
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "Cute and themed restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 1836980,
+        "name": "Pub",
+        "shortName": "Pub",
+        "emoji": "beer-mug",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "bars",
+        "geoCategoryName": "The  best pubs in Ho Chi Minh City"
+      },
+      {
+        "id": 784850,
+        "name": "Wine bars",
+        "shortName": "Wine bars",
+        "emoji": null,
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "bars",
+        "geoCategoryName": "The  best wine bars and tasting rooms in Ho Chi Minh City"
+      },
+      {
+        "id": 158371,
+        "name": "Parks and gardens",
+        "shortName": "Parks and gardens",
+        "emoji": "deciduous-tree",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "attractions",
+        "geoCategoryName": "The  best parks and gardens in Ho Chi Minh City"
+      },
+      {
+        "id": 1838665,
+        "name": "Salad",
+        "shortName": "Salad",
+        "emoji": "green-salad",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best spots for salad in Ho Chi Minh City"
+      },
+      {
+        "id": 792046,
+        "name": "Vietnamese restaurants",
+        "shortName": "Vietnamese",
+        "emoji": null,
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best Vietnamese foods and restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 799242,
+        "name": "Latin American restaurants",
+        "shortName": "Latin American",
+        "emoji": null,
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best Latin and South American foods and restaurants in Ho Chi Minh City"
+      },
+      {
+        "id": 1843918,
+        "name": "Chicken",
+        "shortName": "Chicken",
+        "emoji": "chicken",
+        "keywordCategoryGroup": null,
+        "mapLayerGroup": "restaurants",
+        "geoCategoryName": "The  best spots for chicken in Ho Chi Minh City"
+      }
+    ],
+    "searchedCategories": [
+      {
+        "id": 1544685,
+        "name": "5 star hotels",
+        "geoCategoryName": "The  best 5 star hotels in Ho Chi Minh City",
+        "freeImageKey": "j1Vq2g5mC1DX9JZMRTEh176y5bljHqob"
+      },
+      {
+        "id": 1536924,
+        "name": "Seafood buffet",
+        "geoCategoryName": "The  best seafood buffet restaurants in Ho Chi Minh City",
+        "freeImageKey": "FLj5bUMUFJwmykAR2BGtibc3gxPs9zdn"
+      },
+      {
+        "id": 1540072,
+        "name": "International hospital",
+        "geoCategoryName": "The  best international hospitals in Ho Chi Minh City",
+        "freeImageKey": "gveUN4Z6SsO3JYrl5I5bKdPpeTLRANZa"
+      },
+      {
+        "id": 1545449,
+        "name": "Serviced apartment",
+        "geoCategoryName": "The  best serviced apartments in Ho Chi Minh City",
+        "freeImageKey": "fjgRqEKk6SFTGXrKqffoFWGRVW6iE1XT"
+      },
+      {
+        "id": 1519157,
+        "name": "Condo",
+        "geoCategoryName": "The  best condo rentals in Ho Chi Minh City",
+        "freeImageKey": "Wl6dEZiANZ7OpYLvNQoWXnimi3tGm73p"
+      },
+      {
+        "id": 1533486,
+        "name": "Western restaurant",
+        "geoCategoryName": "The  best western restaurants in Ho Chi Minh City",
+        "freeImageKey": "AlySEq0UwucI7G8WE8oP1zVw0jKpsFPW"
+      },
+      {
+        "id": 1539428,
+        "name": "Banh xeo",
+        "geoCategoryName": "The  best places for banh xeo in Ho Chi Minh City",
+        "freeImageKey": "VkY2rMlvdMMIWsbKAyf3B6fQSpGO7aWH"
+      }
+    ],
+    "itineraries": [
+      {
+        "id": 56,
+        "days": 1
+      },
+      {
+        "id": 57,
+        "days": 2
+      },
+      {
+        "id": 58,
+        "days": 3
+      },
+      {
+        "id": 59,
+        "days": 4
+      },
+      {
+        "id": 60,
+        "days": 5
+      }
+    ],
+    "nearbyAttractions": [
+      {
+        "id": 104391,
+        "geoCategoryName": "Top  things to do and attractions in Bangkok"
+      },
+      {
+        "id": 104397,
+        "geoCategoryName": "Top  things to do and attractions in Siem Reap"
+      },
+      {
+        "id": 104406,
+        "geoCategoryName": "Top  things to do and attractions in Hoi An"
+      },
+      {
+        "id": 104417,
+        "geoCategoryName": "Top  things to do and attractions in Kuala Lumpur"
+      },
+      {
+        "id": 104427,
+        "geoCategoryName": "Top  things to do and attractions in Phnom Penh"
+      },
+      {
+        "id": 104431,
+        "geoCategoryName": "Top  things to do and attractions in Da Nang"
+      },
+      {
+        "id": 104458,
+        "geoCategoryName": "Top  things to do and attractions in Pattaya"
+      },
+      {
+        "id": 104466,
+        "geoCategoryName": "Top  things to do and attractions in Hue"
+      },
+      {
+        "id": 104467,
+        "geoCategoryName": "Top  things to do and attractions in Nha Trang"
+      },
+      {
+        "id": 104512,
+        "geoCategoryName": "Top  things to do and attractions in Da Lat"
+      },
+      {
+        "id": 104541,
+        "geoCategoryName": "Top  things to do and attractions in Sihanoukville"
+      },
+      {
+        "id": 104545,
+        "geoCategoryName": "Top  things to do and attractions in Phan Thiet"
+      },
+      {
+        "id": 1586484,
+        "geoCategoryName": "Top  things to do and attractions in Battambang"
+      },
+      {
+        "id": 1586584,
+        "geoCategoryName": "Top  things to do and attractions in Kampot"
+      },
+      {
+        "id": 1586589,
+        "geoCategoryName": "Top  things to do and attractions in Vung Tau"
+      },
+      {
+        "id": 1586608,
+        "geoCategoryName": "Top  things to do and attractions in Can Tho"
+      },
+      {
+        "id": 1586781,
+        "geoCategoryName": "Top  things to do and attractions in Duong Dong"
+      },
+      {
+        "id": 1587026,
+        "geoCategoryName": "Top  things to do and attractions in Kep"
+      },
+      {
+        "id": 1587054,
+        "geoCategoryName": "Top  things to do and attractions in Quy Nhon"
+      },
+      {
+        "id": 1587150,
+        "geoCategoryName": "Top  things to do and attractions in Buon Ma Thuot"
+      },
+      {
+        "id": 1587228,
+        "geoCategoryName": "Top  things to do and attractions in Kratie"
+      },
+      {
+        "id": 1587272,
+        "geoCategoryName": "Top  things to do and attractions in Kampong Cham"
+      },
+      {
+        "id": 106137,
+        "geoCategoryName": "Top  things to do and attractions in Mui Ne"
+      }
+    ],
+    "nearbyRestaurants": [
+      {
+        "id": 414,
+        "geoCategoryName": "Where to eat: the  best restaurants in Bangkok"
+      },
+      {
+        "id": 520,
+        "geoCategoryName": "Where to eat: the  best restaurants in Siem Reap"
+      },
+      {
+        "id": 73978,
+        "geoCategoryName": "Where to eat: the  best restaurants in Hoi An"
+      },
+      {
+        "id": 73989,
+        "geoCategoryName": "Where to eat: the  best restaurants in Kuala Lumpur"
+      },
+      {
+        "id": 73999,
+        "geoCategoryName": "Where to eat: the  best restaurants in Phnom Penh"
+      },
+      {
+        "id": 74003,
+        "geoCategoryName": "Where to eat: the  best restaurants in Da Nang"
+      },
+      {
+        "id": 74030,
+        "geoCategoryName": "Where to eat: the  best restaurants in Pattaya"
+      },
+      {
+        "id": 74038,
+        "geoCategoryName": "Where to eat: the  best restaurants in Hue"
+      },
+      {
+        "id": 74039,
+        "geoCategoryName": "Where to eat: the  best restaurants in Nha Trang"
+      },
+      {
+        "id": 74084,
+        "geoCategoryName": "Where to eat: the  best restaurants in Da Lat"
+      },
+      {
+        "id": 74113,
+        "geoCategoryName": "Where to eat: the  best restaurants in Sihanoukville"
+      },
+      {
+        "id": 74117,
+        "geoCategoryName": "Where to eat: the  best restaurants in Phan Thiet"
+      },
+      {
+        "id": 197755,
+        "geoCategoryName": "Where to eat: the  best restaurants in Battambang"
+      },
+      {
+        "id": 197862,
+        "geoCategoryName": "Where to eat: the  best restaurants in Kampot"
+      },
+      {
+        "id": 197867,
+        "geoCategoryName": "Where to eat: the  best restaurants in Vung Tau"
+      },
+      {
+        "id": 197889,
+        "geoCategoryName": "Where to eat: the  best restaurants in Can Tho"
+      },
+      {
+        "id": 198067,
+        "geoCategoryName": "Where to eat: the  best restaurants in Duong Dong"
+      },
+      {
+        "id": 198319,
+        "geoCategoryName": "Where to eat: the  best restaurants in Kep"
+      },
+      {
+        "id": 198347,
+        "geoCategoryName": "Where to eat: the  best restaurants in Chau Doc"
+      },
+      {
+        "id": 198349,
+        "geoCategoryName": "Where to eat: the  best restaurants in Quy Nhon"
+      },
+      {
+        "id": 198453,
+        "geoCategoryName": "Where to eat: the  best restaurants in Buon Ma Thuot"
+      },
+      {
+        "id": 198586,
+        "geoCategoryName": "Where to eat: the  best restaurants in Kampong Cham"
+      },
+      {
+        "id": 198590,
+        "geoCategoryName": "Where to eat: the  best restaurants in Long Xuyen"
+      },
+      {
+        "id": 198643,
+        "geoCategoryName": "Where to eat: the  best restaurants in An Thoi"
+      },
+      {
+        "id": 198644,
+        "geoCategoryName": "Where to eat: the  best restaurants in Tay Ninh"
+      },
+      {
+        "id": 198707,
+        "geoCategoryName": "Where to eat: the  best restaurants in Ham Ninh"
+      },
+      {
+        "id": 75709,
+        "geoCategoryName": "Where to eat: the  best restaurants in Mui Ne"
+      }
+    ],
+    "nearbySameCategory": [],
+    "nearbyTopRankedSameCategory": null,
+    "nearbyGeos": [
+      {
+        "name": "Vung Tau",
+        "englishName": "Vung Tau",
+        "id": 456
+      },
+      {
+        "name": "Tay Ninh",
+        "englishName": "Tay Ninh",
+        "id": 4000
+      },
+      {
+        "name": "Cai Be",
+        "englishName": "Cai Be",
+        "id": 3908
+      },
+      {
+        "name": "Can Tho",
+        "englishName": "Can Tho",
+        "id": 486
+      },
+      {
+        "name": "Long Xuyen",
+        "englishName": "Long Xuyen",
+        "id": 3209
+      },
+      {
+        "name": "Phan Thiet",
+        "englishName": "Phan Thiet",
+        "id": 277
+      },
+      {
+        "name": "Chau Doc",
+        "englishName": "Chau Doc",
+        "id": 1547
+      },
+      {
+        "name": "Mui Ne",
+        "englishName": "Mui Ne",
+        "id": 146264
+      },
+      {
+        "name": "Kampong Cham",
+        "englishName": "Kampong Cham",
+        "id": 3178
+      },
+      {
+        "name": "Kratie",
+        "englishName": "Kratie",
+        "id": 2749
+      },
+      {
+        "name": "Phnom Penh",
+        "englishName": "Phnom Penh",
+        "id": 44
+      },
+      {
+        "name": "Da Lat",
+        "englishName": "Da Lat",
+        "id": 174
+      },
+      {
+        "name": "Kep",
+        "englishName": "Kep",
+        "id": 1447
+      },
+      {
+        "name": "Buon Ma Thuot",
+        "englishName": "Buon Ma Thuot",
+        "id": 2050
+      },
+      {
+        "name": "Kampot",
+        "englishName": "Kampot",
+        "id": 451
+      },
+      {
+        "name": "Ham Ninh",
+        "englishName": "Ham Ninh",
+        "id": 5684
+      },
+      {
+        "name": "An Thoi",
+        "englishName": "An Thoi",
+        "id": 3995
+      },
+      {
+        "name": "Duong Dong",
+        "englishName": "Duong Dong",
+        "id": 773
+      },
+      {
+        "name": "Nha Trang",
+        "englishName": "Nha Trang",
+        "id": 93
+      },
+      {
+        "name": "Sihanoukville",
+        "englishName": "Sihanoukville",
+        "id": 263
+      },
+      {
+        "name": "Siem Reap",
+        "englishName": "Siem Reap",
+        "id": 11
+      },
+      {
+        "name": "Quy Nhon",
+        "englishName": "Quy Nhon",
+        "id": 1556
+      },
+      {
+        "name": "Battambang",
+        "englishName": "Battambang",
+        "id": 300
+      },
+      {
+        "name": "Champasak Town",
+        "englishName": "Champasak Town",
+        "id": 3379
+      },
+      {
+        "name": "Pakse",
+        "englishName": "Pakse",
+        "id": 1790
+      },
+      {
+        "name": "Chanthaburi",
+        "englishName": "Chanthaburi",
+        "id": 1313
+      },
+      {
+        "name": "Ubon Ratchathani",
+        "englishName": "Ubon Ratchathani",
+        "id": 1369
+      },
+      {
+        "name": "Duy Xuyen District",
+        "englishName": "Duy Xuyen",
+        "id": 8944
+      },
+      {
+        "name": "Hoi An",
+        "englishName": "Hoi An",
+        "id": 21
+      },
+      {
+        "name": "Buriram",
+        "englishName": "Buriram",
+        "id": 1957
+      }
+    ],
+    "canShowWeatherLinks": true,
+    "geoNames": {
+      "en": "Ho Chi Minh City",
+      "fr": "Hô-Chi-Minh-Ville",
+      "ja": "ホーチミン",
+      "zh": "胡志明市",
+      "ko": "호치민시",
+      "es": "Ho Chi Minh City",
+      "pt": "Cidade de Ho Chi Minh",
+      "it": "Ho Chi Minh (città)"
+    },
+    "geoCategoryLocalizedNames": {
+      "en": "The  best serviced apartments in Ho Chi Minh City",
+      "fr": "Les  meilleurs appartements avec services à Hô-Chi-Minh-Ville",
+      "ja": "ホーチミンののベストサービスアパートメント",
+      "zh": "胡志明市的个最佳服务公寓",
+      "ko": "호치민시의 개 최고의 서비스 아파트",
+      "es": "Los  mejores apartamentos con servicios en Ho Chi Minh City",
+      "pt": "Os  melhores apartamentos com serviços em Cidade de Ho Chi Minh",
+      "it": "I  migliori appartamenti serviti in Ho Chi Minh (città)"
+    }
+  },
+  "canonicalUrl": "https://wanderlog.com/list/geoCategory/1545449/best-serviced-apartments-in-ho-chi-minh-city",
+  "indexable": true,
+  "sourceSite": "Wanderlog"
+}

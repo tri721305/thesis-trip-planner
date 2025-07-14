@@ -7,7 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "import-data": "node lib/importdata.ts"
+    "import-data": "node lib/importdata.ts",
+    "import-attractions": "tsx database/scripts/import-attractions.ts",
+    "validate-attractions": "tsx database/scripts/validate-attractions.ts",
+    "test-queries": "tsx database/scripts/test-queries.ts",
+    "db:seed-attractions": "npm run import-attractions && npm run validate-attractions",
+    "db:test-all": "npm run db:seed-attractions && npm run test-queries"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.816.0",
@@ -25,6 +30,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "dotenv": "^17.2.0",
     "embla-carousel-react": "^8.6.0",
     "eslint-config-prettier": "^9.1.0",
     "eslint-config-standard": "^17.1.0",
@@ -60,6 +66,7 @@
     "eslint-plugin-import": "^2.31.0",
     "postcss": "^8",
     "tailwindcss": "^3.4.1",
+    "tsx": "^4.20.3",
     "typescript": "^5"
   },
   "overrides": {

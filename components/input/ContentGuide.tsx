@@ -263,7 +263,10 @@ const ContentGuide = () => {
               {currentRouteItems?.map((item, idx) => {
                 if (item.type == "note") {
                   return (
-                    <div className="flex gap-2 items-center item-hover-btn">
+                    <div
+                      key={`note-${idx}`}
+                      className="flex gap-2 items-center item-hover-btn"
+                    >
                       <InputWithIcon
                         placeholder="Write or paste notes here"
                         icon={<FaNoteSticky />}
@@ -284,7 +287,10 @@ const ContentGuide = () => {
                 }
                 if (item.type == "checklist") {
                   return (
-                    <div className="flex gap-2 items-center item-hover-btn">
+                    <div
+                      key={`checklist-${idx}`}
+                      className="flex gap-2 items-center item-hover-btn"
+                    >
                       <Checklist
                         className="flex-1"
                         onChange={(newItems) => updateItemData(idx, newItems)}
@@ -304,7 +310,7 @@ const ContentGuide = () => {
                   );
                 }
                 if (item.type == "place") {
-                  return <div>Place</div>;
+                  return <div key={`place-${idx}`}>Place</div>;
                 }
               })}
               <div className="flex items-center gap-2">
@@ -347,15 +353,18 @@ const ContentGuide = () => {
     );
   };
 
-  console.log("itemsWatch", itemsWatch);
+  console.log("itemsWatch", fields, itemsWatch);
   return (
     <div>
       <div>
         {fields?.map((field, index) => (
-          <div id={field?.id || index.toString()}>
+          <div
+            key={field?.id ? field?.id : index.toString()}
+            id={field?.id ? field?.id : index.toString()}
+          >
             {index === 0 && <Separator className="my-1" />}
             <div className="flex items-center  justify-between">
-              <Card key={field.id} className="border-none w-full shadow-none">
+              <Card className="border-none w-full shadow-none">
                 <CardContent className="relative !p-0">
                   {renderDetailForm(index)}
                 </CardContent>
@@ -364,7 +373,7 @@ const ContentGuide = () => {
           </div>
         ))}
       </div>
-      <Separator className="my-1" />
+      <Separator className="my-8" />
       <div className="mt-4 route-list-container">
         <div className="flex gap-2">
           <Button
