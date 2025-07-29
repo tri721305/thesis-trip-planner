@@ -15,7 +15,7 @@ const Collaps = ({
   itemExpand: React.ReactNode;
   titleFeature: React.ReactNode;
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(true);
 
   return (
     <Collapsible

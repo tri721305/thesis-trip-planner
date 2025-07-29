@@ -28,7 +28,7 @@ const GuideContent = () => {
   const [isOpen, setIsOpen] = React.useState(true);
   const [openModalHotel, setOpenModalHotel] = React.useState(false);
   return (
-    <div className="!mt-[100px] flex flex-col gap-[32px]  px-8">
+    <div className="!mt-[100px] flex flex-col gap-[24px]  px-8">
       <Textarea
         placeholder="Tell readers how you know Ha Noi (e.g., 'Lived in Hanoi )"
         className="py-4 border-none paragraph-regular background-light800_darkgradient light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border"
@@ -112,6 +112,7 @@ const GuideContent = () => {
           </CollapsibleContent>
         </Collapsible>
       </div>
+      <Separator className="my-[1px]" />
       <div>
         <InputCollapseHotelMultiple />
       </div>

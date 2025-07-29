@@ -19,48 +19,13 @@ import {
 import { Card, CardContent } from "../ui/card";
 import { Input } from "../ui/input";
 import Collaps from "../Collaps";
-import Link from "next/link";
-import { BiRightArrow } from "react-icons/bi";
+
 import InputWithIcon from "./InputIcon";
 import { FaMapMarkerAlt, FaMarker, FaSave } from "react-icons/fa";
 import { FaEllipsis, FaNoteSticky } from "react-icons/fa6";
 import { MdChecklist } from "react-icons/md";
 import Checklist from "./Checklist";
 import "./style.css";
-import ReusableDialog from "../modal/ReusableDialog";
-const mockData = [
-  {
-    type: "route",
-    title: "Day1",
-    subheading: "Khám phá thành phố Hồ Chí Minh",
-    items: [
-      {
-        type: "place",
-        data: {
-          info: {
-            name: "Cu Chi Tunnels",
-            address: "Cu Chi Tunnels, Ho Chi Minh City, Vietnam",
-            coordinates: [106.456, 10.567],
-            note: "",
-            imgUrls: [""],
-          },
-        },
-        position: 1,
-      },
-      {
-        type: "note",
-        data: { info: "Mang theo giày thể thao, nước uống và đồ ăn nhẹ." },
-        position: 2,
-      },
-      {
-        type: "checklist",
-        data: {
-          info: ["Quần", "Áo", "Giày thể thao", "Nước uống", "Đồ ăn nhẹ"],
-        },
-      },
-    ],
-  },
-];
 
 const ItemsGuideSchema = z.object({
   items: z.array(ItemGuideSchema).optional(),
@@ -322,13 +287,13 @@ const ContentGuide = () => {
                   onClick={() => {
                     handleAddNoteItem(index);
                   }}
-                  className="shadow-none background-form text-black rounded-full w-[48px] flex items-center h-[48px]"
+                  className="shadow-none background-light800_dark300 hover:!bg-gray-300 dark:hover:!bg-dark-200 text-black dark:text-white rounded-full w-[48px] flex items-center h-[48px]"
                 >
                   <FaNoteSticky />
                 </Button>
                 <Button
                   onClick={() => handleAddChecklistItem(index)}
-                  className="shadow-none background-form text-black rounded-full w-[48px] flex items-center h-[48px]"
+                  className="shadow-none background-light800_dark300 hover:!bg-gray-300 dark:hover:!bg-dark-200 text-black dark:text-white text-black rounded-full w-[48px] flex items-center h-[48px]"
                 >
                   <MdChecklist />
                 </Button>
@@ -362,7 +327,7 @@ const ContentGuide = () => {
             key={field?.id ? field?.id : index.toString()}
             id={field?.id ? field?.id : index.toString()}
           >
-            {index === 0 && <Separator className="my-1" />}
+            {index === 0 && <Separator className="mb-[24px]" />}
             <div className="flex items-center  justify-between">
               <Card className="border-none w-full shadow-none">
                 <CardContent className="relative !p-0">

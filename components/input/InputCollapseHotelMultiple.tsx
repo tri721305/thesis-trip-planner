@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef } from "react";
+import { useSearchParams, useRouter } from "next/navigation";
 import {
   FaChevronRight,
   FaChevronDown,
@@ -39,7 +40,6 @@ import { BiSolidHotel } from "react-icons/bi";
 import ReusableDialog from "../modal/ReusableDialog";
 import HotelLodging from "../modal/HotelLodging";
 import { GoKebabHorizontal } from "react-icons/go";
-
 // Schema cho multiple hotels
 const MultipleHotelsSchema = z.object({
   hotels: z.array(HotelSchema).min(1, "At least one hotel is required"),
@@ -60,27 +60,58 @@ const InputCollapseHotelMultiple = () => {
   const form = useForm<MultipleHotelsFormData>({
     resolver: zodResolver(MultipleHotelsSchema),
     defaultValues: {
-      hotels: [
-        {
-          name: "",
-          address: "",
-          checkin: "",
-          checkout: "",
-          note: "",
-          confirmation: "",
-          cost: {
-            type: "",
-            number: "",
-          },
-        },
-      ],
+      hotels: [],
     },
   });
+
+  // URL State MANAGER
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
     name: "hotels",
   });
+
+  useEffect(() => {
+    const selectedHotelParam = searchParams.get("selectedHotel");
+    const actionParam = searchParams.get("action");
+
+    console.log("actionParam", actionParam, selectedHotelParam);
+    if (selectedHotelParam && actionParam === "addLodging") {
+      try {
+        const hotelData = JSON.parse(selectedHotelParam);
+        // Add new hotel to form
+        append({
+          name: hotelData.name || "",
+          address: hotelData.address || "",
+          checkin: "",
+          checkout: "",
+          note: "",
+          confirmation: "",
+          cost: {
+            type: hotelData.cost?.type || "VND",
+            number: hotelData.cost?.number || "",
+          },
+        });
+
+        // Set editing index to the newly added hotel
+        setEditingIndex(fields.length);
+        // Close modal
+        setOpenModalHotel(false);
+
+        // Clear URL params
+        const params = new URLSearchParams(searchParams);
+        params.delete("selectedHotel");
+        params.delete("action");
+        router.push(`?${params.toString()}`, { scroll: false });
+
+        console.log("Hotel added from search:", hotelData);
+      } catch (error) {
+        console.error("Error parsing hotel data:", error);
+      }
+    }
+  }, [searchParams, router]);
 
   const { watch } = form;
   const hotelsWatch = watch("hotels");
@@ -130,7 +161,6 @@ const InputCollapseHotelMultiple = () => {
 
   // Form submit handler
   const onSubmit = (data: MultipleHotelsFormData) => {
-    console.log("Hotels data:", data);
     setEditingIndex(null);
   };
 
@@ -159,7 +189,7 @@ const InputCollapseHotelMultiple = () => {
             </div>
           )}
           {hotel.cost?.number && (
-            <div className="text-xs font-medium text-green-600 mt-1">
+            <div className="text-md font-bold text-gray-700 mt-2">
               {hotel.cost.number} {hotel.cost.type?.toUpperCase()}
             </div>
           )}
@@ -226,7 +256,11 @@ const InputCollapseHotelMultiple = () => {
                 <FormControl>
                   <CalendarDatePicker
                     date={selectedDateRange}
-                    onDateSelect={setSelectedDateRange}
+                    // onDateSelect={setSelectedDateRange}
+                    onDateSelect={(e) => {
+                      console.log(e);
+                      setSelectedDateRange(e);
+                    }}
                   />
                 </FormControl>
                 <FormMessage />
@@ -329,6 +363,7 @@ const InputCollapseHotelMultiple = () => {
     );
   };
 
+  console.log("hotels", hotelsWatch, "selectedDateRange", selectedDateRange);
   return (
     <Collapsible
       open={isOpen}
@@ -396,16 +431,6 @@ const InputCollapseHotelMultiple = () => {
             </CardContent>
           </Card>
         ))}
-
-        <Button
-          type="button"
-          variant="outline"
-          onClick={addHotel}
-          className="flex items-center gap-2 mt-2"
-        >
-          <FaPlus className="h-4 w-4" />
-          Add Another Hotel
-        </Button>
 
         <div className="flex gap-4 items-center pl-[18px]">
           <div
