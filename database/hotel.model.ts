@@ -48,6 +48,7 @@ export interface ILodging {
   wanderlogRating?: number;
   ratingCount: number;
   location: ILocation;
+  address?: string; // Added for geocoded address
 }
 
 // Interface cho giá phòng
@@ -147,6 +148,7 @@ const LodgingSchema = new Schema<ILodging>(
     wanderlogRating: { type: Number },
     ratingCount: { type: Number, required: true },
     location: { type: LocationSchema, required: true },
+    address: { type: String }, // Added for geocoded address
   },
   { _id: false }
 );
@@ -188,7 +190,7 @@ const HotelSchema = new Schema<IHotel>(
 );
 
 // Tạo index cho tìm kiếm
-HotelSchema.index({ offerId: 1 });
+// HotelSchema.index({ offerId: 1 });
 HotelSchema.index({ "lodging.name": "text" });
 HotelSchema.index({ "lodging.location": "2dsphere" });
 HotelSchema.index({ "priceRate.amount": 1 });

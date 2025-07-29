@@ -347,3 +347,58 @@ export const PaginatedSearchParamsSchema = z.object({
   filter: z.string().optional(),
   sort: z.string().optional(),
 });
+
+export const NewGuideSchema = z.object({
+  title: z.string().min(5, { message: "Title is required." }).max(100, {
+    message: "Title cannot exceed 100 characters.",
+  }),
+  note: z.string().min(1, { message: "Note is required." }),
+  details: z.array(
+    z.object({
+      name: z.string().min(1, { message: "Name is required." }),
+      type: z.enum(["route", "list"]),
+      index: z.number().int().nonnegative(),
+      data: z.array(
+        z.object({
+          type: z.enum(["place", "note", "checklist"]),
+          content: z.string().optional(),
+          items: z.array(z.string()).optional(),
+          completed: z.array(z.boolean()).optional(),
+          name: z.string().optional(),
+          address: z.string().optional(),
+          description: z.string().optional(),
+          tags: z.array(z.string()).optional(),
+          phone: z.string().optional(),
+          images: z.array(z.string()).optional(),
+          website: z.string().url().optional(),
+          location: z
+            .object({
+              type: z.literal("Point"),
+              coordinates: z
+                .array(z.number())
+                .length(2, {
+                  message: "Coordinates must be an array of two numbers.",
+                }),
+            })
+            .optional(),
+          note: z.string().optional(),
+        })
+      ),
+    })
+  ),
+  generalTips: z.string().optional(),
+  lodging: z.array(
+    z.object({
+      name: z.string().min(1, { message: "Lodging name is required." }),
+      address: z.string().min(1, { message: "Address is required." }),
+      checkIn: z.string().min(1, { message: "Check-in date is required." }),
+      checkOut: z.string().min(1, { message: "Check-out date is required." }),
+      confirmation: z.string().optional(),
+      notes: z.string().optional(),
+      cost: z.object({
+        type: z.string(),
+        value: z.number().positive(),
+      }),
+    })
+  ),
+});

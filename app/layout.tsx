@@ -36,7 +36,11 @@ const RootLayout = async ({
   const session = await auth();
 
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html
+      lang="en"
+      suppressHydrationWarning
+      className="h-screen w-screen overflow-auto"
+    >
       <SessionProvider session={session}>
         <body
           className={`${inter.className} ${spaceGrotesk.variable} antialiased`}

@@ -10,14 +10,7 @@ import {
 } from "@/lib/actions/ward.action";
 import { getHotels } from "@/lib/actions/hotel.action";
 
-const SearchBar = async () => {
-  const hotel = await getHotels({
-    page: 1,
-    pageSize: 10,
-    query: "Somerset",
-    filter: "",
-  });
-  console.log("hotel", hotel);
+const SearchBar = () => {
   return (
     <div>
       <div className="flex gap-2 items-center shadow-lg p-4 rounded-lg">

@@ -6,7 +6,6 @@ import data from "@/components/maps/streets.json";
 const Map = () => {
   const MAPTILER_API_KEY = process.env.NEXT_PUBLIC_MAPTILER_API_KEY;
 
-  console.log("Map component rendered", MAPTILER_API_KEY);
   return (
     <div className="w-full h-full">
       <MapGL

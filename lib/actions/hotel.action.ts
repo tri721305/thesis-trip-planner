@@ -1,3 +1,5 @@
+"use server";
+
 import Hotel from "@/database/hotel.model";
 import action from "../handler/action";
 import { handleError } from "../handler/error";
@@ -13,8 +15,10 @@ export async function getHotels(params: PaginatedSearchParams): Promise<
   const validationResult = await action({
     params,
     schema: PaginatedSearchParamsSchema,
+    authorize: false,
   });
 
+  console.log("params get hotels", params);
   console.log("validationresult", validationResult);
   if (validationResult instanceof Error) {
     return handleError(validationResult) as ErrorResponse;

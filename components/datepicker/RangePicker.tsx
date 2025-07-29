@@ -332,8 +332,6 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
     }
   }, [isOpen]);
 
-  console.log("range", range);
-
   return (
     <Popover
       modal={true}
@@ -426,7 +424,6 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
                     <DateInput
                       value={range.from}
                       onChange={(date: Date, e: any) => {
-                        console.log("event e", e, date);
                         const toDate =
                           range.to == null || date > range.to ? date : range.to;
                         setRange((prevRange) => ({
@@ -497,7 +494,6 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
                 <Select
                   defaultValue={selectedPreset}
                   onValueChange={(value: any) => {
-                    console.log("value", value);
                     setPreset(value);
                   }}
                 >
@@ -517,7 +513,6 @@ export const DateRangePicker: FC<DateRangePickerProps> & {
                 <Calendar
                   mode="range"
                   onSelect={(value: { from?: Date; to?: Date } | undefined) => {
-                    console.log("value", value);
                     if (value?.from != null) {
                       setRange({ from: value.from, to: value?.to });
                     }

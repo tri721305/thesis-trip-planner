@@ -5,7 +5,7 @@ import { Separator } from "@/components/ui/separator";
 import InputWithIcon from "./input/InputIcon";
 import { FaPen } from "react-icons/fa";
 
-import { BiSolidHotel } from "react-icons/bi";
+import { BiRestaurant, BiSolidHotel } from "react-icons/bi";
 import { GoKebabHorizontal } from "react-icons/go";
 import {
   Collapsible,
@@ -18,16 +18,17 @@ import HotelCard from "./cards/HotelCard";
 import InputCollapse from "./input/InputCollapse";
 import InputCollapseHotel from "./input/InputCollapseHotel";
 import InputCollapseHotelMultiple from "./input/InputCollapseHotelMultiple";
-import { Flashlight, Hotel, Plus, Trash } from "lucide-react";
+import { Car, Flashlight, Hotel, Plus, Trash } from "lucide-react";
 import ReusableDialog from "./modal/ReusableDialog";
 import HotelLodging from "./modal/HotelLodging";
 import ContentGuide from "./input/ContentGuide";
 import { MdFlight } from "react-icons/md";
+import { Badge } from "./ui/badge";
 const GuideContent = () => {
   const [isOpen, setIsOpen] = React.useState(true);
   const [openModalHotel, setOpenModalHotel] = React.useState(false);
   return (
-    <div className="mt-36 flex flex-col gap-[32px]  px-2">
+    <div className="!mt-[100px] flex flex-col gap-[32px]  px-8">
       <Textarea
         placeholder="Tell readers how you know Ha Noi (e.g., 'Lived in Hanoi )"
         className="py-4 border-none paragraph-regular background-light800_darkgradient light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border"
@@ -36,22 +37,32 @@ const GuideContent = () => {
         <span className="font-bold">Revervations and attachments</span>
         <div className="flex mt-4  items-center justify-center h-[40px]">
           <div className="px-4 flex w-full flex-col items-center h-full justify-center">
-            <MdFlight size={20} />
-            <p className="text-[12px]">Flight</p>
+            <div className="flex-center cursor-pointer flex-col relative">
+              <MdFlight size={20} />
+              <p className="text-[12px]">Flight</p>
+              <div className="absolute -top-1 -right-[12px] flex-center text-[8px] background-light700_dark300 text-light800_dark300 rounded-full w-4 h-4">
+                <p>1</p>
+              </div>
+            </div>
           </div>
           <Separator orientation="vertical" />
           <div className="px-4 flex w-full flex-col items-center h-full justify-center">
-            <MdFlight size={20} />
-            <p className="text-[12px]">Lodging</p>
+            <div className="flex-center cursor-pointer flex-col relative">
+              <BiSolidHotel size={20} />
+              <p className="text-[12px]">Lodging</p>
+              <div className="absolute -top-1 -right-[12px] flex-center text-[8px] background-light700_dark300 text-light800_dark300 rounded-full w-4 h-4">
+                <p>1</p>
+              </div>
+            </div>
           </div>
           <Separator orientation="vertical" />
           <div className="px-4 flex w-full flex-col items-center h-full justify-center">
-            <MdFlight size={20} />
+            <BiRestaurant size={20} />
             <p className="text-[12px]">Restaurant</p>
           </div>
           <Separator orientation="vertical" />
           <div className="px-4 flex w-full flex-col items-center h-full justify-center">
-            <MdFlight size={20} />
+            <Car size={20} />
             <p className="text-[12px]">Rental Car</p>
           </div>
           <Separator orientation="vertical" />
@@ -80,9 +91,7 @@ const GuideContent = () => {
               background="none"
               value={"General Tips"}
               hover="true"
-              onChange={() => {
-                console.log("Change");
-              }}
+              onChange={() => {}}
               className="paragraph-regular  !text-[24px] no-focus placeholder text-dark400_light700 border-none shadow-none !font-bold outline-none"
             />
             <Button

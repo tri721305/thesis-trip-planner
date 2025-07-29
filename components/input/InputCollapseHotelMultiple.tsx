@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useRef } from "react";
 import {
   FaChevronRight,
@@ -46,7 +48,7 @@ const MultipleHotelsSchema = z.object({
 type MultipleHotelsFormData = z.infer<typeof MultipleHotelsSchema>;
 
 const InputCollapseHotelMultiple = () => {
-  const [isOpen, setIsOpen] = React.useState(false);
+  const [isOpen, setIsOpen] = React.useState(true);
   const [editingIndex, setEditingIndex] = React.useState<number | null>(null);
   const [selectedDateRange, setSelectedDateRange] = React.useState({
     from: new Date(new Date().getFullYear(), 0, 1),
@@ -327,7 +329,6 @@ const InputCollapseHotelMultiple = () => {
     );
   };
 
-  console.log("Hotel watch", hotelsWatch);
   return (
     <Collapsible
       open={isOpen}

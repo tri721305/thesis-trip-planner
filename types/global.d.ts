@@ -74,7 +74,6 @@ declare global {
       details?: Record<string, string[]>;
     };
     status?: number;
-    warning?: string;
   };
 
   type SuccessResponse<T = null> = ActionResponse<T> & {

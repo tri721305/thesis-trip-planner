@@ -17,7 +17,6 @@ const Collaps = ({
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  console.log("isOpen", isOpen);
   return (
     <Collapsible
       className="flex w-full flex-col gap-2"
