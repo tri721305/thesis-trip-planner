@@ -6,7 +6,7 @@ import { getPlaces } from "@/lib/actions/place.action";
 import { FaMapMarkerAlt, FaStar } from "react-icons/fa";
 import TruncateText from "../typography/TruncateText";
 import { ReloadIcon } from "@radix-ui/react-icons";
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from "next/navigation";
 
 interface PlaceSearchProps {
   onPlaceSelect?: (place: any) => void;
@@ -14,17 +14,17 @@ interface PlaceSearchProps {
   maxResults?: number;
 }
 
-const PlaceSearch = ({ 
-  onPlaceSelect, 
+const PlaceSearch = ({
+  onPlaceSelect,
   placeholder = "Search attractions by name or location",
-  maxResults = 5 
+  maxResults = 5,
 }: PlaceSearchProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [result, setResult] = useState([]);
   const searchContainerRef = useRef(null);
-  
+
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -46,22 +46,22 @@ const PlaceSearch = ({
       openingPeriods: place.openingPeriods || [],
       priceLevel: place.priceLevel,
     };
-    
+
     // Call parent callback if provided
     if (onPlaceSelect) {
       onPlaceSelect(placeData);
     } else {
       // Default behavior: store in URL for other components to pick up
       const params = new URLSearchParams(searchParams);
-      params.set('selectedPlace', JSON.stringify(placeData));
-      params.set('action', 'addAttraction');
+      params.set("selectedPlace", JSON.stringify(placeData));
+      params.set("action", "addAttraction");
       router.push(`?${params.toString()}`, { scroll: false });
     }
-    
+
     // Close search
     setIsOpen(false);
     setSearch("");
-    
+
     console.log("Place selected:", placeData);
   };
 
@@ -93,7 +93,7 @@ const PlaceSearch = ({
 
     setResult([]);
     setIsLoading(true);
-    
+
     const delayDebounceFn = setTimeout(async () => {
       console.log("Searching places for:", search);
 
@@ -103,10 +103,10 @@ const PlaceSearch = ({
           pageSize: maxResults,
           query: search,
           filter: JSON.stringify({
-            sort: "rating" // Sort by rating for better results
+            sort: "rating", // Sort by rating for better results
           }),
         });
-        
+
         if (places?.success && places?.data?.places) {
           setResult(places.data.places);
         } else {
@@ -134,7 +134,7 @@ const PlaceSearch = ({
         <h3 className="font-medium text-sm text-gray-900 truncate">
           {place.name}
         </h3>
-        
+
         {place.address?.fullAddress && (
           <TruncateText
             text={place.address.fullAddress}
@@ -142,7 +142,7 @@ const PlaceSearch = ({
             maxLength={80}
           />
         )}
-        
+
         <div className="flex items-center gap-2 mt-2">
           {place.rating && (
             <div className="flex items-center gap-1">
@@ -157,7 +157,7 @@ const PlaceSearch = ({
               </span>
             </div>
           )}
-          
+
           {place.categories && place.categories.length > 0 && (
             <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
               {place.categories[0]}
@@ -169,10 +169,7 @@ const PlaceSearch = ({
   );
 
   return (
-    <div
-      className="relative w-full max-w-[600px]"
-      ref={searchContainerRef}
-    >
+    <div className="relative w-full max-w-[600px]" ref={searchContainerRef}>
       <Input
         type="text"
         value={search}
@@ -184,35 +181,35 @@ const PlaceSearch = ({
           if (e.target.value === "" && isOpen) setIsOpen(false);
         }}
       />
-      
+
       {/* Search icon */}
       <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
         <FaMapMarkerAlt size={18} className="text-gray-400" />
       </div>
-      
+
       {isOpen && search.trim() && (
         <div className="absolute top-full z-10 mt-3 w-full rounded-xl bg-white py-2 shadow-lg border border-gray-200 dark:bg-dark-400 dark:border-dark-300">
           {isLoading ? (
             <div className="flex-center flex-col px-5 py-8">
               <ReloadIcon className="my-2 h-8 w-8 animate-spin text-blue-500" />
-              <p className="text-gray-600 text-sm">
-                Searching attractions...
-              </p>
+              <p className="text-gray-600 text-sm">Searching attractions...</p>
             </div>
           ) : result.length > 0 ? (
             <div className="max-h-96 overflow-y-auto">
               <div className="px-3 py-2 border-b border-gray-100">
                 <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                  Found {result.length} attraction{result.length !== 1 ? 's' : ''}
+                  Found {result.length} attraction
+                  {result.length !== 1 ? "s" : ""}
                 </p>
               </div>
-              <div className="py-1">
-                {result.map(renderPlaceItem)}
-              </div>
+              <div className="py-1">{result.map(renderPlaceItem)}</div>
             </div>
           ) : (
             <div className="px-5 py-8 text-center">
-              <FaMapMarkerAlt size={24} className="mx-auto text-gray-300 mb-2" />
+              <FaMapMarkerAlt
+                size={24}
+                className="mx-auto text-gray-300 mb-2"
+              />
               <p className="text-gray-500 text-sm">
                 No attractions found for "{search}"
               </p>

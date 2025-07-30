@@ -5,12 +5,26 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PlaceMap from "@/components/maps/PlaceMap";
 import DemoNavigation from "@/components/navigation/DemoNavigation";
 import { getNearbyPlaces, getPlaces } from "@/lib/actions/place.action";
-import { FaLocationArrow, FaMapMarkerAlt, FaStar, FaRulerCombined, FaFilter, FaSearch, FaGlobeAsia } from "react-icons/fa";
+import {
+  FaLocationArrow,
+  FaMapMarkerAlt,
+  FaStar,
+  FaRulerCombined,
+  FaFilter,
+  FaSearch,
+  FaGlobeAsia,
+} from "react-icons/fa";
 
 interface Location {
   lat: number;
@@ -23,14 +37,14 @@ export default function GeographicSearchDemo() {
   const [userLocation, setUserLocation] = useState<Location | null>(null);
   const [customLocation, setCustomLocation] = useState({ lat: "", lng: "" });
   const [isGeoLoading, setIsGeoLoading] = useState(false);
-  
+
   // Search states
   const [radius, setRadius] = useState(5000);
   const [categoryFilter, setCategoryFilter] = useState("all");
   const [minRating, setMinRating] = useState("0");
   const [nearbyResults, setNearbyResults] = useState<any[]>([]);
   const [searchResults, setSearchResults] = useState<any[]>([]);
-  
+
   // UI states
   const [activeTab, setActiveTab] = useState("nearby");
 
@@ -41,17 +55,25 @@ export default function GeographicSearchDemo() {
     { name: "Đà Nẵng - Hải Châu", lat: 16.0471, lng: 108.2068 },
     { name: "Hội An - Phố Cổ", lat: 15.8801, lng: 108.335 },
     { name: "Huế - Kinh Thành", lat: 16.4637, lng: 107.5909 },
-    { name: "Sapa - Thị Trấn", lat: 22.3380, lng: 103.8442 },
+    { name: "Sapa - Thị Trấn", lat: 22.338, lng: 103.8442 },
     { name: "Đà Lạt - Trung Tâm", lat: 11.9404, lng: 108.4583 },
     { name: "Nha Trang - Trung Tâm", lat: 12.2388, lng: 109.1967 },
     { name: "Phú Quốc - Dương Đông", lat: 10.2201, lng: 103.9671 },
-    { name: "Vũng Tàu - Thành Phố", lat: 10.3460, lng: 107.0843 },
+    { name: "Vũng Tàu - Thành Phố", lat: 10.346, lng: 107.0843 },
   ];
 
   // Categories for filtering
   const categories = [
-    "all", "museum", "temple", "park", "market", "beach", 
-    "historical", "cultural", "entertainment", "shopping"
+    "all",
+    "museum",
+    "temple",
+    "park",
+    "market",
+    "beach",
+    "historical",
+    "cultural",
+    "entertainment",
+    "shopping",
   ];
 
   // Get current location
@@ -63,14 +85,16 @@ export default function GeographicSearchDemo() {
           const location = {
             lat: position.coords.latitude,
             lng: position.coords.longitude,
-            name: "Your Current Location"
+            name: "Your Current Location",
           };
           setUserLocation(location);
           searchNearbyPlaces(location);
         },
         (error) => {
           console.error("Error getting location:", error);
-          alert("Could not get your location. Please try a predefined city or custom coordinates.");
+          alert(
+            "Could not get your location. Please try a predefined city or custom coordinates."
+          );
           setIsGeoLoading(false);
         }
       );
@@ -90,16 +114,25 @@ export default function GeographicSearchDemo() {
   const useCustomLocation = () => {
     const lat = parseFloat(customLocation.lat);
     const lng = parseFloat(customLocation.lng);
-    
-    if (isNaN(lat) || isNaN(lng) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
-      alert("Please enter valid coordinates (lat: -90 to 90, lng: -180 to 180)");
+
+    if (
+      isNaN(lat) ||
+      isNaN(lng) ||
+      lat < -90 ||
+      lat > 90 ||
+      lng < -180 ||
+      lng > 180
+    ) {
+      alert(
+        "Please enter valid coordinates (lat: -90 to 90, lng: -180 to 180)"
+      );
       return;
     }
-    
+
     const location = {
       lat,
       lng,
-      name: `Custom Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`
+      name: `Custom Location (${lat.toFixed(4)}, ${lng.toFixed(4)})`,
     };
     setUserLocation(location);
     searchNearbyPlaces(location);
@@ -109,32 +142,38 @@ export default function GeographicSearchDemo() {
   const searchNearbyPlaces = async (location: Location) => {
     setIsGeoLoading(true);
     try {
-      const result = await getNearbyPlaces(location.lat, location.lng, radius, 50);
+      const result = await getNearbyPlaces(
+        location.lat,
+        location.lng,
+        radius,
+        50
+      );
       if (result.success && result.data?.places) {
         const placesWithDistance = result.data.places.map((place: any) => {
           const distance = calculateDistance(
-            location.lat, location.lng,
+            location.lat,
+            location.lng,
             place.location.coordinates[1],
             place.location.coordinates[0]
           );
           return { ...place, distance };
         });
-        
+
         // Apply filters
         let filteredPlaces = placesWithDistance;
-        
+
         if (categoryFilter !== "all") {
-          filteredPlaces = filteredPlaces.filter((place: any) => 
+          filteredPlaces = filteredPlaces.filter((place: any) =>
             place.categories?.includes(categoryFilter)
           );
         }
-        
+
         if (parseFloat(minRating) > 0) {
-          filteredPlaces = filteredPlaces.filter((place: any) => 
-            (place.rating || 0) >= parseFloat(minRating)
+          filteredPlaces = filteredPlaces.filter(
+            (place: any) => (place.rating || 0) >= parseFloat(minRating)
           );
         }
-        
+
         setNearbyResults(filteredPlaces);
       } else {
         setNearbyResults([]);
@@ -150,35 +189,36 @@ export default function GeographicSearchDemo() {
   // Search with location filter
   const searchWithLocationFilter = async () => {
     if (!userLocation) return;
-    
+
     setIsGeoLoading(true);
     try {
       const filterObj: any = {
         location: {
           latitude: userLocation.lat,
           longitude: userLocation.lng,
-          radius
-        }
+          radius,
+        },
       };
-      
+
       if (categoryFilter !== "all") {
         filterObj.category = categoryFilter;
       }
-      
+
       if (parseFloat(minRating) > 0) {
         filterObj.rating = { min: parseFloat(minRating) };
       }
-      
+
       const result = await getPlaces({
         page: 1,
         pageSize: 50,
-        filter: JSON.stringify(filterObj)
+        filter: JSON.stringify(filterObj),
       });
-      
+
       if (result.success && result.data?.places) {
         const placesWithDistance = result.data.places.map((place: any) => {
           const distance = calculateDistance(
-            userLocation.lat, userLocation.lng,
+            userLocation.lat,
+            userLocation.lng,
             place.location.coordinates[1],
             place.location.coordinates[0]
           );
@@ -197,15 +237,22 @@ export default function GeographicSearchDemo() {
   };
 
   // Calculate distance between two points
-  const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+  const calculateDistance = (
+    lat1: number,
+    lng1: number,
+    lat2: number,
+    lng2: number
+  ) => {
     const R = 6371;
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLng = (lng2 - lng1) * Math.PI / 180;
-    const a = 
-      Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
-      Math.sin(dLng/2) * Math.sin(dLng/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLng = ((lng2 - lng1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLng / 2) *
+        Math.sin(dLng / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   };
 
@@ -234,7 +281,10 @@ export default function GeographicSearchDemo() {
       ) : (
         <div className="space-y-3 max-h-96 overflow-y-auto">
           {places.map((place) => (
-            <div key={place._id} className="border rounded-lg p-3 hover:bg-gray-50 transition-colors">
+            <div
+              key={place._id}
+              className="border rounded-lg p-3 hover:bg-gray-50 transition-colors"
+            >
               <div className="flex justify-between items-start">
                 <div className="flex-1">
                   <h5 className="font-medium text-sm">{place.name}</h5>
@@ -247,7 +297,9 @@ export default function GeographicSearchDemo() {
                     {place.rating && (
                       <div className="flex items-center gap-1">
                         <FaStar className="text-yellow-500" size={10} />
-                        <span className="text-xs">{place.rating.toFixed(1)}</span>
+                        <span className="text-xs">
+                          {place.rating.toFixed(1)}
+                        </span>
                         {place.numRatings && (
                           <span className="text-xs text-gray-500">
                             ({place.numRatings.toLocaleString()})
@@ -282,7 +334,7 @@ export default function GeographicSearchDemo() {
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-6xl mx-auto space-y-6">
         <DemoNavigation />
-        
+
         {/* Header */}
         <div className="text-center">
           <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center justify-center gap-3">
@@ -290,7 +342,8 @@ export default function GeographicSearchDemo() {
             Geographic Search Demo
           </h1>
           <p className="text-gray-600">
-            Advanced location-based attraction discovery with MongoDB geospatial queries
+            Advanced location-based attraction discovery with MongoDB geospatial
+            queries
           </p>
         </div>
 
@@ -309,23 +362,25 @@ export default function GeographicSearchDemo() {
                 <TabsTrigger value="cities">Vietnam Cities</TabsTrigger>
                 <TabsTrigger value="custom">Custom Coordinates</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="current" className="mt-4">
                 <div className="flex items-center gap-4">
-                  <Button 
+                  <Button
                     onClick={getCurrentLocation}
                     disabled={isGeoLoading}
                     className="flex items-center gap-2"
                   >
                     <FaLocationArrow size={14} />
-                    {isGeoLoading ? "Getting Location..." : "Use My Current Location"}
+                    {isGeoLoading
+                      ? "Getting Location..."
+                      : "Use My Current Location"}
                   </Button>
                   <p className="text-sm text-gray-600">
                     Uses browser geolocation API to detect your current position
                   </p>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="cities" className="mt-4">
                 <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-2">
                   {vietnamCities.map((city) => (
@@ -341,7 +396,7 @@ export default function GeographicSearchDemo() {
                   ))}
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="custom" className="mt-4">
                 <div className="flex items-center gap-4">
                   <div className="flex items-center gap-2">
@@ -350,7 +405,12 @@ export default function GeographicSearchDemo() {
                       type="number"
                       placeholder="21.0285"
                       value={customLocation.lat}
-                      onChange={(e) => setCustomLocation(prev => ({ ...prev, lat: e.target.value }))}
+                      onChange={(e) =>
+                        setCustomLocation((prev) => ({
+                          ...prev,
+                          lat: e.target.value,
+                        }))
+                      }
                       className="w-24"
                       step="0.000001"
                     />
@@ -361,7 +421,12 @@ export default function GeographicSearchDemo() {
                       type="number"
                       placeholder="105.8542"
                       value={customLocation.lng}
-                      onChange={(e) => setCustomLocation(prev => ({ ...prev, lng: e.target.value }))}
+                      onChange={(e) =>
+                        setCustomLocation((prev) => ({
+                          ...prev,
+                          lng: e.target.value,
+                        }))
+                      }
                       className="w-24"
                       step="0.000001"
                     />
@@ -371,20 +436,24 @@ export default function GeographicSearchDemo() {
                   </Button>
                 </div>
                 <p className="text-xs text-gray-500 mt-2">
-                  Enter latitude and longitude coordinates (e.g., Hanoi: 21.0285, 105.8542)
+                  Enter latitude and longitude coordinates (e.g., Hanoi:
+                  21.0285, 105.8542)
                 </p>
               </TabsContent>
             </Tabs>
-            
+
             {/* Current Location Display */}
             {userLocation && (
               <div className="mt-4 bg-green-50 border border-green-200 rounded-lg p-3">
                 <div className="flex items-center gap-2 text-green-800">
                   <FaMapMarkerAlt size={14} />
-                  <span className="font-medium">Selected Location: {userLocation.name}</span>
+                  <span className="font-medium">
+                    Selected Location: {userLocation.name}
+                  </span>
                 </div>
                 <p className="text-sm text-green-700 mt-1">
-                  Coordinates: {userLocation.lat.toFixed(6)}, {userLocation.lng.toFixed(6)}
+                  Coordinates: {userLocation.lat.toFixed(6)},{" "}
+                  {userLocation.lng.toFixed(6)}
                 </p>
               </div>
             )}
@@ -406,7 +475,10 @@ export default function GeographicSearchDemo() {
                 <div className="flex flex-wrap items-center gap-4">
                   <div className="flex items-center gap-2">
                     <label className="text-sm font-medium">Radius:</label>
-                    <Select value={radius.toString()} onValueChange={(value) => setRadius(Number(value))}>
+                    <Select
+                      value={radius.toString()}
+                      onValueChange={(value) => setRadius(Number(value))}
+                    >
                       <SelectTrigger className="w-24">
                         <SelectValue />
                       </SelectTrigger>
@@ -420,23 +492,28 @@ export default function GeographicSearchDemo() {
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     <label className="text-sm font-medium">Category:</label>
-                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                    <Select
+                      value={categoryFilter}
+                      onValueChange={setCategoryFilter}
+                    >
                       <SelectTrigger className="w-32">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
-                        {categories.map(cat => (
+                        {categories.map((cat) => (
                           <SelectItem key={cat} value={cat}>
-                            {cat === "all" ? "All Categories" : cat.charAt(0).toUpperCase() + cat.slice(1)}
+                            {cat === "all"
+                              ? "All Categories"
+                              : cat.charAt(0).toUpperCase() + cat.slice(1)}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div className="flex items-center gap-2">
                     <label className="text-sm font-medium">Min Rating:</label>
                     <Select value={minRating} onValueChange={setMinRating}>
@@ -462,9 +539,11 @@ export default function GeographicSearchDemo() {
                 <CardTitle>Map Visualization</CardTitle>
               </CardHeader>
               <CardContent>
-                <PlaceMap 
+                <PlaceMap
                   center={userLocation}
-                  places={activeTab === "nearby" ? nearbyResults : searchResults}
+                  places={
+                    activeTab === "nearby" ? nearbyResults : searchResults
+                  }
                   radius={radius}
                 />
               </CardContent>
@@ -484,37 +563,43 @@ export default function GeographicSearchDemo() {
                     <TabsTrigger value="nearby">Nearby Search</TabsTrigger>
                     <TabsTrigger value="advanced">Advanced Query</TabsTrigger>
                   </TabsList>
-                  
+
                   <TabsContent value="nearby" className="mt-4">
                     <div className="mb-4 p-3 bg-blue-50 rounded-lg">
                       <p className="text-sm text-blue-800">
-                        <strong>MongoDB Query:</strong> Using <code>$near</code> operator with 2dsphere index
+                        <strong>MongoDB Query:</strong> Using <code>$near</code>{" "}
+                        operator with 2dsphere index
                       </p>
                       <p className="text-xs text-blue-600 mt-1">
-                        Returns attractions sorted by distance from your location
+                        Returns attractions sorted by distance from your
+                        location
                       </p>
                     </div>
                     {isGeoLoading ? (
                       <div className="text-center py-8">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto"></div>
-                        <p className="text-sm text-gray-600 mt-2">Searching nearby attractions...</p>
+                        <p className="text-sm text-gray-600 mt-2">
+                          Searching nearby attractions...
+                        </p>
                       </div>
                     ) : (
                       renderPlacesList(nearbyResults, "Nearby Attractions")
                     )}
                   </TabsContent>
-                  
+
                   <TabsContent value="advanced" className="mt-4">
                     <div className="mb-4 p-3 bg-purple-50 rounded-lg">
                       <p className="text-sm text-purple-800">
-                        <strong>Advanced Query:</strong> Combined geolocation with category and rating filters
+                        <strong>Advanced Query:</strong> Combined geolocation
+                        with category and rating filters
                       </p>
                       <p className="text-xs text-purple-600 mt-1">
-                        Uses complex MongoDB aggregation pipeline for multi-criteria search
+                        Uses complex MongoDB aggregation pipeline for
+                        multi-criteria search
                       </p>
                     </div>
-                    <Button 
-                      onClick={searchWithLocationFilter} 
+                    <Button
+                      onClick={searchWithLocationFilter}
                       disabled={isGeoLoading}
                       className="mb-4"
                     >
@@ -523,7 +608,9 @@ export default function GeographicSearchDemo() {
                     {isGeoLoading ? (
                       <div className="text-center py-8">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500 mx-auto"></div>
-                        <p className="text-sm text-gray-600 mt-2">Running advanced query...</p>
+                        <p className="text-sm text-gray-600 mt-2">
+                          Running advanced query...
+                        </p>
                       </div>
                     ) : (
                       renderPlacesList(searchResults, "Filtered Results")

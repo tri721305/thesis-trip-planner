@@ -30,6 +30,11 @@ const nextConfig: NextConfig = {
         hostname: "trip-planner-thesis.s3.ap-southeast-1.amazonaws.com",
         port: "",
       },
+      {
+        protocol: "https",
+        hostname: "https://itin-dev.wanderlogstatic.com",
+        port: "",
+      },
     ],
   },
 };

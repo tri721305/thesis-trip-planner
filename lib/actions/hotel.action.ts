@@ -35,11 +35,8 @@ export async function getHotels(params: PaginatedSearchParams): Promise<
   try {
     if (query) {
       filterQuery.$or = [
-        // {
-        //   name: { $regex: query, $options: "i" },
-        // },
-        // { description: { $regex: query, $options: "i" } },
         { "lodging.name": { $regex: query, $options: "i" } },
+        { "lodging.address": { $regex: query, $options: "i" } },
       ];
     }
 

@@ -3,7 +3,12 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
-import { FaMapMarkerAlt, FaGlobeAsia, FaDatabase, FaSearch } from "react-icons/fa";
+import {
+  FaMapMarkerAlt,
+  FaGlobeAsia,
+  FaDatabase,
+  FaSearch,
+} from "react-icons/fa";
 
 const demoPages = [
   {
@@ -11,29 +16,29 @@ const demoPages = [
     title: "Overview",
     description: "System overview and features",
     icon: FaMapMarkerAlt,
-    color: "gray"
+    color: "gray",
   },
   {
     href: "/attraction-search-demo",
     title: "Basic Search Demo",
     description: "Search and selection demo",
     icon: FaSearch,
-    color: "blue"
+    color: "blue",
   },
   {
-    href: "/geographic-search-demo", 
+    href: "/geographic-search-demo",
     title: "Geographic Demo",
     description: "Location-based search",
     icon: FaGlobeAsia,
-    color: "green"
+    color: "green",
   },
   {
     href: "/api-demo",
-    title: "API Testing", 
+    title: "API Testing",
     description: "Interactive API demo",
     icon: FaDatabase,
-    color: "purple"
-  }
+    color: "purple",
+  },
 ];
 
 export default function DemoNavigation() {
@@ -50,43 +55,52 @@ export default function DemoNavigation() {
             Explore our complete geospatial search capabilities
           </p>
         </div>
-        
+
         <div className="grid md:grid-cols-3 gap-4">
           {demoPages.map((page) => {
             const Icon = page.icon;
             const isActive = pathname === page.href;
-            
+
             return (
               <Link key={page.href} href={page.href}>
-                <div className={`
+                <div
+                  className={`
                   border rounded-lg p-4 transition-all hover:shadow-md cursor-pointer
-                  ${isActive 
-                    ? `border-${page.color}-500 bg-${page.color}-50` 
-                    : 'border-gray-200 hover:border-gray-300'
+                  ${
+                    isActive
+                      ? `border-${page.color}-500 bg-${page.color}-50`
+                      : "border-gray-200 hover:border-gray-300"
                   }
-                `}>
+                `}
+                >
                   <div className="flex items-center gap-3 mb-2">
-                    <Icon 
+                    <Icon
                       className={`
-                        ${isActive ? `text-${page.color}-600` : 'text-gray-500'}
-                      `} 
-                      size={20} 
+                        ${isActive ? `text-${page.color}-600` : "text-gray-500"}
+                      `}
+                      size={20}
                     />
-                    <h3 className={`
+                    <h3
+                      className={`
                       font-medium text-sm
-                      ${isActive ? `text-${page.color}-900` : 'text-gray-900'}
-                    `}>
+                      ${isActive ? `text-${page.color}-900` : "text-gray-900"}
+                    `}
+                    >
                       {page.title}
                     </h3>
                   </div>
-                  <p className={`
+                  <p
+                    className={`
                     text-xs
-                    ${isActive ? `text-${page.color}-700` : 'text-gray-600'}
-                  `}>
+                    ${isActive ? `text-${page.color}-700` : "text-gray-600"}
+                  `}
+                  >
                     {page.description}
                   </p>
                   {isActive && (
-                    <div className={`mt-2 text-xs font-medium text-${page.color}-600`}>
+                    <div
+                      className={`mt-2 text-xs font-medium text-${page.color}-600`}
+                    >
                       Currently viewing →
                     </div>
                   )}

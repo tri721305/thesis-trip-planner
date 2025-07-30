@@ -6,18 +6,18 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import DemoNavigation from "@/components/navigation/DemoNavigation";
-import { 
-  FaMapMarkerAlt, 
-  FaSearch, 
-  FaGlobeAsia, 
-  FaDatabase, 
+import {
+  FaMapMarkerAlt,
+  FaSearch,
+  FaGlobeAsia,
+  FaDatabase,
   FaRocket,
   FaCode,
   FaCheckCircle,
   FaStar,
   FaLocationArrow,
   FaFilter,
-  FaCog
+  FaCog,
 } from "react-icons/fa";
 
 export default function PlacesOverview() {
@@ -27,71 +27,72 @@ export default function PlacesOverview() {
       title: "Text Search",
       description: "Search attractions by name, description, and address",
       implemented: true,
-      color: "blue"
+      color: "blue",
     },
     {
       icon: FaLocationArrow,
       title: "Geographic Search",
-      description: "Find attractions near specific coordinates with distance calculation",
+      description:
+        "Find attractions near specific coordinates with distance calculation",
       implemented: true,
-      color: "green"
+      color: "green",
     },
     {
       icon: FaFilter,
       title: "Advanced Filtering",
       description: "Filter by category, rating, location radius, and more",
       implemented: true,
-      color: "purple"
+      color: "purple",
     },
     {
       icon: FaStar,
       title: "Rating-based Sorting",
       description: "Sort by rating, popularity, distance, and name",
       implemented: true,
-      color: "yellow"
+      color: "yellow",
     },
     {
       icon: FaMapMarkerAlt,
       title: "Map Visualization",
       description: "Interactive map showing attractions and search radius",
       implemented: true,
-      color: "red"
+      color: "red",
     },
     {
       icon: FaDatabase,
       title: "MongoDB Geospatial",
       description: "Leverages MongoDB 2dsphere indexes for fast queries",
       implemented: true,
-      color: "green"
-    }
+      color: "green",
+    },
   ];
 
   const apiEndpoints = [
     {
       name: "getPlaces()",
       description: "Main search function with text and geospatial filtering",
-      params: "query, filter, pagination"
+      params: "query, filter, pagination",
     },
     {
       name: "getNearbyPlaces()",
       description: "Find attractions within radius of coordinates",
-      params: "lat, lng, radius, limit"
+      params: "lat, lng, radius, limit",
     },
     {
       name: "getPlacesByCategory()",
       description: "Get attractions filtered by category",
-      params: "category, limit"
+      params: "category, limit",
     },
     {
       name: "getPopularPlaces()",
       description: "Get highly rated and popular attractions",
-      params: "limit"
+      params: "limit",
     },
     {
       name: "getPlaceById()",
       description: "Get detailed information for specific attraction",
-      params: "id"
-    }
+      params: "id",
+    },
   ];
 
   const databaseFeatures = [
@@ -100,14 +101,14 @@ export default function PlacesOverview() {
     "Compound indexes for optimized filtering",
     "GeoJSON Point coordinates support",
     "Distance calculation with Haversine formula",
-    "MongoDB aggregation pipeline queries"
+    "MongoDB aggregation pipeline queries",
   ];
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-6xl mx-auto space-y-6">
         <DemoNavigation />
-        
+
         {/* Hero Section */}
         <Card className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
           <CardContent className="p-8">
@@ -120,16 +121,28 @@ export default function PlacesOverview() {
                 Complete geospatial search solution with MongoDB and Next.js
               </p>
               <div className="flex flex-wrap justify-center gap-3">
-                <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                <Badge
+                  variant="secondary"
+                  className="bg-white/20 text-white border-white/30"
+                >
                   MongoDB 2dsphere
                 </Badge>
-                <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                <Badge
+                  variant="secondary"
+                  className="bg-white/20 text-white border-white/30"
+                >
                   Geospatial Queries
                 </Badge>
-                <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                <Badge
+                  variant="secondary"
+                  className="bg-white/20 text-white border-white/30"
+                >
                   Real-time Search
                 </Badge>
-                <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                <Badge
+                  variant="secondary"
+                  className="bg-white/20 text-white border-white/30"
+                >
                   Advanced Filtering
                 </Badge>
               </div>
@@ -155,7 +168,10 @@ export default function PlacesOverview() {
           </Card>
           <Card>
             <CardContent className="p-6 text-center">
-              <FaLocationArrow className="mx-auto mb-3 text-purple-500" size={32} />
+              <FaLocationArrow
+                className="mx-auto mb-3 text-purple-500"
+                size={32}
+              />
               <h3 className="text-2xl font-bold text-gray-900">50km</h3>
               <p className="text-sm text-gray-600">Max Search Radius</p>
             </CardContent>
@@ -190,7 +206,9 @@ export default function PlacesOverview() {
                         <FaCheckCircle className="text-green-500" size={14} />
                       )}
                     </div>
-                    <p className="text-xs text-gray-600">{feature.description}</p>
+                    <p className="text-xs text-gray-600">
+                      {feature.description}
+                    </p>
                   </div>
                 );
               })}
@@ -215,7 +233,9 @@ export default function PlacesOverview() {
                       <h4 className="font-semibold text-sm text-blue-600 mb-1">
                         {endpoint.name}
                       </h4>
-                      <p className="text-xs text-gray-600 mb-2">{endpoint.description}</p>
+                      <p className="text-xs text-gray-600 mb-2">
+                        {endpoint.description}
+                      </p>
                       <code className="text-xs bg-gray-100 px-2 py-1 rounded">
                         Parameters: {endpoint.params}
                       </code>
@@ -242,7 +262,10 @@ export default function PlacesOverview() {
                 <ul className="space-y-2">
                   {databaseFeatures.map((feature, index) => (
                     <li key={index} className="flex items-center gap-2 text-sm">
-                      <FaCheckCircle className="text-green-500 flex-shrink-0" size={14} />
+                      <FaCheckCircle
+                        className="text-green-500 flex-shrink-0"
+                        size={14}
+                      />
                       <span>{feature}</span>
                     </li>
                   ))}
@@ -271,19 +294,28 @@ export default function PlacesOverview() {
           <CardContent>
             <div className="grid md:grid-cols-3 gap-4">
               <Link href="/attraction-search-demo">
-                <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center gap-2">
+                <Button
+                  variant="outline"
+                  className="w-full h-20 flex flex-col items-center justify-center gap-2"
+                >
                   <FaSearch size={20} />
                   <span className="text-sm">Basic Search Demo</span>
                 </Button>
               </Link>
               <Link href="/geographic-search-demo">
-                <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center gap-2">
+                <Button
+                  variant="outline"
+                  className="w-full h-20 flex flex-col items-center justify-center gap-2"
+                >
                   <FaGlobeAsia size={20} />
                   <span className="text-sm">Geographic Demo</span>
                 </Button>
               </Link>
               <Link href="/api-demo">
-                <Button variant="outline" className="w-full h-20 flex flex-col items-center justify-center gap-2">
+                <Button
+                  variant="outline"
+                  className="w-full h-20 flex flex-col items-center justify-center gap-2"
+                >
                   <FaDatabase size={20} />
                   <span className="text-sm">API Testing</span>
                 </Button>

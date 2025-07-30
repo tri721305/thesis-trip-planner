@@ -29,17 +29,16 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { HotelSchema } from "@/lib/validation";
-import { DateRangePicker } from "../datepicker/RangePicker";
 import PriceInput from "./PriceInput";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { CalendarDatePicker } from "../calendar-date-picker";
-import { CurrencyDisplay } from "../CurrencyDisplay";
-import { Plus, Trash } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { BiSolidHotel } from "react-icons/bi";
 import ReusableDialog from "../modal/ReusableDialog";
 import HotelLodging from "../modal/HotelLodging";
 import { GoKebabHorizontal } from "react-icons/go";
+import moment from "moment";
 // Schema cho multiple hotels
 const MultipleHotelsSchema = z.object({
   hotels: z.array(HotelSchema).min(1, "At least one hotel is required"),
@@ -51,7 +50,7 @@ const InputCollapseHotelMultiple = () => {
   const [isOpen, setIsOpen] = React.useState(true);
   const [editingIndex, setEditingIndex] = React.useState<number | null>(null);
   const [selectedDateRange, setSelectedDateRange] = React.useState({
-    from: new Date(new Date().getFullYear(), 0, 1),
+    from: new Date(),
     to: new Date(),
   });
   const [openModalHotel, setOpenModalHotel] = React.useState(false);
@@ -85,13 +84,13 @@ const InputCollapseHotelMultiple = () => {
         append({
           name: hotelData.name || "",
           address: hotelData.address || "",
-          checkin: "",
-          checkout: "",
+          checkin: moment().format("ddd, Do MMM YYYY"),
+          checkout: moment().format("ddd, Do MMM YYYY"),
           note: "",
           confirmation: "",
           cost: {
-            type: hotelData.cost?.type || "VND",
-            number: hotelData.cost?.number || "",
+            type: hotelData.cost?.type?.toLowerCase() || "VND",
+            number: JSON.stringify(hotelData.cost?.number) || "",
           },
         });
 
@@ -145,20 +144,6 @@ const InputCollapseHotelMultiple = () => {
     }
   };
 
-  // Handle click outside to stop editing
-  //   useEffect(() => {
-  //     function handleClickOutside(event: MouseEvent) {
-  //       if (divRef.current && !divRef.current.contains(event.target as Node)) {
-  //         setEditingIndex(null);
-  //       }
-  //     }
-
-  //     document.addEventListener("mousedown", handleClickOutside);
-  //     return () => {
-  //       document.removeEventListener("mousedown", handleClickOutside);
-  //     };
-  //   }, []);
-
   // Form submit handler
   const onSubmit = (data: MultipleHotelsFormData) => {
     setEditingIndex(null);
@@ -184,7 +169,7 @@ const InputCollapseHotelMultiple = () => {
             <div className="text-[12px] !text-[#6c757d] ">{hotel.address}</div>
           )}
           {(hotel.checkin || hotel.checkout) && (
-            <div className="text-[16px]  text-[#212529] mt-[8px]">
+            <div className="text-[16px] font-medium  text-[#212529] mt-[8px]">
               {hotel.checkin} - {hotel.checkout}
             </div>
           )}
@@ -198,7 +183,8 @@ const InputCollapseHotelMultiple = () => {
     );
   };
 
-  // Render hotel form
+  console.log("hotelWatch", hotelsWatch);
+
   const renderHotelForm = (index: number) => {
     return (
       <div className="p-4 space-y-4">
@@ -256,10 +242,24 @@ const InputCollapseHotelMultiple = () => {
                 <FormControl>
                   <CalendarDatePicker
                     date={selectedDateRange}
-                    // onDateSelect={setSelectedDateRange}
                     onDateSelect={(e) => {
-                      console.log(e);
+                      console.log("Date PIcker VALUE", e);
                       setSelectedDateRange(e);
+
+                      // Set form values for checkin and checkout
+                      if (e?.from) {
+                        form.setValue(
+                          `hotels.${index}.checkin`,
+                          // e.from.toLocaleDateString()
+                          moment(e.from).format("ddd, Do MMM YYYY")
+                        );
+                      }
+                      if (e?.to) {
+                        form.setValue(
+                          `hotels.${index}.checkout`,
+                          moment(e.to).format("ddd, Do MMM YYYY")
+                        );
+                      }
                     }}
                   />
                 </FormControl>
@@ -322,7 +322,7 @@ const InputCollapseHotelMultiple = () => {
                   <PriceInput
                     value={field.value}
                     onChange={field.onChange}
-                    defaultCurrency="vnd"
+                    // defaultCurrency="vnd"
                     allowCurrencyChange={true}
                     compact={false}
                     displayFormatted={true} // Show formatted value in input
@@ -368,7 +368,7 @@ const InputCollapseHotelMultiple = () => {
     <Collapsible
       open={isOpen}
       onOpenChange={setIsOpen}
-      className="flex w-full flex-col gap-2"
+      className="flex w-full flex-col gap-[24px]"
     >
       <div className="item-hover-btn flex items-center justify-between gap-4 ">
         <CollapsibleTrigger asChild>
@@ -396,7 +396,7 @@ const InputCollapseHotelMultiple = () => {
         </Button>
       </div>
 
-      <CollapsibleContent ref={divRef} className="flex  flex-col gap-2">
+      <CollapsibleContent ref={divRef} className="flex  flex-col gap-[12px]">
         {fields.map((field, index) => (
           <Card
             key={field.id}

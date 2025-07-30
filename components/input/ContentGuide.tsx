@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "../ui/button";
 import { Plus, Trash } from "lucide-react";
 import { Separator } from "../ui/separator";
@@ -21,11 +21,12 @@ import { Input } from "../ui/input";
 import Collaps from "../Collaps";
 
 import InputWithIcon from "./InputIcon";
-import { FaMapMarkerAlt, FaMarker, FaSave } from "react-icons/fa";
 import { FaEllipsis, FaNoteSticky } from "react-icons/fa6";
 import { MdChecklist } from "react-icons/md";
 import Checklist from "./Checklist";
 import "./style.css";
+import PlaceSearch from "../search/PlaceSearch";
+import { usePlaceSelection } from "@/hooks/usePlaceSelection";
 
 const ItemsGuideSchema = z.object({
   items: z.array(ItemGuideSchema).optional(),
@@ -37,7 +38,8 @@ const ContentGuide = () => {
   const [dialogStates, setDialogStates] = useState<{ [key: number]: boolean }>(
     {}
   );
-
+  const [selectedAttractions, setSelectedAttractions] = useState<any[]>([]);
+  const { clearPlaceSelection, getSelectedPlace } = usePlaceSelection();
   const form = useForm<ItemsGuideFormData>({
     resolver: zodResolver(ItemsGuideSchema),
     defaultValues: {
@@ -56,6 +58,7 @@ const ContentGuide = () => {
     return dialogStates[index] || false;
   };
   const itemsWatch = watch("items");
+  console.log("itemsWatch", itemsWatch);
 
   const handleAddList = (type: "route" | "list") => {
     if (type == "route") {
@@ -63,14 +66,14 @@ const ContentGuide = () => {
       append({
         type: type,
         title: `Day ${listRoute?.length + 1}`,
-        subheading: "",
+        // subheading: "",
         items: [],
       });
     } else if (type == "list") {
       append({
         type: type,
         title: "",
-        subheading: "",
+        // subheading: "",
         items: [],
       });
     }
@@ -279,9 +282,14 @@ const ContentGuide = () => {
                 }
               })}
               <div className="flex items-center gap-2">
-                <InputWithIcon
+                {/* <InputWithIcon
                   placeholder="Add a Place"
                   icon={<FaMapMarkerAlt />}
+                /> */}
+                <PlaceSearch
+                  onPlaceSelect={handlePlaceSelect}
+                  placeholder="Search for museums, parks, temples, beaches..."
+                  maxResults={8}
                 />
                 <Button
                   onClick={() => {
@@ -302,7 +310,7 @@ const ContentGuide = () => {
           }
         />
 
-        {index + 1 < fields?.length && <Separator className="my-1 mt-4" />}
+        {index + 1 < fields?.length && <Separator className="my-[24px] " />}
         {/* {isOpenDialog && (
           <ReusableDialog
             open={isOpenDialog}
@@ -318,7 +326,34 @@ const ContentGuide = () => {
     );
   };
 
-  console.log("itemsWatch", fields, itemsWatch);
+  useEffect(() => {
+    const selectedPlace = getSelectedPlace();
+    if (selectedPlace) {
+      // Add to our list
+      setSelectedAttractions((prev) => {
+        // Check if already exists
+        const exists = prev.some((attr) => attr.id === selectedPlace.id);
+        if (!exists) {
+          return [...prev, selectedPlace];
+        }
+        return prev;
+      });
+
+      // Clear URL params
+      clearPlaceSelection();
+    }
+  }, [getSelectedPlace, clearPlaceSelection]);
+  const handlePlaceSelect = (place: any) => {
+    // Direct selection from component
+    setSelectedAttractions((prev) => {
+      const exists = prev.some((attr) => attr.id === place.id);
+      if (!exists) {
+        return [...prev, place];
+      }
+      return prev;
+    });
+  };
+  console.log("selectedAttractions", selectedAttractions);
   return (
     <div>
       <div>
@@ -338,7 +373,7 @@ const ContentGuide = () => {
           </div>
         ))}
       </div>
-      <Separator className="my-8" />
+      <Separator className="my-[24px]" />
       <div className="mt-4 route-list-container">
         <div className="flex gap-2">
           <Button
