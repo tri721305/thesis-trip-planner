@@ -212,6 +212,37 @@ export const ItemGuideSchema = z.object({
   ),
 });
 
+export const NewItemGuideSchema = z.object({
+  name: z.string().min(1, { message: "Name is required." }),
+  type: z.enum(["route", "list"]),
+  index: z.number().int().nonnegative().optional(),
+  data: z.array(
+    z.object({
+      type: z.enum(["place", "note", "checklist"]),
+      content: z.string().optional(),
+      items: z.array(z.string()).optional(),
+      completed: z.array(z.boolean()).optional(),
+      name: z.string().optional(),
+      address: z.string().optional(),
+      description: z.string().optional(),
+      tags: z.array(z.string()).optional(),
+      phone: z.string().optional(),
+      images: z.array(z.string()).optional(),
+      website: z.string().url().optional(),
+      imageKeys: z.array(z.string()).optional(),
+      location: z
+        .object({
+          type: z.literal("Point"),
+          coordinates: z.array(z.number()).length(2, {
+            message: "Coordinates must be an array of two numbers.",
+          }),
+        })
+        .optional(),
+      note: z.string().optional(),
+    })
+  ),
+});
+
 export const FlightSchema = z.object({
   airline: z.string().min(1, { message: "Airline is required." }),
   flightNumber: z.string().min(1, { message: "Flight number is required." }),
@@ -374,11 +405,9 @@ export const NewGuideSchema = z.object({
           location: z
             .object({
               type: z.literal("Point"),
-              coordinates: z
-                .array(z.number())
-                .length(2, {
-                  message: "Coordinates must be an array of two numbers.",
-                }),
+              coordinates: z.array(z.number()).length(2, {
+                message: "Coordinates must be an array of two numbers.",
+              }),
             })
             .optional(),
           note: z.string().optional(),

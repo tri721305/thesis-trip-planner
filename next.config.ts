@@ -32,7 +32,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "https://itin-dev.wanderlogstatic.com",
+        hostname: "itin-dev.wanderlogstatic.com",
         port: "",
       },
     ],

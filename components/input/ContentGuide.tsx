@@ -5,7 +5,7 @@ import { Button } from "../ui/button";
 import { Plus, Trash } from "lucide-react";
 import { Separator } from "../ui/separator";
 import { z } from "zod";
-import { ItemGuideSchema } from "@/lib/validation";
+import { ItemGuideSchema, NewItemGuideSchema } from "@/lib/validation";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Form, FormControl, FormField, FormItem } from "../ui/form";
@@ -27,9 +27,14 @@ import Checklist from "./Checklist";
 import "./style.css";
 import PlaceSearch from "../search/PlaceSearch";
 import { usePlaceSelection } from "@/hooks/usePlaceSelection";
+import { FaMapMarker } from "react-icons/fa";
+import ImageGallery from "../images/ImageGallery";
 
+// const ItemsGuideSchema = z.object({
+//   items: z.array(ItemGuideSchema).optional(),
+// });
 const ItemsGuideSchema = z.object({
-  items: z.array(ItemGuideSchema).optional(),
+  data: z.array(NewItemGuideSchema).optional(),
 });
 
 type ItemsGuideFormData = z.infer<typeof ItemsGuideSchema>;
@@ -43,13 +48,13 @@ const ContentGuide = () => {
   const form = useForm<ItemsGuideFormData>({
     resolver: zodResolver(ItemsGuideSchema),
     defaultValues: {
-      items: [],
+      data: [],
     },
   });
 
   const { fields, append, remove } = useFieldArray({
     control: form.control,
-    name: "items",
+    name: "data",
   });
 
   const { watch } = form;
@@ -57,7 +62,7 @@ const ContentGuide = () => {
   const isDialogOpen = (index: number) => {
     return dialogStates[index] || false;
   };
-  const itemsWatch = watch("items");
+  const itemsWatch = watch("data");
   console.log("itemsWatch", itemsWatch);
 
   const handleAddList = (type: "route" | "list") => {
@@ -65,16 +70,14 @@ const ContentGuide = () => {
       const listRoute = fields?.filter((item) => item?.type == "route");
       append({
         type: type,
-        title: `Day ${listRoute?.length + 1}`,
-        // subheading: "",
-        items: [],
+        name: `Day ${listRoute?.length + 1}`,
+        data: [],
       });
     } else if (type == "list") {
       append({
         type: type,
-        title: "",
-        // subheading: "",
-        items: [],
+        name: "",
+        data: [],
       });
     }
   };
@@ -86,82 +89,127 @@ const ContentGuide = () => {
   };
 
   const handleAddNoteItem = (parentIndex: number) => {
-    const currentItems = form.getValues(`items.${parentIndex}.items`) || [];
+    const currentItems = form.getValues(`data.${parentIndex}.data`) || [];
     const newPosition = currentItems.length + 1;
 
     const newNoteItem = {
       type: "note" as const,
-      position: newPosition,
-      data: {
-        info: "", // Empty note content
-      },
+      content: "",
     };
 
     // Update the form with new item
     const updatedItems = [...currentItems, newNoteItem];
-    form.setValue(`items.${parentIndex}.items`, updatedItems);
+    form.setValue(`data.${parentIndex}.data`, updatedItems);
   };
 
+  // const handleAddChecklistItem = (parentIndex: number) => {
+  //   const currentItems = form.getValues(`data.${parentIndex}.data`) || [];
+  //   const newPosition = currentItems.length + 1;
+
+  //   const newChecklistItem = {
+  //     type: "checklist" as const,
+  //     items: [], // Empty checklist array
+  //   };
+
+  //   // Update the form with new item
+  //   const handleAddPlaceItem = (parentIndex: number) => {
+  //     const currentItems =
+  //       form.getValues(`data.${parentIndex}.data`) || [];
+  //     const newPosition = currentItems.length + 1;
+
+  //     const newPlaceItem = {
+  //       name: "",
+  //       type: "list" as const,
+  //       index: newPosition,
+  //       data: [
+  //         {
+  //           type: "place" as const,
+  //           name: "",
+  //           address: "",
+  //           coordinates: [],
+  //           note: "",
+  //           imgUrls: [],
+  //         },
+  //       ],
+  //     };
+
+  //     // Update the form with new item
+  //     const updatedItems = [...currentItems, newPlaceItem];
+  //     form.setValue(`details.${parentIndex}.details`, updatedItems);
+  //   };
+  //   // Update the form with new item
+  //   const updatedItems = [...currentItems, newPlaceItem];
+  //   form.setValue(`items.${parentIndex}.items`, updatedItems);
+  // };
   const handleAddChecklistItem = (parentIndex: number) => {
-    const currentItems = form.getValues(`items.${parentIndex}.items`) || [];
+    const currentItems = form.getValues(`data.${parentIndex}.data`) || [];
     const newPosition = currentItems.length + 1;
 
     const newChecklistItem = {
       type: "checklist" as const,
-      position: newPosition,
-      data: {
-        info: [], // Empty checklist array
-      },
+      items: [], // Empty checklist array
     };
 
     // Update the form with new item
     const updatedItems = [...currentItems, newChecklistItem];
-    form.setValue(`items.${parentIndex}.items`, updatedItems);
+    form.setValue(`data.${parentIndex}.data`, updatedItems);
   };
 
   const handleAddPlaceItem = (parentIndex: number) => {
-    const currentItems = form.getValues(`items.${parentIndex}.items`) || [];
+    const currentItems = form.getValues(`data.${parentIndex}.data`) || [];
     const newPosition = currentItems.length + 1;
-
     const newPlaceItem = {
       type: "place" as const,
-      position: newPosition,
-      data: {
-        info: {
-          name: "",
-          address: "",
-          coordinates: [],
-          note: "",
-          imgUrls: [],
-        },
+      name: "War Remnants Museum",
+      address: "28 Vo Van Tan, Ward 6, District 3, Ho Chi Minh City",
+      description: "A museum dedicated to the history of the Vietnam War.",
+      tags: ["museum", "history", "war"],
+      phone: "+84 28 3930 5587",
+      images: ["https://example.com/war-museum-1.jpg"],
+      website: "https://warremnantsmuseum.com/",
+      location: {
+        type: "Point" as const,
+        coordinates: [106.688, 10.776],
       },
+      note: "The War Remnants Museum provides a poignant insight into the Vietnam War.",
     };
-
     // Update the form with new item
     const updatedItems = [...currentItems, newPlaceItem];
-    form.setValue(`items.${parentIndex}.items`, updatedItems);
+    form.setValue(`data.${parentIndex}.data`, updatedItems);
   };
-
   const renderDetailForm = (index: number) => {
-    const currentRouteItems = form.watch(`items.${index}.items`) || [];
+    const currentRouteItems = form.watch(`data.${index}.data`) || [];
 
     const updateItemData = (itemIndex: number, newData: any) => {
       const updatedItems = [...currentRouteItems];
-      console.log("updateItemData", itemIndex, newData);
-      updatedItems[itemIndex] = {
-        ...updatedItems[itemIndex],
-        data: {
-          ...updatedItems[itemIndex].data,
-          info: newData,
-        },
-      };
-      form.setValue(`items.${index}.items`, updatedItems);
+
+      // Update the appropriate field based on item type
+      const itemType = updatedItems[itemIndex].type;
+      if (itemType === "note") {
+        updatedItems[itemIndex] = {
+          ...updatedItems[itemIndex],
+          content: newData,
+        };
+      } else if (itemType === "checklist") {
+        updatedItems[itemIndex] = {
+          ...updatedItems[itemIndex],
+          items: Array.isArray(newData) ? newData : [newData],
+        };
+      } else if (itemType === "place") {
+        // Handle place type updates as needed
+        updatedItems[itemIndex] = {
+          ...updatedItems[itemIndex],
+          ...newData,
+        };
+      }
+
+      form.setValue(`data.${index}.data`, updatedItems);
     };
 
     // Helper function to remove item
     const removeItem = (itemIndex: number) => {
       const updatedItems = currentRouteItems.filter((_, i) => i !== itemIndex);
-      form.setValue(`items.${index}.items`, updatedItems);
+      form.setValue(`data.${index}.data`, updatedItems);
     };
 
     return (
@@ -173,7 +221,7 @@ const ContentGuide = () => {
                 <div className="flex  items-center gap-2 justify-between">
                   <FormField
                     control={form.control}
-                    name={`items.${index}.title`}
+                    name={`data.${index}.name`}
                     render={({ field }) => (
                       <FormItem className="min-h-[48px] min-w-[260px] flex rounded-[8px] bg-white active:!background-form focus:background-light800_darkgradient hover:background-light800_darkgradient relative  grow items-center gap-1  px-4">
                         <FormControl>
@@ -189,7 +237,7 @@ const ContentGuide = () => {
                   ></FormField>
                   <FormField
                     control={form.control}
-                    name={`items.${index}.type`}
+                    name={`data.${index}.type`}
                     render={({ field }) => (
                       <FormItem className="w-[100px] rounded-[8px] overflow-hidden background-form border-none shadow-none">
                         <FormControl>
@@ -229,6 +277,12 @@ const ContentGuide = () => {
           itemExpand={
             <div className="flex flex-col gap-2">
               {currentRouteItems?.map((item, idx) => {
+                // Calculate the place number for this specific item
+                const testPlace = currentRouteItems.slice(0, idx + 1);
+                const placeIndex = currentRouteItems
+                  .slice(0, idx + 1)
+                  .filter((i) => i.type === "place").length;
+
                 if (item.type == "note") {
                   return (
                     <div
@@ -264,7 +318,7 @@ const ContentGuide = () => {
                         onChange={(newItems) => updateItemData(idx, newItems)}
                         onRemove={() => removeItem(idx)}
                         key={idx}
-                        items={item.data.info as string[]}
+                        items={item.items as string[]}
                       />
                       <Button
                         onClick={() => {
@@ -278,16 +332,69 @@ const ContentGuide = () => {
                   );
                 }
                 if (item.type == "place") {
-                  return <div key={`place-${idx}`}>Place</div>;
+                  console.log("item", item);
+                  const listImgs = item?.imageKeys?.map(
+                    (item: string) =>
+                      `https://itin-dev.wanderlogstatic.com/freeImageSmall/${item}`
+                  );
+                  return (
+                    <div
+                      key={`place-${idx}`}
+                      className="flex gap-3 items-start p-3 bg-gray-50 rounded-lg"
+                    >
+                      <section>
+                        <div className="relative">
+                          <FaMapMarker size={28} className="text-pink-500" />
+                          <p className="text-[12px] text-white font-bold absolute top-[4px] left-[10px]">
+                            {placeIndex}
+                          </p>
+                        </div>
+                      </section>
+                      <section className="flex-1">
+                        <h3 className="font-semibold text-gray-900 mb-1">
+                          {item.name || "Unnamed Place"}
+                        </h3>
+                        {item.address && (
+                          <p className="text-sm text-gray-600 mb-2">
+                            {item.address}
+                          </p>
+                        )}
+                        {/* {item.description && (
+                          <p className="text-sm text-gray-700 mb-2">
+                            {item.description}
+                          </p>
+                        )}
+                        {item.note && (
+                          <p className="text-xs text-gray-500 italic">
+                            Note: {item.note}
+                          </p>
+                        )} */}
+                      </section>
+                      <section>
+                        <ImageGallery
+                          images={listImgs}
+                          mainImageIndex={0}
+                          alt="Gallery description"
+                          // className="w-full"
+                        />
+                      </section>
+                      {/* <section>
+                        <Button
+                          onClick={() => removeItem(idx)}
+                          className="hover-btn !bg-transparent border-none shadow-none text-light800_dark300 flex items-center justify-center"
+                        >
+                          <Trash size={16} />
+                        </Button>
+                      </section> */}
+                    </div>
+                  );
                 }
               })}
               <div className="flex items-center gap-2">
-                {/* <InputWithIcon
-                  placeholder="Add a Place"
-                  icon={<FaMapMarkerAlt />}
-                /> */}
                 <PlaceSearch
-                  onPlaceSelect={handlePlaceSelect}
+                  onPlaceSelect={(place) => {
+                    handlePlaceSelect(place, index);
+                  }}
                   placeholder="Search for museums, parks, temples, beaches..."
                   maxResults={8}
                 />
@@ -301,7 +408,7 @@ const ContentGuide = () => {
                 </Button>
                 <Button
                   onClick={() => handleAddChecklistItem(index)}
-                  className="shadow-none background-light800_dark300 hover:!bg-gray-300 dark:hover:!bg-dark-200 text-black dark:text-white text-black rounded-full w-[48px] flex items-center h-[48px]"
+                  className="shadow-none background-light800_dark300 hover:!bg-gray-300 dark:hover:!bg-dark-200 text-black dark:text-white  rounded-full w-[48px] flex items-center h-[48px]"
                 >
                   <MdChecklist />
                 </Button>
@@ -328,6 +435,7 @@ const ContentGuide = () => {
 
   useEffect(() => {
     const selectedPlace = getSelectedPlace();
+
     if (selectedPlace) {
       // Add to our list
       setSelectedAttractions((prev) => {
@@ -343,17 +451,28 @@ const ContentGuide = () => {
       clearPlaceSelection();
     }
   }, [getSelectedPlace, clearPlaceSelection]);
-  const handlePlaceSelect = (place: any) => {
+  const handlePlaceSelect = (place: any, index: any) => {
     // Direct selection from component
-    setSelectedAttractions((prev) => {
-      const exists = prev.some((attr) => attr.id === place.id);
-      if (!exists) {
-        return [...prev, place];
-      }
-      return prev;
-    });
+    const currentItems = form.getValues(`data.${index}.data`) || [];
+    // const newPosition = currentItems.length + 1;
+
+    const newPlaceItem = {
+      type: "place" as const,
+      ...place,
+    };
+
+    // Update the form with new item
+    const updatedItems = [...currentItems, newPlaceItem];
+    form.setValue(`data.${index}.data`, updatedItems);
+
+    // setSelectedAttractions((prev) => {
+    //   const exists = prev.some((attr) => attr.id === place.id);
+    //   if (!exists) {
+    //     return [...prev, place];
+    //   }
+    //   return prev;
+    // });
   };
-  console.log("selectedAttractions", selectedAttractions);
   return (
     <div>
       <div>
@@ -374,7 +493,7 @@ const ContentGuide = () => {
         ))}
       </div>
       <Separator className="my-[24px]" />
-      <div className="mt-4 route-list-container">
+      <div className="my-4 route-list-container">
         <div className="flex gap-2">
           <Button
             onClick={() => {
