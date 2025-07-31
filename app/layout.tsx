@@ -6,6 +6,7 @@ import "./globals.css";
 import ThemeProvider from "@/context/Theme";
 import { Toaster } from "@/components/ui/toaster";
 import { auth } from "@/auth";
+import { TooltipProvider } from "@/components/ui/tooltip";
 
 const inter = localFont({
   src: "./fonts/InterVF.ttf",
@@ -52,7 +53,7 @@ const RootLayout = async ({
             disableTransitionOnChange
           >
             {/* <Navbar /> */}
-            {children}
+            <TooltipProvider>{children}</TooltipProvider>
           </ThemeProvider>
           <Toaster />
         </body>

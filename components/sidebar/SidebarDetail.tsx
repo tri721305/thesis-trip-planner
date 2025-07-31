@@ -11,9 +11,26 @@ import {
   Settings,
   User,
 } from "lucide-react";
+import { useGuideContentStore } from "@/store/guideContentStore";
+import { GoDotFill, GoDot } from "react-icons/go";
 
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 const SidebarDetail = () => {
+  const {
+    sections,
+    routeCount,
+    listCount,
+    totalPlaces,
+    totalItems,
+    getRoutes,
+    getLists,
+  } = useGuideContentStore();
+
   const [isCollapsed, setIsCollapsed] = useState(true);
+  const routes = getRoutes();
+  const lists = getLists();
+
+  console.log("routes", routes, "lists", lists, sections);
   return (
     <div className="flex h-screen">
       <div
@@ -33,47 +50,33 @@ const SidebarDetail = () => {
           <Button
             variant="ghost"
             size="icon"
-            className={`rounded-md p-2 hover:bg-gray-800 ${isCollapsed ? "justify-center" : "justify-start"}`}
+            className={`rounded-md p-2 hover:bg-gray-200 ${isCollapsed ? "justify-center" : "justify-start"}`}
           >
             <Home className="h-5 w-5" />
             <span className={`${isCollapsed ? "hidden" : "block"}`}>Home</span>
           </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`rounded-md p-2 hover:bg-gray-800 ${isCollapsed ? "justify-center" : "justify-start"}`}
-          >
-            <File className="h-5 w-5" />
-            <span className={`${isCollapsed ? "hidden" : "block"}`}>Files</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`rounded-md p-2 hover:bg-gray-800 ${isCollapsed ? "justify-center" : "justify-start"}`}
-          >
-            <Calendar className="h-5 w-5" />
-            <span className={`${isCollapsed ? "hidden" : "block"}`}>
-              Calendar
-            </span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`rounded-md p-2 hover:bg-gray-800 ${isCollapsed ? "justify-center" : "justify-start"}`}
-          >
-            <User className="h-5 w-5" />
-            <span className={`${isCollapsed ? "hidden" : "block"}`}>Users</span>
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`rounded-md p-2 hover:bg-gray-800 ${isCollapsed ? "justify-center" : "justify-start"}`}
-          >
-            <Settings className="h-5 w-5" />
-            <span className={`${isCollapsed ? "hidden" : "block"}`}>
-              Settings
-            </span>
-          </Button>
+          {sections?.map((section, index) => (
+            <Tooltip key={"hovercard" + index}>
+              <TooltipTrigger>
+                <div
+                  className={`rounded-md p-2 hover:bg-gray-200 ${isCollapsed ? "justify-center" : "justify-start"}`}
+                  // variant="ghost"
+                  // size="icon"
+                >
+                  {isCollapsed &&
+                    (section?.type == "list" ? (
+                      <GoDot />
+                    ) : (
+                      <p className="text-[10px]">{section?.name}</p>
+                    ))}
+                  <p className={`${isCollapsed ? "hidden" : "block"}`}>
+                    {section?.name}
+                  </p>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>{section?.name}</TooltipContent>
+            </Tooltip>
+          ))}
           <Button
             className=""
             variant="ghost"

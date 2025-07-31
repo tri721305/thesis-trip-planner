@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Button } from "../ui/button";
 import { Plus, Trash } from "lucide-react";
 import { Separator } from "../ui/separator";
@@ -29,6 +29,7 @@ import PlaceSearch from "../search/PlaceSearch";
 import { usePlaceSelection } from "@/hooks/usePlaceSelection";
 import { FaMapMarker } from "react-icons/fa";
 import ImageGallery from "../images/ImageGallery";
+import { useGuideContentStore } from "@/store/guideContentStore";
 
 // const ItemsGuideSchema = z.object({
 //   items: z.array(ItemGuideSchema).optional(),
@@ -58,13 +59,29 @@ const ContentGuide = () => {
   });
 
   const { watch } = form;
-
+  const { setSections } = useGuideContentStore();
   const isDialogOpen = (index: number) => {
     return dialogStates[index] || false;
   };
   const itemsWatch = watch("data");
-  console.log("itemsWatch", itemsWatch);
 
+  useEffect(() => {
+    console.log("Change Items Watch", itemsWatch);
+
+    if (itemsWatch && itemsWatch.length > 0) {
+      const sections = itemsWatch.map((item, index) => ({
+        type: item.type,
+        name: item.name || "",
+        data: item.data || [],
+        index, // Add index for tracking
+      }));
+
+      console.log("Setting sections:", sections);
+      setSections(sections);
+    }
+  }, [itemsWatch, setSections]);
+
+  console.log("Items Watcvh", itemsWatch);
   const handleAddList = (type: "route" | "list") => {
     if (type == "route") {
       const listRoute = fields?.filter((item) => item?.type == "route");
@@ -228,7 +245,7 @@ const ContentGuide = () => {
                           <Input
                             type="text"
                             {...field}
-                            className="border-none font-semibold !text-[18px] shadow-none no-focus "
+                            className="border-none font-semibold !text-[24px] shadow-none no-focus "
                             placeholder="Add a Title (e.g, Restaurant )"
                           />
                         </FormControl>
@@ -332,7 +349,6 @@ const ContentGuide = () => {
                   );
                 }
                 if (item.type == "place") {
-                  console.log("item", item);
                   const listImgs = item?.imageKeys?.map(
                     (item: string) =>
                       `https://itin-dev.wanderlogstatic.com/freeImageSmall/${item}`
