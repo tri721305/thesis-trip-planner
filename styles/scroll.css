@@ -20,7 +20,7 @@ html {
 }
 
 .section-highlight {
-  animation: highlight 2s ease-out;
+  animation: highlight 0.5s ease-out;
 }
 
 /* Active sidebar item styles */

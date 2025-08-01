@@ -97,12 +97,12 @@ export const useGuideContentStore = create<GuideContentState>()(
           // Optional: Add highlight effect
           ref.current.style.transition = "all 0.3s ease";
           // ref.current.style.backgroundColor = "rgba(59, 130, 246, 0.1)";
-          // ref.current.style.borderLeft = "4px solid #3b82f6";
-
+          ref.current.style.borderLeft = "4px solid #ffb57f";
+          ref.current.style.paddingLeft = "8px";
           setTimeout(() => {
             ref.current!.style.backgroundColor = "";
             ref.current!.style.borderLeft = "";
-          }, 2000);
+          }, 1000);
         }
       },
 

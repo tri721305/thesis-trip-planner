@@ -187,23 +187,22 @@ const SidebarDetail = () => {
           </div>
         </div> */}
         <nav className="flex flex-col gap-2 p-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            className={`rounded-md p-2 hover:bg-gray-200 ${isCollapsed ? "justify-center" : "justify-start"}`}
+          <div
+            // variant="ghost"
+            // size="icon"
+            className={`rounded-md flex gap-2 cursor-pointer p-2 hover:bg-gray-200 ${isCollapsed ? "justify-center" : "justify-start px-2 text-start"}`}
           >
             <Home className="h-5 w-5" />
             <span className={`${isCollapsed ? "hidden" : "block"}`}>Home</span>
-          </Button>
+          </div>
           {sections?.map((section, index) => (
             <Tooltip key={"hovercard" + index}>
               <TooltipTrigger>
                 <div
                   onClick={() => {
-                    console.log("scroll nè");
                     handleSectionClick(index);
                   }}
-                  className={`rounded-md p-2 hover:bg-gray-200 ${isCollapsed ? "justify-center" : "justify-start"}`}
+                  className={`rounded-md p-2 hover:bg-gray-200 ${isCollapsed ? "justify-center" : "justify-start px-2 text-start"}`}
                   // variant="ghost"
                   // size="icon"
                 >
