@@ -1,6 +1,13 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+  RefObject,
+} from "react";
 import { Button } from "../ui/button";
 import { Plus, Trash } from "lucide-react";
 import { Separator } from "../ui/separator";
@@ -58,30 +65,80 @@ const ContentGuide = () => {
     name: "data",
   });
 
-  const { watch } = form;
-  const { setSections } = useGuideContentStore();
-  const isDialogOpen = (index: number) => {
-    return dialogStates[index] || false;
-  };
-  const itemsWatch = watch("data");
+  const { watch, getValues } = form;
+  const { setSections, setSectionRef } = useGuideContentStore();
 
-  useEffect(() => {
-    console.log("Change Items Watch", itemsWatch);
+  // Create refs map for sections
+  const sectionRefs = useRef<Map<number, RefObject<HTMLDivElement>>>(new Map());
 
-    if (itemsWatch && itemsWatch.length > 0) {
-      const sections = itemsWatch.map((item, index) => ({
-        type: item.type,
-        name: item.name || "",
-        data: item.data || [],
-        index, // Add index for tracking
-      }));
-
-      console.log("Setting sections:", sections);
-      setSections(sections);
+  // Get or create ref for specific section - this is called during render
+  const getSectionRef = useCallback((index: number) => {
+    if (!sectionRefs.current.has(index)) {
+      // Create a new ref object directly (not using useRef hook)
+      const ref = { current: null as HTMLDivElement | null };
+      sectionRefs.current.set(index, ref);
+      return ref;
     }
-  }, [itemsWatch, setSections]);
+    return sectionRefs.current.get(index)!;
+  }, []);
 
-  console.log("Items Watcvh", itemsWatch);
+  // Update store with refs in a separate effect to avoid render-time updates
+  useEffect(() => {
+    // Clean up refs that are no longer needed
+    const currentIndices = new Set(fields.map((_, index) => index));
+    console.log("currentIndices", currentIndices, "sectionRefs", sectionRefs);
+    const refsToRemove: number[] = [];
+
+    sectionRefs.current.forEach((_, index) => {
+      if (!currentIndices.has(index)) {
+        refsToRemove.push(index);
+      }
+    });
+
+    refsToRemove.forEach((index) => {
+      sectionRefs.current.delete(index);
+    });
+
+    // Update store with current refs
+    sectionRefs.current.forEach((ref, index) => {
+      setSectionRef(index, ref);
+    });
+  }, [setSectionRef, fields]); // Re-run when fields change
+
+  // Create a callback to update sections
+  const updateSections = useCallback(() => {
+    const currentData = getValues("data") || [];
+    console.log("Updating sections with current data:", currentData);
+
+    const sections = currentData.map((item, index) => ({
+      type: item?.type || "list",
+      name: item?.name || `${item?.type || "Section"} ${index + 1}`,
+      data: item?.data || [],
+      index,
+    }));
+
+    console.log("New sections:", sections);
+    setSections(sections);
+  }, [getValues, setSections]);
+
+  // Subscribe to ALL form changes
+  useEffect(() => {
+    const subscription = watch((value, { name, type }) => {
+      console.log("Form field changed:", { name, type, value });
+
+      // Update sections on any data field change
+      if (name?.startsWith("data.")) {
+        updateSections();
+      }
+    });
+
+    // Initial update
+    updateSections();
+
+    return () => subscription.unsubscribe();
+  }, [watch, updateSections]);
+
+  // console.log("Items Watcvh", itemsWatch);
   const handleAddList = (type: "route" | "list") => {
     if (type == "route") {
       const listRoute = fields?.filter((item) => item?.type == "route");
@@ -119,45 +176,6 @@ const ContentGuide = () => {
     form.setValue(`data.${parentIndex}.data`, updatedItems);
   };
 
-  // const handleAddChecklistItem = (parentIndex: number) => {
-  //   const currentItems = form.getValues(`data.${parentIndex}.data`) || [];
-  //   const newPosition = currentItems.length + 1;
-
-  //   const newChecklistItem = {
-  //     type: "checklist" as const,
-  //     items: [], // Empty checklist array
-  //   };
-
-  //   // Update the form with new item
-  //   const handleAddPlaceItem = (parentIndex: number) => {
-  //     const currentItems =
-  //       form.getValues(`data.${parentIndex}.data`) || [];
-  //     const newPosition = currentItems.length + 1;
-
-  //     const newPlaceItem = {
-  //       name: "",
-  //       type: "list" as const,
-  //       index: newPosition,
-  //       data: [
-  //         {
-  //           type: "place" as const,
-  //           name: "",
-  //           address: "",
-  //           coordinates: [],
-  //           note: "",
-  //           imgUrls: [],
-  //         },
-  //       ],
-  //     };
-
-  //     // Update the form with new item
-  //     const updatedItems = [...currentItems, newPlaceItem];
-  //     form.setValue(`details.${parentIndex}.details`, updatedItems);
-  //   };
-  //   // Update the form with new item
-  //   const updatedItems = [...currentItems, newPlaceItem];
-  //   form.setValue(`items.${parentIndex}.items`, updatedItems);
-  // };
   const handleAddChecklistItem = (parentIndex: number) => {
     const currentItems = form.getValues(`data.${parentIndex}.data`) || [];
     const newPosition = currentItems.length + 1;
@@ -195,6 +213,7 @@ const ContentGuide = () => {
     form.setValue(`data.${parentIndex}.data`, updatedItems);
   };
   const renderDetailForm = (index: number) => {
+    const sectionRef = getSectionRef(index);
     const currentRouteItems = form.watch(`data.${index}.data`) || [];
 
     const updateItemData = (itemIndex: number, newData: any) => {
@@ -230,7 +249,11 @@ const ContentGuide = () => {
     };
 
     return (
-      <div className="flex items-center justify-between flex-col">
+      <div
+        ref={sectionRef}
+        className="flex items-center justify-between flex-col scroll-mt-20"
+        id={`section-${index}`}
+      >
         <Collaps
           titleFeature={
             <div className="flex-1">

@@ -1,3 +1,4 @@
+import { RefObject } from "react";
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
 
@@ -18,7 +19,7 @@ interface GuideSection {
 interface GuideContentState {
   // State
   sections: GuideSection[];
-
+  sectionRefs: Map<number, RefObject<HTMLDivElement>>; // Store refs by inde
   // Computed values
   routeCount: number;
   listCount: number;
@@ -30,6 +31,10 @@ interface GuideContentState {
   updateSection: (index: number, section: GuideSection) => void;
   addSection: (section: GuideSection) => void;
   removeSection: (index: number) => void;
+
+  // Refs
+  setSectionRef: (index: number, ref: RefObject<HTMLDivElement>) => void;
+  scrollToSection: (index: number) => void;
 
   // Computed getters
   getRoutes: () => GuideSection[];
@@ -43,6 +48,7 @@ export const useGuideContentStore = create<GuideContentState>()(
     (set, get) => ({
       // Initial state
       sections: [],
+      sectionRefs: new Map(),
       routeCount: 0,
       listCount: 0,
       totalPlaces: 0,
@@ -69,6 +75,35 @@ export const useGuideContentStore = create<GuideContentState>()(
           totalPlaces,
           totalItems,
         });
+      },
+
+      setSectionRef: (index, ref) => {
+        const sectionRefs = new Map(get().sectionRefs);
+        sectionRefs.set(index, ref);
+        set({ sectionRefs });
+      },
+
+      scrollToSection: (index) => {
+        const { sectionRefs } = get();
+        const ref = sectionRefs.get(index);
+
+        if (ref?.current) {
+          ref.current.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+            inline: "nearest",
+          });
+
+          // Optional: Add highlight effect
+          ref.current.style.transition = "all 0.3s ease";
+          // ref.current.style.backgroundColor = "rgba(59, 130, 246, 0.1)";
+          // ref.current.style.borderLeft = "4px solid #3b82f6";
+
+          setTimeout(() => {
+            ref.current!.style.backgroundColor = "";
+            ref.current!.style.borderLeft = "";
+          }, 2000);
+        }
       },
 
       updateSection: (index, section) => {
