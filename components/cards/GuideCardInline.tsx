@@ -6,8 +6,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { BsThreeDots } from "react-icons/bs";
@@ -23,6 +21,7 @@ const GuideCardInline = async ({
   type,
 }: any) => {
   const session = await auth();
+
   return (
     <div className="relative flex gap-2 items-center  mt-4">
       <div className="absolute top-1 right-2 w-[20px] h-[20px] bg-[#75757585] rounded-full p-auto flex-center">

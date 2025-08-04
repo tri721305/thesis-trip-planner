@@ -431,3 +431,11 @@ export const NewGuideSchema = z.object({
     })
   ),
 });
+
+export const SearchHotelSChema = z.object({
+  location: z.string().min(1, { message: "Location is required." }),
+  checkInDate: z.string().min(1, { message: "Check-in date is required." }),
+  checkOutDate: z.string().min(1, { message: "Check-out date is required." }),
+  guests: z.number().default(1).optional(),
+  rooms: z.number().int().positive().default(1).optional(),
+});

@@ -174,7 +174,7 @@ const PlaceSearch = ({
         type="text"
         value={search}
         placeholder={placeholder}
-        className="bg-[#f3f4f5] h-[56px] border-none outline-none no-focus pr-10"
+        className="bg-[#f3f4f5] text-black  h-[56px] border-none outline-none no-focus pr-10"
         onChange={(e) => {
           setSearch(e.target.value);
           if (!isOpen && e.target.value.trim()) setIsOpen(true);

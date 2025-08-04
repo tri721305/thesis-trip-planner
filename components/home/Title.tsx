@@ -1,4 +1,4 @@
-"use client";
+// "use client";
 import React from "react";
 import BorderCard from "../cards/BorderCard";
 import moment from "moment";

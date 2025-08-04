@@ -9,6 +9,7 @@ const ROUTES = {
   JOBS: "/jobs",
   PLANNERS: "/planners",
   PLANNER: (id: string) => `/planners/${id}`,
+  CREATE_PLANNER: "/create-planner",
   PROFILE: (id: string) => `/profile/${id}`,
   QUESTION: (id: string) => `/questions/${id}`,
   GUIDE: (id: string) => `/guide/${id}`,

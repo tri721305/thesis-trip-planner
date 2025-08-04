@@ -14,7 +14,7 @@ const InputWithIcon = ({ icon, ...props }: InputIconProps) => {
   return (
     <div className="relative w-full ">
       <div
-        className={`${props?.hover && "item-hover-btn"} ${props?.background ? "" : "background-form"}  focus:background-light800_darkgradient hover:background-light800_darkgradient relative flex min-h-[48px] grow items-center gap-1 rounded-xl px-4 `}
+        className={`${props?.hover && "item-hover-btn"} ${props?.background ? "" : "background-form"}  focus:background-light800_darkgradient hover:background-light800_darkgradient relative flex min-h-[48px] grow items-center gap-1 rounded-md px-4 `}
       >
         <Input
           type="text"
