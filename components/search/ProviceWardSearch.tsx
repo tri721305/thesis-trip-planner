@@ -23,6 +23,8 @@ const ProvinceWardSearch = ({
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [result, setResult] = useState([]);
+  const [justSelected, setJustSelected] = useState(false); // Track if user just selected an item
+  const [isTyping, setIsTyping] = useState(false); // Track if user is actively typing
   const searchContainerRef = useRef(null);
 
   const router = useRouter();
@@ -30,37 +32,31 @@ const ProvinceWardSearch = ({
 
   // Handle place selection
   const handlePlaceSelect = (place: any) => {
-    const placeData = {
-      id: place._id,
-      name: place.name || "",
-      address: place.address?.fullAddress || "",
-      description: place.description || place.generatedDescription || "",
-      categories: place.categories || [],
-      rating: place.rating || 0,
-      numRatings: place.numRatings || 0,
-      location: place.location,
-      website: place.website || "",
-      phone: place.internationalPhoneNumber || "",
-      attractionId: place.attractionId,
-      imageKeys: place.imageKeys || [],
-      openingPeriods: place.openingPeriods || [],
-      priceLevel: place.priceLevel,
-    };
+    console.log("Selected place:", place);
+
+    // Create the display name that matches what's shown in the list
+    const displayName = `${place.loai || ""} ${place.tenhc || ""}`.trim();
+    const fallbackName = place.tenhc || place.name || place.loai || "Unknown Location";
+    
+    // Use the display name or fallback
+    const selectedName = displayName || fallbackName;
+    console.log("Setting search to:", selectedName);
+    
+    // Set search value - this will update the input
+    setSearch(selectedName);
+    setJustSelected(true); // Mark that user just selected an item
+    setIsTyping(false); // User is not typing anymore
 
     // Call parent callback if provided
     if (onPlaceSelect) {
-      onPlaceSelect(placeData);
-    } else {
-      // Default behavior: store in URL for other components to pick up
-      const params = new URLSearchParams(searchParams);
-      params.set("selectedPlace", JSON.stringify(placeData));
-      params.set("action", "addAttraction");
-      router.push(`?${params.toString()}`, { scroll: false });
+      onPlaceSelect({
+        ...place,
+        displayName: selectedName
+      });
     }
 
-    // Close search
+    // Close search dropdown
     setIsOpen(false);
-    setSearch("");
   };
 
   useEffect(() => {
@@ -71,7 +67,6 @@ const ProvinceWardSearch = ({
         !searchContainerRef.current?.contains(event.target)
       ) {
         setIsOpen(false);
-        setSearch("");
       }
     };
 
@@ -86,10 +81,20 @@ const ProvinceWardSearch = ({
     if (!search.trim()) {
       setResult([]);
       setIsLoading(false);
+      setIsOpen(false);
+      setJustSelected(false);
       return;
     }
 
-    setResult([]);
+    // Don't search if user just selected an item
+    if (justSelected) {
+      setJustSelected(false);
+      setResult([]); // Clear results when user just selected
+      setIsOpen(false); // Keep dropdown closed
+      return;
+    }
+
+    // Don't clear results immediately to prevent flickering
     setIsLoading(true);
 
     const delayDebounceFn = setTimeout(async () => {
@@ -100,75 +105,88 @@ const ProvinceWardSearch = ({
           page: 1,
           pageSize: maxResults,
           query: search,
-          // filter: JSON.stringify({
-          //   sort: "rating", // Sort by rating for better results
-          // }),
         });
-        console.log("Search results: 2", places);
+        console.log("Search results:", places);
 
         if (places?.success && places?.data?.length > 0) {
-          console.log("Search results:", places);
-
           setResult(places.data);
+          setIsOpen(true);
         } else {
           setResult([]);
+          setIsOpen(true); // Still show "no results" message
         }
       } catch (error) {
         console.error("Error searching places:", error);
         setResult([]);
+        setIsOpen(true);
       } finally {
         setIsLoading(false);
       }
     }, 300);
 
     return () => clearTimeout(delayDebounceFn);
-  }, [search, maxResults]);
+  }, [search, maxResults, justSelected]);
 
-  const renderPlaceItem = (place: any) => (
-    <div
-      key={place._id || place.attractionId}
-      className="cursor-pointer hover:bg-slate-200 flex items-start gap-3 rounded-md p-3 transition-colors"
-      onClick={() => handlePlaceSelect(place)}
-    >
-      <FaMapMarkerAlt size={16} className="mt-1 text-blue-600 flex-shrink-0" />
-      <div className="flex-1 min-w-0">
-        <h3 className="font-medium text-sm text-gray-900 truncate">
-          {place.loai} {place.tenhc}
-        </h3>
+  const renderPlaceItem = (place: any) => {
+    // Create consistent display name
+    const displayName = `${place.loai || ""} ${place.tenhc || ""}`.trim();
+    const locationDetails =
+      place.truocsapnhap && place.tentinh
+        ? `${place.truocsapnhap}, ${place.tentinh}`
+        : place.truocsapnhap || place.tentinh || "";
 
-        {place.truocsapnhap && (
-          <TruncateText
-            text={place.truocsapnhap + " , " + place.tentinh}
-            className="text-xs text-gray-600 mt-1"
-            maxLength={200}
-          />
-        )}
+    return (
+      <div
+        key={place._id || place.attractionId || Math.random()}
+        className="cursor-pointer hover:bg-slate-200 flex items-start gap-3 rounded-md p-3 transition-colors"
+        onClick={() => handlePlaceSelect(place)}
+      >
+        <FaMapMarkerAlt
+          size={16}
+          className="mt-1 text-blue-600 flex-shrink-0"
+        />
+        <div className="flex-1 min-w-0">
+          <h3 className="font-medium text-sm text-gray-900 truncate">
+            {displayName || "Unknown Location"}
+          </h3>
 
-        <div className="flex items-center gap-2 mt-2">
-          {place.rating && (
-            <div className="flex items-center gap-1">
-              <FaStar size={12} className="text-yellow-500" />
-              <span className="text-xs text-gray-700">
-                {place.rating.toFixed(1)}
-                {place.numRatings && (
-                  <span className="text-gray-500 ml-1">
-                    ({place.numRatings.toLocaleString()})
-                  </span>
-                )}
-              </span>
-            </div>
+          {locationDetails && (
+            <TruncateText
+              text={locationDetails}
+              className="text-xs text-gray-600 mt-1"
+              maxLength={200}
+            />
           )}
 
-          {place.categories && place.categories.length > 0 && (
-            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
-              {place.categories[0]}
-            </span>
+          {/* Only show rating/categories if they exist */}
+          {(place.rating || (place.categories && place.categories.length > 0)) && (
+            <div className="flex items-center gap-2 mt-2">
+              {place.rating && (
+                <div className="flex items-center gap-1">
+                  <FaStar size={12} className="text-yellow-500" />
+                  <span className="text-xs text-gray-700">
+                    {place.rating.toFixed(1)}
+                    {place.numRatings && (
+                      <span className="text-gray-500 ml-1">
+                        ({place.numRatings.toLocaleString()})
+                      </span>
+                    )}
+                  </span>
+                </div>
+              )}
+
+              {place.categories && place.categories.length > 0 && (
+                <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                  {place.categories[0]}
+                </span>
+              )}
+            </div>
           )}
         </div>
       </div>
-    </div>
-  );
-  console.log("Result", result);
+    );
+  };
+  console.log("search", search);
   return (
     <div className="relative w-full max-w-[600px]" ref={searchContainerRef}>
       <Input
@@ -177,9 +195,24 @@ const ProvinceWardSearch = ({
         placeholder={placeholder}
         className="bg-[#f3f4f5] text-black  h-[56px] border-none outline-none no-focus pr-10"
         onChange={(e) => {
-          setSearch(e.target.value);
-          if (!isOpen && e.target.value.trim()) setIsOpen(true);
-          if (e.target.value === "" && isOpen) setIsOpen(false);
+          const newValue = e.target.value;
+          console.log("Input changed to:", newValue);
+          setSearch(newValue);
+          setJustSelected(false); // Reset flag when user types manually
+          setIsTyping(true); // User is actively typing
+
+          if (!isOpen && newValue.trim()) {
+            setIsOpen(true);
+          }
+          if (newValue === "" && isOpen) {
+            setIsOpen(false);
+          }
+        }}
+        onFocus={() => {
+          // Only open dropdown if user is actively typing and has results
+          if (search.trim() && result.length > 0 && isTyping) {
+            setIsOpen(true);
+          }
         }}
       />
 
@@ -188,7 +221,7 @@ const ProvinceWardSearch = ({
         <FaMapMarkerAlt size={18} className="text-gray-400" />
       </div>
 
-      {isOpen && search.trim() && (
+      {isOpen && search.trim() && isTyping && (
         <div className="absolute top-full z-10 mt-3 w-full rounded-xl bg-white py-2 shadow-lg border border-gray-200 dark:bg-dark-400 dark:border-dark-300">
           {isLoading ? (
             <div className="flex-center flex-col px-5 py-8">
