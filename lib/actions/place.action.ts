@@ -5,6 +5,8 @@ import action from "../handler/action";
 import { handleError } from "../handler/error";
 import { PaginatedSearchParamsSchema } from "../validation";
 import { FilterQuery } from "mongoose";
+import Province from "@/database/province.model";
+import Ward from "@/database/ward.model";
 
 export async function getPlaces(params: PaginatedSearchParams): Promise<
   ActionResponse<{
@@ -141,7 +143,6 @@ export async function getPlaces(params: PaginatedSearchParams): Promise<
       },
     };
   } catch (error) {
-    console.error("Error in getPlaces:", error);
     return handleError(error) as ErrorResponse;
   }
 }
@@ -248,6 +249,74 @@ export async function getPopularPlaces(
     };
   } catch (error) {
     console.error("Error in getPopularPlaces:", error);
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+export async function getAdministrativeUnit(
+  params: PaginatedSearchParams
+): Promise<ActionResponse<[]>> {
+  const validationResult = await action({
+    params,
+    schema: PaginatedSearchParamsSchema,
+    authorize: false,
+  });
+
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  const { page = 1, pageSize = 12, query, filter } = params;
+
+  const skip = (Number(page) - 1) * pageSize;
+  const limit = pageSize;
+
+  const filterQuery: FilterQuery<typeof Province> = {};
+  const filterQueryWard: FilterQuery<typeof Ward> = {};
+  let sortCriteria = {};
+
+  try {
+    if (query) {
+      filterQuery.$or = [
+        // {
+        //   tenhc: { $regex: query, $options: "i" },
+        // },
+        {
+          truocsapnhap: { $regex: query, $options: "i" },
+        },
+        {
+          tentinh: { $regex: query, $options: "i" },
+        },
+      ];
+      filterQueryWard.$or = [
+        {
+          loai: { $regex: query, $options: "i" },
+        },
+        {
+          tenhc: { $regex: query, $options: "i" },
+        },
+        {
+          truocsapnhap: { $regex: query, $options: "i" },
+        },
+      ];
+    }
+
+    const locations = await Province.find(filterQuery)
+      .skip(skip)
+      .limit(limit)
+      .lean();
+
+    const locationWards = await Ward.find(filterQueryWard)
+      .skip(skip)
+      .limit(limit)
+      .lean();
+    console.log(locations, locationWards);
+    const list = [...locations, ...locationWards];
+    return {
+      success: true,
+      data: JSON.parse(JSON.stringify(list)),
+    };
+  } catch (error) {
     return handleError(error) as ErrorResponse;
   }
 }

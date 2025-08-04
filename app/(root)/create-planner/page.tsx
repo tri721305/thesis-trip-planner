@@ -1,4 +1,5 @@
 import LocalSearch from "@/components/search/LocalSearch";
+import ProvinceWardSearch from "@/components/search/ProviceWardSearch";
 import LocalSearchInput from "@/components/search/Search";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,12 +14,7 @@ const CreatePlan = () => {
         <h1>Plan a new trip</h1>
         <div>
           <Label htmlFor="location">Where to ?</Label>
-          <LocalSearchInput
-            imgSrc="/icons/search.svg"
-            placeholder="Search ..."
-            otherClasses="flex-1"
-            route="/planners"
-          />
+          <ProvinceWardSearch />
         </div>
         <div>
           <Label htmlFor="dates">Dates (optional)</Label>
