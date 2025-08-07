@@ -13,12 +13,33 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FaUserFriends } from "react-icons/fa";
-
+import { Input } from "@/components/ui/input";
+interface LocationType {
+  displayName?: string;
+  [key: string]: any;
+}
 const CreatePlan = () => {
   const [selectedDateRange, setSelectedDateRange] = useState({
     from: new Date(),
     to: new Date(),
   });
+
+  const [location, setLocation] = useState<LocationType | undefined>(undefined);
+  const [showAddTripMates, setShowAddTripMates] = useState(false);
+
+  const handleCreatePlanner = () => {
+    let plannerName = location?.displayName;
+
+    let dataSubmit = {
+      plannerName,
+      location,
+      startDate: selectedDateRange.from,
+      endDate: selectedDateRange.to,
+    };
+    console.log("data", dataSubmit);
+  };
+  // console.log("showAdd", selectedDateRange);
+
   return (
     <div className="w-full h-[calc(100vh-80px)] flex items-center justify-center gap-4">
       <div className="w-[40%]">
@@ -32,6 +53,7 @@ const CreatePlan = () => {
           <ProvinceWardSearch
             onPlaceSelect={(place) => {
               console.log("selected Place", place);
+              setLocation(place);
             }}
           />
         </div>
@@ -45,14 +67,28 @@ const CreatePlan = () => {
               console.log("Date PIcker VALUE", e);
               setSelectedDateRange(e);
             }}
-            className="h-[56px] !bg-[#f3f4f5] text-black"
+            className="h-[56px] !bg-[#f3f4f5] text-black w-full"
           />
         </div>
+        {showAddTripMates && (
+          <div className="mb-2 ">
+            <Label>Invite tripmates</Label>
+
+            <Input className="h-[56px] !bg-[#f3f4f5] text-black  border-none outline-none no-focus" />
+          </div>
+        )}
         <div className="flex items-center justify-between">
-          <Button variant={"ghost"}>
-            <Plus />
-            Invite tripmates
-          </Button>
+          {!showAddTripMates && (
+            <Button
+              variant={"ghost"}
+              onClick={() => {
+                setShowAddTripMates(true);
+              }}
+            >
+              <Plus />
+              Invite tripmates
+            </Button>
+          )}
           <Select>
             <SelectTrigger className="w-[120px]">
               <SelectValue placeholder="Select state..." />
@@ -79,7 +115,10 @@ const CreatePlan = () => {
           </Select>
         </div>
         <div className="flex-center flex-col gap-4 m-8">
-          <Button className="w-[140px] font-bold rounded-[30px] h-[56px] text-[16px] bg-primary-500 text-white hover:bg-orange-400 ">
+          <Button
+            onClick={handleCreatePlanner}
+            className="w-[140px] font-bold rounded-[30px] h-[56px] text-[16px] bg-primary-500 text-white hover:bg-orange-400 "
+          >
             Start planning
           </Button>
           <p className="text-gray-500 font-bold cursor-pointer">

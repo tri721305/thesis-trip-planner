@@ -36,12 +36,13 @@ const ProvinceWardSearch = ({
 
     // Create the display name that matches what's shown in the list
     const displayName = `${place.loai || ""} ${place.tenhc || ""}`.trim();
-    const fallbackName = place.tenhc || place.name || place.loai || "Unknown Location";
-    
+    const fallbackName =
+      place.tenhc || place.name || place.loai || "Unknown Location";
+
     // Use the display name or fallback
     const selectedName = displayName || fallbackName;
     console.log("Setting search to:", selectedName);
-    
+
     // Set search value - this will update the input
     setSearch(selectedName);
     setJustSelected(true); // Mark that user just selected an item
@@ -51,7 +52,7 @@ const ProvinceWardSearch = ({
     if (onPlaceSelect) {
       onPlaceSelect({
         ...place,
-        displayName: selectedName
+        displayName: selectedName,
       });
     }
 
@@ -159,7 +160,8 @@ const ProvinceWardSearch = ({
           )}
 
           {/* Only show rating/categories if they exist */}
-          {(place.rating || (place.categories && place.categories.length > 0)) && (
+          {(place.rating ||
+            (place.categories && place.categories.length > 0)) && (
             <div className="flex items-center gap-2 mt-2">
               {place.rating && (
                 <div className="flex items-center gap-1">
@@ -188,12 +190,12 @@ const ProvinceWardSearch = ({
   };
   console.log("search", search);
   return (
-    <div className="relative w-full max-w-[600px]" ref={searchContainerRef}>
+    <div className="relative w-full " ref={searchContainerRef}>
       <Input
         type="text"
         value={search}
         placeholder={placeholder}
-        className="bg-[#f3f4f5] text-black  h-[56px] border-none outline-none no-focus pr-10"
+        className="bg-[#f3f4f5] text-black  h-[56px] border-none outline-none no-focus pr-10 w-full"
         onChange={(e) => {
           const newValue = e.target.value;
           console.log("Input changed to:", newValue);

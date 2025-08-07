@@ -439,3 +439,262 @@ export const SearchHotelSChema = z.object({
   guests: z.number().default(1).optional(),
   rooms: z.number().int().positive().default(1).optional(),
 });
+
+export const CreatePlannerSchema = z.object({
+  plannerName: z.string().min(1, { message: "Planner name is required." }),
+});
+
+export const PlannerSchema = z
+  .object({
+    title: z
+      .string()
+      .min(1, { message: "Title is required." })
+      .max(200, { message: "Title cannot exceed 200 characters." })
+      .optional(),
+
+    image: z.string().url({ message: "Image must be a valid URL." }).optional(),
+
+    note: z.string().optional(),
+
+    author: z.string().optional(), // ObjectId as string
+
+    tripmates: z
+      .array(
+        z.object({
+          name: z
+            .string()
+            .min(1, { message: "Tripmate name is required." })
+            .optional(),
+          email: z
+            .string()
+            .email({ message: "Invalid email format." })
+            .optional(),
+          image: z
+            .string()
+            .url({ message: "Image must be a valid URL." })
+            .optional(),
+          userId: z.string().optional(), // ObjectId as string
+        })
+      )
+      .optional(),
+
+    state: z
+      .enum(["planning", "confirmed", "ongoing", "completed", "cancelled"])
+      .default("planning")
+      .optional(),
+
+    startDate: z
+      .string()
+      .datetime({ message: "Start date must be a valid ISO date." })
+      .or(z.date())
+      .optional(),
+
+    endDate: z
+      .string()
+      .datetime({ message: "End date must be a valid ISO date." })
+      .or(z.date())
+      .optional(),
+
+    location: z
+      .object({
+        name: z.string().optional(),
+        address: z.string().optional(),
+        coordinates: z
+          .object({
+            type: z.literal("Point"),
+            coordinates: z
+              .array(z.number())
+              .length(2, {
+                message: "Coordinates must be [longitude, latitude].",
+              })
+              .refine(
+                (coords) =>
+                  coords[0] >= -180 &&
+                  coords[0] <= 180 &&
+                  coords[1] >= -90 &&
+                  coords[1] <= 90,
+                { message: "Invalid coordinates range." }
+              ),
+          })
+          .optional(),
+      })
+      .optional(),
+
+    generalTips: z.string().optional(),
+
+    lodging: z
+      .array(
+        z.object({
+          name: z
+            .string()
+            .min(1, { message: "Lodging name is required." })
+            .optional(),
+          address: z
+            .string()
+            .min(1, { message: "Address is required." })
+            .optional(),
+          checkIn: z
+            .string()
+            .datetime({ message: "Check-in must be a valid ISO date." })
+            .or(z.date())
+            .optional(),
+          checkOut: z
+            .string()
+            .datetime({ message: "Check-out must be a valid ISO date." })
+            .or(z.date())
+            .optional(),
+          confirmation: z.string().optional(),
+          notes: z.string().optional(),
+          cost: z
+            .object({
+              type: z.enum(["VND", "USD", "EUR"]),
+              value: z.number().positive({ message: "Cost must be positive." }),
+            })
+            .optional(),
+        })
+      )
+      .optional(),
+
+    details: z
+      .array(
+        z.object({
+          type: z.enum(["route", "list"]),
+          name: z.string().min(1, { message: "Detail name is required." }),
+          index: z.number().int().positive(),
+          data: z.array(
+            z.discriminatedUnion("type", [
+              // Note type
+              z.object({
+                type: z.literal("note"),
+                content: z
+                  .string()
+                  .min(1, { message: "Note content is required." }),
+              }),
+              // Checklist type
+              z.object({
+                type: z.literal("checklist"),
+                items: z.array(z.string()).min(1, {
+                  message: "At least one checklist item is required.",
+                }),
+                completed: z.array(z.boolean()).optional(),
+              }),
+              // Place type
+              z.object({
+                type: z.literal("place"),
+                name: z.string().optional(),
+                address: z.string().optional(),
+                description: z.string().optional(),
+                tags: z.array(z.string()).optional(),
+                phone: z.string().optional(),
+                images: z
+                  .array(
+                    z.string().url({ message: "Image must be a valid URL." })
+                  )
+                  .optional(),
+                website: z
+                  .string()
+                  .url({ message: "Website must be a valid URL." })
+                  .optional(),
+                location: z
+                  .object({
+                    type: z.literal("Point"),
+                    coordinates: z
+                      .array(z.number())
+                      .length(2, {
+                        message: "Coordinates must be [longitude, latitude].",
+                      })
+                      .refine(
+                        (coords) =>
+                          coords[0] >= -180 &&
+                          coords[0] <= 180 &&
+                          coords[1] >= -90 &&
+                          coords[1] <= 90,
+                        { message: "Invalid coordinates range." }
+                      ),
+                  })
+                  .optional(),
+                note: z.string().optional(),
+                timeStart: z
+                  .string()
+                  .regex(
+                    /^([0-9]{1,2}:[0-9]{2}(\s?(AM|PM))?|Morning|Afternoon|Evening|Night)$/i,
+                    {
+                      message:
+                        "Invalid time format. Use formats like '10:00 AM', '14:30', or 'Morning/Afternoon/Evening/Night'",
+                    }
+                  )
+                  .optional(),
+                timeEnd: z
+                  .string()
+                  .regex(
+                    /^([0-9]{1,2}:[0-9]{2}(\s?(AM|PM))?|Morning|Afternoon|Evening|Night)$/i,
+                    {
+                      message:
+                        "Invalid time format. Use formats like '10:00 AM', '14:30', or 'Morning/Afternoon/Evening/Night'",
+                    }
+                  )
+                  .optional(),
+                cost: z
+                  .object({
+                    type: z.enum(["VND", "USD", "EUR"]),
+                    value: z
+                      .number()
+                      .min(0, { message: "Cost must be non-negative." }),
+                    paidBy: z.string().optional(),
+                    description: z
+                      .string()
+                      .max(500, {
+                        message:
+                          "Cost description cannot exceed 500 characters.",
+                      })
+                      .optional(),
+                  })
+                  .optional(),
+              }),
+            ])
+          ),
+        })
+      )
+      .optional(),
+    timeStart: z
+      .string()
+      .regex(
+        /^([0-9]{1,2}:[0-9]{2}(\s?(AM|PM))?|Morning|Afternoon|Evening|Night)$/i,
+        {
+          message:
+            "Invalid time format. Use formats like '10:00 AM', '14:30', or 'Morning/Afternoon/Evening/Night'",
+        }
+      )
+      .optional(),
+  })
+  .refine(
+    (data) => {
+      // Custom validation: endDate must be after startDate if both exist
+      if (data.startDate && data.endDate) {
+        const start = new Date(data.startDate);
+        const end = new Date(data.endDate);
+        return end >= start;
+      }
+      return true;
+    },
+    {
+      message: "End date must be after start date.",
+      path: ["endDate"],
+    }
+  )
+  .refine(
+    (data) => {
+      // Custom validation: startDate should not be in the past if provided
+      if (data.startDate) {
+        const start = new Date(data.startDate);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        return start >= today;
+      }
+      return true;
+    },
+    {
+      message: "Start date cannot be in the past.",
+      path: ["startDate"],
+    }
+  );
