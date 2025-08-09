@@ -546,15 +546,15 @@ export const CalendarDatePicker = React.forwardRef<
           </PopoverTrigger>
           {isPopoverOpen && (
             <PopoverContent
-              className="w-auto "
-              align="center"
-              avoidCollisions={false}
+              className="w-auto max-w-[95vw] max-h-[85vh] overflow-hidden"
+              align="start"
+              side="bottom"
+              sideOffset={5}
+              alignOffset={0}
+              avoidCollisions={true}
+              collisionPadding={20}
               onInteractOutside={handleClose}
               onEscapeKeyDown={handleClose}
-              style={{
-                maxHeight: "var(--radix-popover-content-available-height)",
-                overflowY: "auto",
-              }}
             >
               <div className="flex">
                 {numberOfMonths === 2 && (
