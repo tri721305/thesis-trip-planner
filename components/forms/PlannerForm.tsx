@@ -50,6 +50,7 @@ import {
   Undo,
   Car,
   Pencil,
+  Trash,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -70,7 +71,7 @@ import InputCollapseHotelMultiple from "../input/InputCollapseHotelMultiple";
 import InputHotelPlanner from "../input/InputHotelPlanner";
 import HotelSearch from "../search/HotelSearch";
 import LodgingSearch from "../search/LodgingSearch";
-
+import "./style.css";
 type PlannerFormData = z.infer<typeof PlannerSchema>;
 
 const PlannerForm = () => {
@@ -112,6 +113,8 @@ const PlannerForm = () => {
     },
   });
 
+  const { watch } = form;
+  const hotelsWatch = watch("lodging");
   // Field arrays for dynamic sections
   const {
     fields: tripmateFields,
@@ -180,8 +183,60 @@ const PlannerForm = () => {
     });
   };
 
-  const { watch } = form;
-  const hotelsWatch = watch("lodging");
+  const generateRouteDetailsForDateRange = (startDate: Date, endDate: Date) => {
+    if (!startDate || !endDate) return;
+
+    // Clear existing route-type details
+    const existingDetails = form.getValues("details") || [];
+    const nonRouteDetails = existingDetails.filter(
+      (detail) => detail.type !== "route"
+    );
+
+    // Reset the details array to only non-route items
+    form.setValue("details", nonRouteDetails);
+
+    // Calculate the number of days between dates (inclusive)
+    const start = moment(startDate);
+    const end = moment(endDate);
+    const daysDiff = end.diff(start, "days") + 1; // +1 to include both start and end dates
+
+    // Generate route details for each day
+    for (let i = 0; i < daysDiff; i++) {
+      const currentDate = moment(startDate).add(i, "days");
+
+      // Format date like "Friday, 15th August"
+      const formattedDate = currentDate.format("dddd, Do MMMM");
+
+      appendDetail({
+        type: "route",
+        name: formattedDate,
+        index: nonRouteDetails.length + i + 1,
+        data: [],
+      });
+    }
+  };
+
+  const generateDayDetails = (startDate: Date, endDate: Date) => {
+    const details = [];
+    const currentDate = new Date(startDate);
+    let index = 1;
+
+    while (currentDate <= endDate) {
+      const dayName = moment(currentDate).format("dddd, Do MMMM");
+
+      details.push({
+        type: "route" as const,
+        name: dayName,
+        index: index,
+        data: [],
+      });
+
+      currentDate.setDate(currentDate.getDate() + 1);
+      index++;
+    }
+
+    return details;
+  };
 
   const renderHotelPreview = (hotel: any, index: number) => {
     const hasData = hotel.name || hotel.address;
@@ -189,7 +244,7 @@ const PlannerForm = () => {
       <div className="text-gray-500 text-sm">Click to add hotel details</div>;
     }
     return (
-      <div className="flex justify-between items-start">
+      <div className="flex item-hover-btn justify-between items-start">
         <div className="flex-1">
           <div className="font-bold text-[16px] text-[#212529]">
             {hotel.name || "Unnamed Hotel"}
@@ -210,6 +265,16 @@ const PlannerForm = () => {
             </div>
           )}
         </div>
+        <Button
+          onClick={() => {
+            removeLodging(index);
+          }}
+          className="hover-btn"
+          size="icon"
+          variant="ghost"
+        >
+          <Trash />
+        </Button>
       </div>
     );
   };
@@ -471,6 +536,10 @@ const PlannerForm = () => {
                   onDateSelect={(e) => {
                     form.setValue("startDate", e.from);
                     form.setValue("endDate", e.to);
+                    // Automatically generate route details for the selected date range
+                    if (e.from && e.to) {
+                      generateRouteDetailsForDateRange(e.from, e.to);
+                    }
                   }}
                 />
                 <div className="flex items-center gap-2 ">
@@ -511,6 +580,7 @@ const PlannerForm = () => {
             </div>
           </div>
 
+          {/* Analysis space */}
           <div className="!mt-[100px] flex flex-col gap-[24px]  px-8">
             <div className="flex items-center gap-2">
               <div className="p-4 flex-1 border-none paragraph-regular background-light800_darkgradient light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border">
@@ -578,6 +648,35 @@ const PlannerForm = () => {
                         <FormControl>
                           <Textarea
                             placeholder="Describe your travel plan..."
+                            {...field}
+                            rows={3}
+                            className="py-4 border-none paragraph-regular background-light800_darkgradient light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border"
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              }
+            />
+            {/* General Tips */}
+            <Collaps
+              titleFeature={
+                <p className="pl-[28px] border-none font-bold !text-[24px] shadow-none no-focus ">
+                  General Tips
+                </p>
+              }
+              itemExpand={
+                <div>
+                  <FormField
+                    control={form.control}
+                    name="generalTips"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormControl>
+                          <Textarea
+                            placeholder="General Tips..."
                             {...field}
                             rows={3}
                             className="py-4 border-none paragraph-regular background-light800_darkgradient light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border"
@@ -677,7 +776,7 @@ const PlannerForm = () => {
           </div>
 
           {/* CARD HOTEL */}
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Hotel className="h-5 w-5" />
@@ -874,11 +973,11 @@ const PlannerForm = () => {
                 </Button>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Dates and Location */}
 
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Calendar className="h-5 w-5" />
@@ -1006,7 +1105,7 @@ const PlannerForm = () => {
                 />
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Tripmates */}
           <Card>
@@ -1098,32 +1197,6 @@ const PlannerForm = () => {
                   Add Tripmate
                 </Button>
               </div>
-            </CardContent>
-          </Card>
-
-          {/* General Tips */}
-          <Card>
-            <CardHeader>
-              <CardTitle>General Tips</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <FormField
-                control={form.control}
-                name="generalTips"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tips & Recommendations</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Share useful tips for this trip..."
-                        {...field}
-                        rows={4}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
             </CardContent>
           </Card>
 

@@ -549,6 +549,13 @@ export const PlannerSchema = z
             .object({
               type: z.enum(["VND", "USD", "EUR"]),
               value: z.number().positive({ message: "Cost must be positive." }),
+              paidBy: z.string().optional(),
+              description: z
+                .string()
+                .max(500, {
+                  message: "Cost description cannot exceed 500 characters.",
+                })
+                .optional(),
             })
             .optional(),
         })
@@ -648,6 +655,7 @@ export const PlannerSchema = z
                           "Cost description cannot exceed 500 characters.",
                       })
                       .optional(),
+                    splitBetween: z.array(z.object({})).optional(),
                   })
                   .optional(),
               }),

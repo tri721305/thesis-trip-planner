@@ -1,0 +1,10 @@
+.hover-btn {
+  display: block;
+  opacity: 0;
+}
+.item-hover-btn:hover {
+  .hover-btn {
+    opacity: 1 !important;
+    transition: 0.3s all;
+  }
+}

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 /**
  * Custom hook for debouncing a value
@@ -36,7 +36,7 @@ export function useDebounceWithLoading<T>(value: T, delay: number = 500) {
   useEffect(() => {
     // Start debouncing
     setIsDebouncing(true);
-    
+
     const timer = setTimeout(() => {
       setDebouncedValue(value);
       setIsDebouncing(false);
