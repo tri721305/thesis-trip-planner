@@ -401,6 +401,8 @@ export const NewGuideSchema = z.object({
           tags: z.array(z.string()).optional(),
           phone: z.string().optional(),
           images: z.array(z.string()).optional(),
+          imageKeys: z.array(z.string()).optional(),
+
           website: z.string().url().optional(),
           location: z
             .object({
@@ -598,6 +600,8 @@ export const PlannerSchema = z
                     z.string().url({ message: "Image must be a valid URL." })
                   )
                   .optional(),
+                imageKeys: z.array(z.string()).optional(),
+
                 website: z
                   .string()
                   .url({ message: "Website must be a valid URL." })

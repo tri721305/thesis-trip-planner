@@ -111,11 +111,10 @@ const mockUpData = {
       ],
     },
     {
-      type: "list", // Đây là list
+      type: "list",
       name: "Must-visit Places",
       index: 2,
       data: [
-        // data có cùng structure với route
         {
           type: "place",
           name: "War Remnants Museum",

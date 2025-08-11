@@ -10,10 +10,12 @@ const Collaps = ({
   itemTrigger,
   itemExpand,
   titleFeature,
+  keyId,
 }: {
   itemTrigger?: React.ReactNode;
   itemExpand: React.ReactNode;
   titleFeature: React.ReactNode;
+  keyId?: string;
 }) => {
   const [isOpen, setIsOpen] = useState(true);
 
@@ -22,6 +24,7 @@ const Collaps = ({
       className="flex w-full flex-col gap-2"
       open={isOpen}
       onOpenChange={setIsOpen}
+      key={keyId || ""}
     >
       <div className="flex items-center  gap-4 ">
         <CollapsibleTrigger asChild={true}>

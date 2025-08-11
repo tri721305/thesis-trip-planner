@@ -1,5 +1,3 @@
-// filepath: /Users/mac/Desktop/HCMUT/Thesis/source/database/plan.model.ts
-// models/TravelPlan.js
 import mongoose, { model, models, Schema, Types, Document } from "mongoose";
 
 // 1. BƯỚC 1: Tạo Base Schema cho details

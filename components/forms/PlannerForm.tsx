@@ -61,17 +61,21 @@ import ReusableDialog from "../modal/ReusableDialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "../ui/label";
 import { GrUserSettings } from "react-icons/gr";
-import { MdFlight } from "react-icons/md";
+import { MdChecklist, MdFlight } from "react-icons/md";
 import { BiRestaurant, BiSolidHotel } from "react-icons/bi";
 import { GoKebabHorizontal } from "react-icons/go";
 import Collaps from "../Collaps";
-import { FaPen, FaTrash } from "react-icons/fa";
+import { FaMapMarker, FaPen, FaTrash } from "react-icons/fa";
 import InputWithIcon from "../input/InputIcon";
 import InputCollapseHotelMultiple from "../input/InputCollapseHotelMultiple";
 import InputHotelPlanner from "../input/InputHotelPlanner";
 import HotelSearch from "../search/HotelSearch";
 import LodgingSearch from "../search/LodgingSearch";
 import "./style.css";
+import PlaceSearch from "../search/PlaceSearch";
+import { FaEllipsis, FaNoteSticky } from "react-icons/fa6";
+import Checklist from "../input/Checklist";
+import ImageGallery from "../images/ImageGallery";
 type PlannerFormData = z.infer<typeof PlannerSchema>;
 
 const PlannerForm = () => {
@@ -86,6 +90,11 @@ const PlannerForm = () => {
   // State for hotel search values - moved to component level to follow Rules of Hooks
   const [hotelSearchValues, setHotelSearchValues] = useState<{
     [key: number]: string;
+  }>({});
+
+  // State for note inputs with debounce
+  const [noteInputValues, setNoteInputValues] = useState<{
+    [key: string]: string; // key format: "detailIndex-itemIndex"
   }>({});
 
   const form = useForm<PlannerFormData>({
@@ -275,6 +284,267 @@ const PlannerForm = () => {
         >
           <Trash />
         </Button>
+      </div>
+    );
+  };
+
+  const renderDetailForm = (index: number) => {
+    // const sectionRef = getSectionRef(index);
+    const currentRouteItems = form.watch(`details.${index}.data`) || [];
+
+    const updateItemData = (itemIndex: number, newData: any) => {
+      const updatedItems = [...currentRouteItems];
+
+      // Update the appropriate field based on item type
+      const itemType = updatedItems[itemIndex].type;
+      if (itemType === "note") {
+        updatedItems[itemIndex] = {
+          ...updatedItems[itemIndex],
+          content: newData,
+        };
+      } else if (itemType === "checklist") {
+        updatedItems[itemIndex] = {
+          ...updatedItems[itemIndex],
+          items: Array.isArray(newData) ? newData : [newData],
+        };
+      } else if (itemType === "place") {
+        // Handle place type updates as needed
+        updatedItems[itemIndex] = {
+          ...updatedItems[itemIndex],
+          ...newData,
+        };
+      }
+
+      form.setValue(`details.${index}.data`, updatedItems);
+    };
+
+    // Helper function to remove item
+    const removeItem = (itemIndex: number) => {
+      const updatedItems = currentRouteItems.filter((_, i) => i !== itemIndex);
+      form.setValue(`details.${index}.data`, updatedItems);
+    };
+
+    return (
+      <div
+        // ref={sectionRef}
+        className="flex items-center justify-between flex-col scroll-mt-20"
+        id={`section-${index}`}
+      >
+        <Collaps
+          keyId={`detail-${index}`}
+          titleFeature={
+            <div className="flex-1">
+              <Form {...form}>
+                <div className="flex  items-center gap-2 justify-between">
+                  <FormField
+                    control={form.control}
+                    name={`details.${index}.name`}
+                    render={({ field }) => (
+                      <FormItem className="min-h-[48px] min-w-[260px] flex rounded-[8px] bg-white active:!background-form focus:background-light800_darkgradient hover:background-light800_darkgradient relative  grow items-center gap-1  px-4">
+                        <FormControl>
+                          <Input
+                            type="text"
+                            {...field}
+                            className="border-none font-semibold !text-[24px] shadow-none no-focus "
+                            placeholder="Add a Title (e.g, Restaurant )"
+                          />
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  ></FormField>
+                  <FormField
+                    control={form.control}
+                    name={`details.${index}.type`}
+                    render={({ field }) => (
+                      <FormItem className="w-[100px] rounded-[8px] overflow-hidden background-form border-none shadow-none">
+                        <FormControl>
+                          <Select
+                            onValueChange={field.onChange}
+                            defaultValue={field.value}
+                          >
+                            <FormControl>
+                              <SelectTrigger className="border-none font-semibold shadow-none">
+                                <SelectValue
+                                  placeholder="Select type"
+                                  className="font-semibold"
+                                />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="list">List</SelectItem>
+                              <SelectItem value="route">Route</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </FormControl>
+                      </FormItem>
+                    )}
+                  ></FormField>
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      // set
+                    }}
+                  >
+                    <FaEllipsis />
+                  </Button>
+                </div>
+              </Form>
+            </div>
+          }
+          itemExpand={
+            <div className="flex flex-col gap-2">
+              {currentRouteItems?.map((item, idx) => {
+                // Calculate the place number for this specific item
+                const testPlace = currentRouteItems.slice(0, idx + 1);
+                const placeIndex = currentRouteItems
+                  .slice(0, idx + 1)
+                  .filter((i) => i.type === "place").length;
+
+                if (item.type == "note") {
+                  return (
+                    <div
+                      key={`note-${idx}`}
+                      className="flex gap-2 items-center item-hover-btn"
+                    >
+                      <InputWithIcon
+                        placeholder="Write or paste notes here"
+                        icon={<FaNoteSticky />}
+                        onChange={(value) =>
+                          updateItemData(idx, value.target.value)
+                        }
+                      />
+                      <Button
+                        onClick={() => {
+                          removeItem(idx);
+                        }}
+                        className=" hover-btn !bg-transparent border-none shadow-none text-light800_dark300  flex items-center justify-center"
+                      >
+                        <Trash />
+                      </Button>
+                    </div>
+                  );
+                }
+                if (item.type == "checklist") {
+                  return (
+                    <div
+                      key={`checklist-${idx}`}
+                      className="flex gap-2 items-center item-hover-btn"
+                    >
+                      <Checklist
+                        className="flex-1"
+                        onChange={(newItems) => updateItemData(idx, newItems)}
+                        onRemove={() => removeItem(idx)}
+                        key={idx}
+                        items={item.items as string[]}
+                      />
+                      <Button
+                        onClick={() => {
+                          removeItem(idx);
+                        }}
+                        className=" hover-btn !bg-transparent border-none shadow-none text-light800_dark300  flex items-center justify-center"
+                      >
+                        <Trash />
+                      </Button>
+                    </div>
+                  );
+                }
+                if (item.type == "place") {
+                  const listImgs = item?.imageKeys?.map(
+                    (item: string) =>
+                      `https://itin-dev.wanderlogstatic.com/freeImageSmall/${item}`
+                  );
+                  return (
+                    <div
+                      key={`place-${idx}`}
+                      className="flex gap-3 items-start p-3 bg-gray-50 rounded-lg"
+                    >
+                      <section>
+                        <div className="relative">
+                          <FaMapMarker size={28} className="text-pink-500" />
+                          <p className="text-[12px] text-white font-bold absolute top-[4px] left-[10px]">
+                            {placeIndex}
+                          </p>
+                        </div>
+                      </section>
+                      <section className="flex-1">
+                        <h3 className="font-semibold text-gray-900 mb-1">
+                          {item.name || "Unnamed Place"}
+                        </h3>
+                        {item.address && (
+                          <p className="text-sm text-gray-600 mb-2">
+                            {item.address}
+                          </p>
+                        )}
+                        {/* {item.description && (
+                            <p className="text-sm text-gray-700 mb-2">
+                              {item.description}
+                            </p>
+                          )}
+                          {item.note && (
+                            <p className="text-xs text-gray-500 italic">
+                              Note: {item.note}
+                            </p>
+                          )} */}
+                      </section>
+                      <section>
+                        <ImageGallery
+                          images={listImgs}
+                          mainImageIndex={0}
+                          alt="Gallery description"
+                          // className="w-full"
+                        />
+                      </section>
+                      {/* <section>
+                          <Button
+                            onClick={() => removeItem(idx)}
+                            className="hover-btn !bg-transparent border-none shadow-none text-light800_dark300 flex items-center justify-center"
+                          >
+                            <Trash size={16} />
+                          </Button>
+                        </section> */}
+                    </div>
+                  );
+                }
+              })}
+              <div className="flex items-center gap-2">
+                <PlaceSearch
+                  onPlaceSelect={(place) => {
+                    handlePlaceSelect(place, index);
+                  }}
+                  placeholder="Search for museums, parks, temples, beaches..."
+                  maxResults={8}
+                />
+                <Button
+                  onClick={() => {
+                    handleAddNoteItem(index);
+                  }}
+                  className="shadow-none background-light800_dark300 hover:!bg-gray-300 dark:hover:!bg-dark-200 text-black dark:text-white rounded-full w-[48px] flex items-center h-[48px]"
+                >
+                  <FaNoteSticky />
+                </Button>
+                <Button
+                  onClick={() => handleAddChecklistItem(index)}
+                  className="shadow-none background-light800_dark300 hover:!bg-gray-300 dark:hover:!bg-dark-200 text-black dark:text-white  rounded-full w-[48px] flex items-center h-[48px]"
+                >
+                  <MdChecklist />
+                </Button>
+              </div>
+            </div>
+          }
+        />
+
+        {/* {index + 1 < fields?.length && <Separator className="my-[24px] " />} */}
+        {/* {isOpenDialog && (
+            <ReusableDialog
+              open={isOpenDialog}
+              setOpen={setIsOpenDialog}
+              data={{
+                title: "Add hotels or lodging",
+                content: <div>Hello</div>,
+                showCloseButton: false,
+              }}
+            />
+          )} */}
       </div>
     );
   };
@@ -482,7 +752,24 @@ const PlannerForm = () => {
       </div>
     );
   };
-  console.log("Data Form", form.watch()); // Comment out để tránh rerender liên tục
+
+  const handlePlaceSelect = (place: any, index: any) => {};
+  const handleAddNoteItem = (parentIndex: number) => {
+    const currentItems = form.getValues(`details.${parentIndex}.data`) || [];
+    const newPosition = currentItems.length + 1;
+
+    const newNoteItem = {
+      type: "note" as const,
+      content: "",
+    };
+
+    // Update the form with new item
+    const updatedItems = [...currentItems, newNoteItem];
+    form.setValue(`details.${parentIndex}.data`, updatedItems);
+  };
+
+  const handleAddChecklistItem = (parentIndex: number) => {};
+  console.log("Data Form", form.watch(), "Details", detailFields); // Comment out để tránh rerender liên tục
   return (
     <div className="container mx-auto  max-w-4xl">
       <Form {...form}>
@@ -633,6 +920,7 @@ const PlannerForm = () => {
               </div>
             </div>
             <Collaps
+              keyId={"note"}
               titleFeature={
                 <p className="pl-[28px] border-none font-bold !text-[24px] shadow-none no-focus ">
                   Note
@@ -662,6 +950,7 @@ const PlannerForm = () => {
             />
             {/* General Tips */}
             <Collaps
+              keyId="General-tips"
               titleFeature={
                 <p className="pl-[28px] border-none font-bold !text-[24px] shadow-none no-focus ">
                   General Tips
@@ -691,6 +980,7 @@ const PlannerForm = () => {
             />
             {/* Lodging */}
             <Collaps
+              keyId="lodging"
               titleFeature={
                 <p className="pl-[28px] border-none font-bold !text-[24px] shadow-none no-focus ">
                   Hotels and Lodging
@@ -773,6 +1063,69 @@ const PlannerForm = () => {
                 </div>
               }
             />
+            <div>
+              <div>
+                <h1 className="text-[1.5rem] font-bold">Itinerary</h1>
+              </div>
+              <div>
+                {detailFields.map((field, index) => (
+                  <div key={field.id + index}>{renderDetailForm(index)}</div>
+                  // <Collaps
+                  //   key={field.id + index}
+                  //   titleFeature={
+                  //     <p className="pl-[28px] border-none font-bold !text-[24px] shadow-none no-focus ">
+                  //       {field.name}
+                  //     </p>
+                  //   }
+                  //   itemExpand={
+                  //     <div>
+                  //       <FormField
+                  //         control={form.control}
+                  //         name={`details.${index}.name`}
+                  //         render={({ field }) => (
+                  //           <FormItem>
+                  //             <FormControl>
+                  //               {/* <Textarea
+                  //                 placeholder="General Tips..."
+                  //                 {...field}
+                  //                 rows={3}
+                  //                 className="py-4 border-none paragraph-regular background-light800_darkgradient light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border"
+                  //               /> */}
+                  //             </FormControl>
+                  //             <FormMessage />
+                  //           </FormItem>
+                  //         )}
+                  //       />
+
+                  //       {/* <div className="flex items-center gap-2">
+                  //           <PlaceSearch
+                  //             onPlaceSelect={(place) => {
+                  //               handlePlaceSelect(place, index);
+                  //             }}
+                  //             placeholder="Search for museums, parks, temples, beaches..."
+                  //             maxResults={8}
+                  //           />
+                  //           <Button
+                  //             onClick={() => {
+                  //               handleAddNoteItem(index);
+                  //             }}
+                  //             className="shadow-none background-light800_dark300 hover:!bg-gray-300 dark:hover:!bg-dark-200 text-black dark:text-white rounded-full w-[48px] flex items-center h-[48px]"
+                  //           >
+                  //             <FaNoteSticky />
+                  //           </Button>
+                  //           <Button
+                  //             onClick={() => handleAddChecklistItem(index)}
+                  //             className="shadow-none background-light800_dark300 hover:!bg-gray-300 dark:hover:!bg-dark-200 text-black dark:text-white  rounded-full w-[48px] flex items-center h-[48px]"
+                  //           >
+                  //             <MdChecklist />
+                  //           </Button>
+                  //         </div> */}
+                  //     </div>
+                  //   }
+                  // />
+                ))}
+              </div>
+            </div>
           </div>
 
           {/* CARD HOTEL */}
@@ -1201,6 +1554,7 @@ const PlannerForm = () => {
           </Card>
 
           {/* Trip Details */}
+
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
