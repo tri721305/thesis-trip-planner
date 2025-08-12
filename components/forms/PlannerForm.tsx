@@ -76,6 +76,7 @@ import PlaceSearch from "../search/PlaceSearch";
 import { FaEllipsis, FaNoteSticky } from "react-icons/fa6";
 import Checklist from "../input/Checklist";
 import ImageGallery from "../images/ImageGallery";
+import RangeTimePicker from "../timepicker/RangeTimePicker";
 type PlannerFormData = z.infer<typeof PlannerSchema>;
 
 const PlannerForm = () => {
@@ -252,9 +253,10 @@ const PlannerForm = () => {
     if (!hasData) {
       <div className="text-gray-500 text-sm">Click to add hotel details</div>;
     }
+    const handleClickPriceHotel = () => {};
     return (
-      <div className="flex item-hover-btn justify-between items-start">
-        <div className="flex-1">
+      <div className="flex item-hover-btn justify-between items-center gap-3 w-full">
+        <div className="flex-1 background-form !p-4 rounded-lg">
           <div className="font-bold text-[16px] text-[#212529]">
             {hotel.name || "Unnamed Hotel"}
           </div>
@@ -268,7 +270,10 @@ const PlannerForm = () => {
             </div>
           )}
           {hotel.cost?.value && (
-            <div className="text-md font-bold text-gray-700 mt-2">
+            <div
+              className="text-md font-bold text-gray-700 mt-2 hover:bg-gray-300  rounded-[30px] bg-gray-200 px-2 w-fit"
+              onClick={handleClickPriceHotel}
+            >
               {Number(hotel.cost.value).toLocaleString("vi-VN")}{" "}
               {hotel.cost.type?.toUpperCase()}
             </div>
@@ -278,7 +283,7 @@ const PlannerForm = () => {
           onClick={() => {
             removeLodging(index);
           }}
-          className="hover-btn"
+          className=" hover-btn !bg-transparent border-none shadow-none text-light800_dark300  flex items-center justify-center"
           size="icon"
           variant="ghost"
         >
@@ -456,26 +461,27 @@ const PlannerForm = () => {
                   return (
                     <div
                       key={`place-${idx}`}
-                      className="flex gap-3 items-start p-3 bg-gray-50 rounded-lg"
+                      className="flex gap-3 items-center  rounded-lg item-hover-btn"
                     >
-                      <section>
-                        <div className="relative">
-                          <FaMapMarker size={28} className="text-pink-500" />
-                          <p className="text-[12px] text-white font-bold absolute top-[4px] left-[10px]">
-                            {placeIndex}
-                          </p>
-                        </div>
-                      </section>
-                      <section className="flex-1">
-                        <h3 className="font-semibold text-gray-900 mb-1">
-                          {item.name || "Unnamed Place"}
-                        </h3>
-                        {item.address && (
-                          <p className="text-sm text-gray-600 mb-2">
-                            {item.address}
-                          </p>
-                        )}
-                        {/* {item.description && (
+                      <div className="bg-gray-50 flex gap-3 items-start rounded-lg p-3  flex-1">
+                        <section>
+                          <div className="relative">
+                            <FaMapMarker size={28} className="text-pink-500" />
+                            <p className="text-[12px] text-white font-bold absolute top-[4px] left-[10px]">
+                              {placeIndex}
+                            </p>
+                          </div>
+                        </section>
+                        <section className="flex-1">
+                          <h3 className="font-semibold text-gray-900 mb-1">
+                            {item.name || "Unnamed Place"}
+                          </h3>
+                          {item.address && (
+                            <p className="text-sm text-gray-600 mb-2">
+                              {item.address}
+                            </p>
+                          )}
+                          {/* {item.description && (
                             <p className="text-sm text-gray-700 mb-2">
                               {item.description}
                             </p>
@@ -485,15 +491,28 @@ const PlannerForm = () => {
                               Note: {item.note}
                             </p>
                           )} */}
-                      </section>
-                      <section>
-                        <ImageGallery
-                          images={listImgs}
-                          mainImageIndex={0}
-                          alt="Gallery description"
-                          // className="w-full"
-                        />
-                      </section>
+                          <div>
+                            Add time Add Cost
+                            <RangeTimePicker />
+                          </div>
+                        </section>
+                        <section>
+                          <ImageGallery
+                            images={listImgs}
+                            mainImageIndex={0}
+                            alt="Gallery description"
+                            // className="w-full"
+                          />
+                        </section>
+                      </div>
+                      <Button
+                        onClick={() => {
+                          removeItem(idx);
+                        }}
+                        className=" hover-btn !bg-transparent border-none shadow-none text-light800_dark300  flex items-center justify-center"
+                      >
+                        <Trash />
+                      </Button>
                       {/* <section>
                           <Button
                             onClick={() => removeItem(idx)}
@@ -533,7 +552,9 @@ const PlannerForm = () => {
           }
         />
 
-        {/* {index + 1 < fields?.length && <Separator className="my-[24px] " />} */}
+        {index + 1 < detailFields?.length && (
+          <Separator className="my-[24px] " />
+        )}
         {/* {isOpenDialog && (
             <ReusableDialog
               open={isOpenDialog}
@@ -753,7 +774,6 @@ const PlannerForm = () => {
     );
   };
 
-  const handlePlaceSelect = (place: any, index: any) => {};
   const handleAddNoteItem = (parentIndex: number) => {
     const currentItems = form.getValues(`details.${parentIndex}.data`) || [];
     const newPosition = currentItems.length + 1;
@@ -767,8 +787,43 @@ const PlannerForm = () => {
     const updatedItems = [...currentItems, newNoteItem];
     form.setValue(`details.${parentIndex}.data`, updatedItems);
   };
+  const handleAddChecklistItem = (parentIndex: number) => {
+    const currentItems = form.getValues(`details.${parentIndex}.data`) || [];
+    const newPosition = currentItems.length + 1;
 
-  const handleAddChecklistItem = (parentIndex: number) => {};
+    const newChecklistItem = {
+      type: "checklist" as const,
+      items: [], // Empty checklist array
+    };
+
+    // Update the form with new item
+    const updatedItems = [...currentItems, newChecklistItem];
+    form.setValue(`details.${parentIndex}.data`, updatedItems);
+  };
+
+  const handlePlaceSelect = (place: any, index: any) => {
+    // Direct selection from component
+    const currentItems = form.getValues(`details.${index}.data`) || [];
+    // const newPosition = currentItems.length + 1;
+
+    const newPlaceItem = {
+      type: "place" as const,
+      ...place,
+    };
+
+    // Update the form with new item
+    const updatedItems = [...currentItems, newPlaceItem];
+    form.setValue(`details.${index}.data`, updatedItems);
+
+    // setSelectedAttractions((prev) => {
+    //   const exists = prev.some((attr) => attr.id === place.id);
+    //   if (!exists) {
+    //     return [...prev, place];
+    //   }
+    //   return prev;
+    // });
+  };
+
   console.log("Data Form", form.watch(), "Details", detailFields); // Comment out để tránh rerender liên tục
   return (
     <div className="container mx-auto  max-w-4xl">
@@ -948,6 +1003,7 @@ const PlannerForm = () => {
                 </div>
               }
             />
+            <Separator className="my-[24px]" />
             {/* General Tips */}
             <Collaps
               keyId="General-tips"
@@ -979,6 +1035,8 @@ const PlannerForm = () => {
               }
             />
             {/* Lodging */}
+            <Separator className="my-[24px]" />
+
             <Collaps
               keyId="lodging"
               titleFeature={
@@ -1007,9 +1065,9 @@ const PlannerForm = () => {
                   {lodgingFields.map((field, index) => (
                     <Card
                       key={field.id}
-                      className="relative background-form border-none shadow-none"
+                      className="relative border-none shadow-none"
                     >
-                      <CardContent className="relative !p-4">
+                      <CardContent className="relative !p-0">
                         {editingIndex === index ? (
                           renderHotelForm(index)
                         ) : (
@@ -1063,11 +1121,13 @@ const PlannerForm = () => {
                 </div>
               }
             />
+            <Separator className="my-[24px]" />
+
             <div>
-              <div>
-                <h1 className="text-[1.5rem] font-bold">Itinerary</h1>
+              <div className="mb-[24px]">
+                <h1 className="text-[36px] font-bold">Itinerary</h1>
               </div>
-              <div>
+              <div className="flex flex-col ">
                 {detailFields.map((field, index) => (
                   <div key={field.id + index}>{renderDetailForm(index)}</div>
                   // <Collaps
@@ -1461,7 +1521,7 @@ const PlannerForm = () => {
           </Card> */}
 
           {/* Tripmates */}
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Users className="h-5 w-5" />
@@ -1551,11 +1611,11 @@ const PlannerForm = () => {
                 </Button>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Trip Details */}
 
-          <Card>
+          {/* <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Route className="h-5 w-5" />
@@ -1684,19 +1744,15 @@ const PlannerForm = () => {
                 </div>
               </div>
             </CardContent>
-          </Card>
+          </Card> */}
 
           {/* Submit Button */}
-          <div className="flex gap-4">
+          <div className="flex gap-4 w-full justify-end">
             <Button
-              type="button"
-              variant="outline"
-              onClick={() => router.back()}
-              className="flex-1"
+              type="submit"
+              disabled={isPending}
+              className=" !w-fit bg-primary-500 hover:bg-primary-500 font-bold p-4 "
             >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isPending} className="flex-1">
               {isPending ? "Creating..." : "Create Planner"}
             </Button>
           </div>

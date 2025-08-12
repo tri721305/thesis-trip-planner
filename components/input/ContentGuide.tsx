@@ -379,7 +379,7 @@ const ContentGuide = () => {
                   return (
                     <div
                       key={`place-${idx}`}
-                      className="flex gap-3 items-start p-3 bg-gray-50 rounded-lg"
+                      className="flex gap-3 items-start p-3 bg-gray-50 rounded-lg item-hover-btn"
                     >
                       <section>
                         <div className="relative">
