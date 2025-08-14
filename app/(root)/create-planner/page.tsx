@@ -14,11 +14,16 @@ import {
 } from "@/components/ui/select";
 import { FaUserFriends } from "react-icons/fa";
 import { Input } from "@/components/ui/input";
+import { createPlanner } from "@/lib/actions/planner.action";
+import { toast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 interface LocationType {
   displayName?: string;
   [key: string]: any;
 }
 const CreatePlan = () => {
+  const router = useRouter();
+
   const [selectedDateRange, setSelectedDateRange] = useState({
     from: new Date(),
     to: new Date(),
@@ -26,17 +31,57 @@ const CreatePlan = () => {
 
   const [location, setLocation] = useState<LocationType | undefined>(undefined);
   const [showAddTripMates, setShowAddTripMates] = useState(false);
+  const [tripName, setTripName] = useState<string>("");
+  const [type, setType] = useState<string>("public");
 
-  const handleCreatePlanner = () => {
-    let plannerName = location?.displayName;
+  const [loading, setLoading] = useState(false);
 
-    let dataSubmit = {
-      plannerName,
-      location,
+  const handleCreatePlanner = async () => {
+    // let plannerName = location?.displayName;
+    setLoading(true);
+    if (!location?.displayName) {
+      return;
+    }
+
+    let dataSubmit: any = {
+      title: tripName,
+      destination: {
+        name: location.displayName,
+        coordinates: [location?.kinhdo, location?.vido],
+        type:
+          location?.loai == "phường" || location?.loai == "xã"
+            ? "ward"
+            : "province",
+        provinceId: location?.matinh.toString(),
+        wardId: location?.ma.toString(),
+      },
       startDate: selectedDateRange.from,
       endDate: selectedDateRange.to,
+      type: type,
     };
-    console.log("data", dataSubmit);
+    console.log("data", dataSubmit, location);
+
+    try {
+      const result = await createPlanner(dataSubmit);
+
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: "Planner created successfully",
+        });
+
+        // if (result.data) router.push(ROUTES.QUESTION(result.data._id));
+      } else {
+        toast({
+          title: `Error ${result.status}`,
+          description: result.error?.message || "Something went wrong",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+    } finally {
+      setLoading(false);
+    }
   };
   // console.log("showAdd", selectedDateRange);
 
@@ -55,6 +100,16 @@ const CreatePlan = () => {
               console.log("selected Place", place);
               setLocation(place);
             }}
+          />
+        </div>
+        <div className="mb-2">
+          <Label className="font-bold" htmlFor="location">
+            Trip Name
+          </Label>
+          <Input
+            className="h-[56px] !bg-[#f3f4f5] text-black  border-none outline-none no-focus"
+            placeholder="Trip name"
+            onChange={(e) => setTripName(e.target.value)}
           />
         </div>
         <div className="mb-2">
@@ -89,23 +144,23 @@ const CreatePlan = () => {
               Invite tripmates
             </Button>
           )}
-          <Select>
+          <Select value={type} onValueChange={setType}>
             <SelectTrigger className="w-[120px]">
               <SelectValue placeholder="Select state..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="light">
+              <SelectItem value="friends">
                 <div className="flex items-center gap-2">
                   <FaUserFriends size={16} /> <p>Friends</p>
                 </div>
               </SelectItem>
-              <SelectItem value="dark">
+              <SelectItem value="public">
                 <div className="flex items-center gap-2">
                   <Earth size={16} />
                   <p>Public</p>
                 </div>
               </SelectItem>
-              <SelectItem value="system">
+              <SelectItem value="private">
                 <div className="flex items-center gap-2">
                   <Lock size={16} />
                   <p>Private</p>
@@ -116,8 +171,9 @@ const CreatePlan = () => {
         </div>
         <div className="flex-center flex-col gap-4 m-8">
           <Button
+            disabled={!(location && tripName && type && selectedDateRange)}
             onClick={handleCreatePlanner}
-            className="w-[140px] font-bold rounded-[30px] h-[56px] text-[16px] bg-primary-500 text-white hover:bg-orange-400 "
+            className={`w-[140px] font-bold rounded-[30px] h-[56px] text-[16px] bg-primary-500 text-white hover:bg-orange-400 ${loading && "opacity-50 "}`}
           >
             Start planning
           </Button>

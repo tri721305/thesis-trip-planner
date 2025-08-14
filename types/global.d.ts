@@ -183,6 +183,32 @@ declare global {
     priceRates: object[];
     priceRate: object;
   }
+  interface TravelPlan {
+    _id: string;
+    title: string;
+    author: string;
+    destination: {
+      name: string;
+      coordinates: [number, number];
+      type: "province" | "ward";
+      provinceId?: string;
+      wardId?: string;
+    };
+    startDate: Date;
+    endDate: Date;
+    type: "public" | "private" | "friend";
+    state: "planning" | "confirmed" | "ongoing" | "completed" | "cancelled";
+    tripmates: Array<{
+      name: string;
+      email?: string;
+      image?: string;
+      userId?: string;
+    }>;
+    lodging: Array<any>;
+    details: Array<any>;
+    createdAt: Date;
+    updatedAt: Date;
+  }
 }
 
 export {};

@@ -51,6 +51,7 @@ import {
   Car,
   Pencil,
   Trash,
+  Save,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -62,7 +63,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "../ui/label";
 import { GrUserSettings } from "react-icons/gr";
 import { MdChecklist, MdFlight } from "react-icons/md";
-import { BiRestaurant, BiSolidHotel } from "react-icons/bi";
+import { BiMoney, BiRestaurant, BiSolidHotel } from "react-icons/bi";
 import { GoKebabHorizontal } from "react-icons/go";
 import Collaps from "../Collaps";
 import { FaMapMarker, FaPen, FaTrash } from "react-icons/fa";
@@ -77,6 +78,7 @@ import { FaEllipsis, FaNoteSticky } from "react-icons/fa6";
 import Checklist from "../input/Checklist";
 import ImageGallery from "../images/ImageGallery";
 import RangeTimePicker from "../timepicker/RangeTimePicker";
+import { auth } from "@/auth";
 type PlannerFormData = z.infer<typeof PlannerSchema>;
 
 const PlannerForm = () => {
@@ -87,6 +89,7 @@ const PlannerForm = () => {
   const [showAddHotel, setShowAddHotel] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const divRef = useRef<HTMLDivElement | null>(null);
+  const [showExpenses, setShowExpenses] = useState(false);
   const [openModalHotel, setOpenModalHotel] = useState(false);
   // State for hotel search values - moved to component level to follow Rules of Hooks
   const [hotelSearchValues, setHotelSearchValues] = useState<{
@@ -98,6 +101,7 @@ const PlannerForm = () => {
     [key: string]: string; // key format: "detailIndex-itemIndex"
   }>({});
 
+  // const session = await auth();
   const form = useForm<PlannerFormData>({
     resolver: zodResolver(PlannerSchema),
     defaultValues: {
@@ -491,9 +495,16 @@ const PlannerForm = () => {
                               Note: {item.note}
                             </p>
                           )} */}
-                          <div>
-                            Add time Add Cost
+                          <div className="flex">
                             <RangeTimePicker />
+                            <Button
+                              variant="ghost"
+                              onClick={() => {
+                                setShowExpenses(true);
+                              }}
+                            >
+                              <BiMoney /> Add Cost
+                            </Button>
                           </div>
                         </section>
                         <section>
@@ -513,14 +524,6 @@ const PlannerForm = () => {
                       >
                         <Trash />
                       </Button>
-                      {/* <section>
-                          <Button
-                            onClick={() => removeItem(idx)}
-                            className="hover-btn !bg-transparent border-none shadow-none text-light800_dark300 flex items-center justify-center"
-                          >
-                            <Trash size={16} />
-                          </Button>
-                        </section> */}
                     </div>
                   );
                 }
@@ -824,7 +827,7 @@ const PlannerForm = () => {
     // });
   };
 
-  console.log("Data Form", form.watch(), "Details", detailFields); // Comment out để tránh rerender liên tục
+  console.log("Data Form", form.watch(), "Details", detailFields, "Session"); // Comment out để tránh rerender liên tục
   return (
     <div className="container mx-auto  max-w-4xl">
       <Form {...form}>
@@ -1840,6 +1843,75 @@ const PlannerForm = () => {
           }}
           open={showDialog}
           setOpen={setShowDialog}
+        />
+      )}
+      {showExpenses && (
+        <ReusableDialog
+          open={showExpenses}
+          data={{
+            title: "Add expense",
+            content: (
+              <div>
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <Label className="font-bold">Cost</Label>
+                    <Input placeholder="Cost" className="h-[40px]" />
+                  </div>
+                  <div className="w-fit">
+                    <Label className="font-bold">Currency</Label>
+                    <Select defaultValue="VND">
+                      <SelectTrigger
+                        className={`h-[40px] border-none paragraph-regular background-form-input light-border-2 text-dark300_light700 no-focus rounded-1.5 border`}
+                      >
+                        <SelectValue placeholder="Currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="VND">VND</SelectItem>
+                        <SelectItem value="USD">USD</SelectItem>
+                        <SelectItem value="EUR">EUR</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                {/* <div>
+                  <Label className="font-bold">Category</Label>
+                  <Input placeholder="Cost" className="h-[40px]" />
+                </div> */}
+                <div>
+                  <Label className="font-bold">Description</Label>
+                  <Textarea placeholder="Description" className="h-[40px]" />
+                </div>
+                <div>
+                  <Label className="font-bold">Paid by</Label>
+                  <Select key="Paidby" defaultValue="1">
+                    <SelectTrigger
+                      className={`h-[40px] border-none paragraph-regular background-form-input light-border-2 text-dark300_light700 no-focus rounded-1.5 border`}
+                    >
+                      <SelectValue placeholder="Currency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">
+                        <div>{`You ( Đặng Hoàng Minh Trí )`}</div>
+                      </SelectItem>
+                      <SelectItem value="2">Hưng Trần</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label className="font-bold">Split</Label>
+                  <Input placeholder="Cost" className="h-[40px]" />
+                </div>
+                <div className="mt-4 flex items-end justify-end">
+                  <Button>
+                    <Save />
+                    Save
+                  </Button>
+                </div>
+              </div>
+            ),
+            showCloseButton: false,
+          }}
+          setOpen={setShowExpenses}
         />
       )}
     </div>

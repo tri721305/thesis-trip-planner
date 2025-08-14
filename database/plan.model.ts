@@ -309,6 +309,76 @@ const travelPlanSchema = new mongoose.Schema(
       enum: ["planning", "confirmed", "ongoing", "completed", "cancelled"],
       default: "planning",
     },
+    type: {
+      type: String,
+      required: true,
+      enum: ["public", "private", "friend"],
+      default: "public",
+    },
+    destination: {
+      name: {
+        type: String,
+        required: true,
+        trim: true,
+        maxlength: 200,
+      },
+      coordinates: {
+        type: [Number], // [longitude, latitude]
+        required: true,
+        validate: {
+          validator: function (v: any) {
+            return (
+              v.length === 2 &&
+              v[0] >= -180 &&
+              v[0] <= 180 && // longitude
+              v[1] >= -90 &&
+              v[1] <= 90
+            ); // latitude
+          },
+          message:
+            "Coordinates must be [longitude, latitude] within valid ranges",
+        },
+      },
+      type: {
+        type: String,
+        enum: ["province", "ward"],
+        required: true,
+      },
+      provinceId: {
+        type: String,
+        required: function (this: any) {
+          return this.destination?.type === "province";
+        },
+        trim: true,
+        validate: {
+          validator: function (this: any, value: any) {
+            // provinceId is required when type is "province"
+            if (this.destination?.type === "province") {
+              return !!value;
+            }
+            return true;
+          },
+          message: "provinceId is required when destination type is 'province'",
+        },
+      },
+      wardId: {
+        type: String,
+        required: function (this: any) {
+          return this.destination?.type === "ward";
+        },
+        trim: true,
+        validate: {
+          validator: function (this: any, value: any) {
+            // wardId is required when type is "ward"
+            if (this.destination?.type === "ward") {
+              return !!value;
+            }
+            return true;
+          },
+          message: "wardId is required when destination type is 'ward'",
+        },
+      },
+    },
     startDate: {
       type: Date,
       required: true,
@@ -445,11 +515,22 @@ listDataArray.discriminator("place", placeDataSchema);
 // 8. BƯỚC 8: Tạo indexes
 travelPlanSchema.index({ title: "text" });
 travelPlanSchema.index({ "details.data.location": "2dsphere" }); // Cho geo queries
+travelPlanSchema.index({ "destination.coordinates": "2dsphere" }); // Index for destination geolocation
+travelPlanSchema.index({ "destination.name": "text" }); // Index for destination name search
+travelPlanSchema.index({ "destination.provinceId": 1 }); // Index for province-based queries
+travelPlanSchema.index({ "destination.wardId": 1 }); // Index for ward-based queries
+travelPlanSchema.index({ "destination.type": 1 }); // Index for destination type queries
 travelPlanSchema.index({ author: 1 });
 travelPlanSchema.index({ state: 1 });
+travelPlanSchema.index({ type: 1 }); // Index for plan visibility type
 travelPlanSchema.index({ startDate: 1 });
 travelPlanSchema.index({ endDate: 1 });
 travelPlanSchema.index({ "tripmates.userId": 1 });
+
+// Compound indexes for common queries
+travelPlanSchema.index({ "destination.type": 1, "destination.provinceId": 1 }); // For province stats
+travelPlanSchema.index({ "destination.type": 1, "destination.wardId": 1 }); // For ward stats
+travelPlanSchema.index({ "destination.name": 1, state: 1 }); // For destination stats by state
 
 // 9. BƯỚC 9: Middleware (optional)
 travelPlanSchema.pre("save", function (next) {
@@ -635,6 +716,13 @@ const newPlan = new TravelPlan({
     }
   ],
   state: "planning",
+  type: "friend", // Plan visible to friends only
+  destination: {
+    name: "Thành phố Hồ Chí Minh",
+    coordinates: [106.6954, 10.7769], // [longitude, latitude] for Ho Chi Minh City
+    type: "province",
+    provinceId: "79", // Mã tỉnh TP.HCM
+  },
   startDate: new Date("2024-12-15T00:00:00Z"),
   endDate: new Date("2024-12-18T23:59:59Z"),
   generalTips: "Essential tips for navigating Hanoi with a group...",
@@ -859,6 +947,167 @@ const nearbyPlans = await TravelPlan.find({
         coordinates: [105.8523, 21.0285] // Hanoi coordinates
       },
       $maxDistance: 50000 // 50km
+    }
+  }
+});
+
+// Tìm public plans (có thể xem bởi tất cả mọi người)
+const publicPlans = await TravelPlan.find({ type: "public" });
+
+// Tìm private plans của user
+const privatePlans = await TravelPlan.find({ 
+  type: "private", 
+  author: userId 
+});
+
+// Tìm friend plans mà user có thể xem (user là author hoặc trong tripmates)
+const friendPlans = await TravelPlan.find({
+  type: "friend",
+  $or: [
+    { author: userId },
+    { "tripmates.userId": userId }
+  ]
+});
+
+// Tìm tất cả plans mà user có thể xem
+const visiblePlans = await TravelPlan.find({
+  $or: [
+    { type: "public" },
+    { type: "private", author: userId },
+    { 
+      type: "friend", 
+      $or: [
+        { author: userId },
+        { "tripmates.userId": userId }
+      ]
+    }
+  ]
+});
+
+// Tìm plans theo destination name
+const plansToHCM = await TravelPlan.find({
+  "destination.name": { $regex: "Hồ Chí Minh", $options: "i" }
+});
+
+// Tìm plans theo province ID (cho dashboard thống kê)
+const plansByProvince = await TravelPlan.find({
+  "destination.type": "province",
+  "destination.provinceId": "79" // TP.HCM
+});
+
+// Tìm plans theo ward ID (cho dashboard thống kê) 
+const plansByWard = await TravelPlan.find({
+  "destination.type": "ward",
+  "destination.wardId": "26734" // Ví dụ mã phường
+});
+
+// Tìm plans theo destination type
+const provinceLevelPlans = await TravelPlan.find({
+  "destination.type": "province"
+});
+
+const wardLevelPlans = await TravelPlan.find({
+  "destination.type": "ward"
+});
+
+// Aggregate thống kê theo tỉnh thành
+const provinceStats = await TravelPlan.aggregate([
+  {
+    $match: { "destination.type": "province" }
+  },
+  {
+    $group: {
+      _id: "$destination.provinceId",
+      destinationName: { $first: "$destination.name" },
+      totalPlans: { $sum: 1 },
+      publicPlans: { $sum: { $cond: [{ $eq: ["$type", "public"] }, 1, 0] } },
+      privatePlans: { $sum: { $cond: [{ $eq: ["$type", "private"] }, 1, 0] } },
+      friendPlans: { $sum: { $cond: [{ $eq: ["$type", "friend"] }, 1, 0] } },
+      completedPlans: { $sum: { $cond: [{ $eq: ["$state", "completed"] }, 1, 0] } },
+      coordinates: { $first: "$destination.coordinates" }
+    }
+  },
+  {
+    $sort: { totalPlans: -1 }
+  }
+]);
+
+// Aggregate thống kê theo phường/xã
+const wardStats = await TravelPlan.aggregate([
+  {
+    $match: { "destination.type": "ward" }
+  },
+  {
+    $group: {
+      _id: "$destination.wardId",
+      destinationName: { $first: "$destination.name" },
+      totalPlans: { $sum: 1 },
+      publicPlans: { $sum: { $cond: [{ $eq: ["$type", "public"] }, 1, 0] } },
+      privatePlans: { $sum: { $cond: [{ $eq: ["$type", "private"] }, 1, 0] } },
+      friendPlans: { $sum: { $cond: [{ $eq: ["$type", "friend"] }, 1, 0] } },
+      completedPlans: { $sum: { $cond: [{ $eq: ["$state", "completed"] }, 1, 0] } },
+      coordinates: { $first: "$destination.coordinates" }
+    }
+  },
+  {
+    $sort: { totalPlans: -1 }
+  }
+]);
+
+// Tìm plans gần một destination cụ thể (trong bán kính 50km)
+const nearbyDestinationPlans = await TravelPlan.find({
+  "destination.coordinates": {
+    $near: {
+      $geometry: {
+        type: "Point",
+        coordinates: [106.6954, 10.7769] // Ho Chi Minh City coordinates
+      },
+      $maxDistance: 50000 // 50km radius
+    }
+  }
+});
+
+// Tìm top destinations được yêu thích nhất
+const topDestinations = await TravelPlan.aggregate([
+  {
+    $group: {
+      _id: {
+        name: "$destination.name",
+        type: "$destination.type",
+        provinceId: "$destination.provinceId",
+        wardId: "$destination.wardId"
+      },
+      totalPlans: { $sum: 1 },
+      completedPlans: { $sum: { $cond: [{ $eq: ["$state", "completed"] }, 1, 0] } },
+      avgCoordinates: { $avg: "$destination.coordinates" }
+    }
+  },
+  {
+    $addFields: {
+      popularityScore: { 
+        $add: [
+          { $multiply: ["$totalPlans", 10] },
+          { $multiply: ["$completedPlans", 5] }
+        ]
+      }
+    }
+  },
+  {
+    $sort: { popularityScore: -1 }
+  },
+  {
+    $limit: 20
+  }
+]);
+
+// Tìm plans trong một bounding box (ví dụ: khu vực Đông Nam Á)
+const southeastAsiaPlans = await TravelPlan.find({
+  "destination.coordinates": {
+    $geoWithin: {
+      $box: [
+        [90, -10], // Southwest corner [longitude, latitude]
+        [140, 30]  // Northeast corner [longitude, latitude]
+      ]
     }
   }
 });

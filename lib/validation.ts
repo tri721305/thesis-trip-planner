@@ -710,3 +710,85 @@ export const PlannerSchema = z
       path: ["startDate"],
     }
   );
+
+// Schema for creating a new travel planner with basic info
+export const CreateTravelPlannerSchema = z
+  .object({
+    title: z
+      .string()
+      .min(1, { message: "Title is required." })
+      .max(200, { message: "Title cannot exceed 200 characters." }),
+
+    destination: z
+      .object({
+        name: z
+          .string()
+          .min(1, { message: "Destination name is required." })
+          .max(200, {
+            message: "Destination name cannot exceed 200 characters.",
+          }),
+
+        coordinates: z
+          .array(z.number())
+          .length(2, { message: "Coordinates must be [longitude, latitude]." })
+          .refine(
+            (coords) =>
+              coords[0] >= -180 &&
+              coords[0] <= 180 &&
+              coords[1] >= -90 &&
+              coords[1] <= 90,
+            { message: "Invalid coordinates range." }
+          ),
+
+        type: z.enum(["province", "ward"], {
+          message: "Destination type must be 'province' or 'ward'.",
+        }),
+
+        provinceId: z.string().optional(),
+
+        wardId: z.string().optional(),
+      })
+      .refine(
+        (data) => {
+          // provinceId is required when type is "province"
+          if (data.type === "province" && !data.provinceId) {
+            return false;
+          }
+          // wardId is required when type is "ward"
+          if (data.type === "ward" && !data.wardId) {
+            return false;
+          }
+          return true;
+        },
+        {
+          message:
+            "provinceId is required for province type, wardId is required for ward type",
+          path: ["provinceId", "wardId"],
+        }
+      ),
+
+    startDate: z
+      .string()
+      .datetime({ message: "Start date must be a valid ISO date." })
+      .or(z.date()),
+
+    endDate: z
+      .string()
+      .datetime({ message: "End date must be a valid ISO date." })
+      .or(z.date()),
+
+    type: z.enum(["public", "private", "friend"], {
+      message: "Plan type must be 'public', 'private', or 'friend'.",
+    }),
+  })
+  .refine(
+    (data) => {
+      const startDate = new Date(data.startDate);
+      const endDate = new Date(data.endDate);
+      return endDate > startDate;
+    },
+    {
+      message: "End date must be after start date",
+      path: ["endDate"],
+    }
+  );

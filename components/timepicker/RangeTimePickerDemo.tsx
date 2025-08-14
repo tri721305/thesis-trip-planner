@@ -24,20 +24,22 @@ const RangeTimePickerDemo: React.FC = () => {
           RangeTimePicker Demo with Popover
         </h1>
         <p className="text-gray-600">
-          This demo shows the RangeTimePicker component with Popover
-          functionality. Once you select a time range, you can click on the
-          displayed time range to edit it.
+          This demo shows the RangeTimePicker component with a simple "Add time"
+          button. Click the button to open a Popover for time selection. The
+          component automatically guides you through start time and end time
+          selection.
         </p>
       </div>
 
       <div className="space-y-6">
         <div className="space-y-2">
           <h2 className="text-lg font-semibold text-gray-700">
-            Time Range Picker
+            Time Range Picker with Auto-Focus
           </h2>
           <p className="text-sm text-gray-500">
-            Select start and end times. After selecting, click on the time range
-            to edit.
+            Click "Add time" to open the time picker. The component will
+            auto-focus to start time, then automatically move to end time
+            selection after choosing start time.
           </p>
         </div>
 
@@ -61,6 +63,7 @@ const RangeTimePickerDemo: React.FC = () => {
         <h3 className="text-lg font-semibold text-gray-700">Features:</h3>
         <ul className="list-disc list-inside space-y-2 text-gray-600">
           <li>30-minute interval time slots</li>
+          <li>Auto-focus to end time selection after selecting start time</li>
           <li>Automatic validation (end time must be after start time)</li>
           <li>Popover interface for editing selected time ranges</li>
           <li>Clean, intuitive design with save/cancel/clear actions</li>

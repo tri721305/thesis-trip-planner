@@ -34,3 +34,17 @@ interface GetWardAndPolygonByIdParams {
 interface GetWardByName {
   wardName: string;
 }
+
+interface CreatePlannerParams {
+  title: string;
+  destination: {
+    name: string;
+    coordinates: [number, number];
+    type: "province" | "ward";
+    provinceId?: string;
+    wardId?: string;
+  };
+  startDate: string | Date;
+  endDate: string | Date;
+  type: "public" | "private" | "friend";
+}
