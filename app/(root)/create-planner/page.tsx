@@ -17,6 +17,7 @@ import { Input } from "@/components/ui/input";
 import { createPlanner } from "@/lib/actions/planner.action";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import ROUTES from "@/constants/route";
 interface LocationType {
   displayName?: string;
   [key: string]: any;
@@ -69,8 +70,8 @@ const CreatePlan = () => {
           title: "Success",
           description: "Planner created successfully",
         });
-
-        // if (result.data) router.push(ROUTES.QUESTION(result.data._id));
+        console.log("data", result);
+        if (result.data) router.push(ROUTES.PLANNER(result.data._id));
       } else {
         toast({
           title: `Error ${result.status}`,

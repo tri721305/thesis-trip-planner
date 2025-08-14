@@ -81,7 +81,7 @@ import RangeTimePicker from "../timepicker/RangeTimePicker";
 import { auth } from "@/auth";
 type PlannerFormData = z.infer<typeof PlannerSchema>;
 
-const PlannerForm = () => {
+const PlannerForm = ({ planner }: any) => {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [showDialog, setShowDialog] = useState(false);
@@ -105,13 +105,13 @@ const PlannerForm = () => {
   const form = useForm<PlannerFormData>({
     resolver: zodResolver(PlannerSchema),
     defaultValues: {
-      title: "Planner Hồ Chí Minh Trip",
+      title: planner?.title || "",
       image: "",
       note: "",
       author: "",
       state: "planning",
-      startDate: "",
-      endDate: "",
+      startDate: planner?.startDate || "",
+      endDate: planner?.endDate || "",
       location: {
         name: "",
         address: "",
@@ -586,6 +586,11 @@ const PlannerForm = () => {
     }
   }, [editingIndex, form]);
 
+  useEffect(() => {
+    if (planner) {
+      generateRouteDetailsForDateRange(planner.startDate, planner.endDate);
+    }
+  }, []);
   const renderHotelForm = (index: number) => {
     const searchValue = hotelSearchValues[index] || "";
 
