@@ -79,6 +79,7 @@ import Checklist from "../input/Checklist";
 import ImageGallery from "../images/ImageGallery";
 import RangeTimePicker from "../timepicker/RangeTimePicker";
 import { auth } from "@/auth";
+import { updatePlanner } from "@/lib/actions/planner.action";
 type PlannerFormData = z.infer<typeof PlannerSchema>;
 
 const PlannerForm = ({ planner }: any) => {
@@ -89,6 +90,7 @@ const PlannerForm = ({ planner }: any) => {
   const [showAddHotel, setShowAddHotel] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const divRef = useRef<HTMLDivElement | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [showExpenses, setShowExpenses] = useState(false);
   const [openModalHotel, setOpenModalHotel] = useState(false);
   // State for hotel search values - moved to component level to follow Rules of Hooks
@@ -106,24 +108,17 @@ const PlannerForm = ({ planner }: any) => {
     resolver: zodResolver(PlannerSchema),
     defaultValues: {
       title: planner?.title || "",
-      image: "",
-      note: "",
-      author: "",
+      image: planner?.image || "",
+      note: planner?.note || "",
+      author: planner?.author || "",
       state: "planning",
       startDate: planner?.startDate || "",
       endDate: planner?.endDate || "",
-      location: {
-        name: "",
-        address: "",
-        coordinates: {
-          type: "Point",
-          coordinates: [0, 0], // [longitude, latitude]
-        },
-      },
-      generalTips: "",
-      tripmates: [],
-      lodging: [],
-      details: [],
+      destination: planner?.destination || {},
+      generalTips: planner?.generalTips || "",
+      tripmates: planner?.tripmates || [],
+      lodging: planner?.lodging || [],
+      details: planner?.details || [],
     },
   });
 
@@ -206,28 +201,45 @@ const PlannerForm = ({ planner }: any) => {
       (detail) => detail.type !== "route"
     );
 
-    // Reset the details array to only non-route items
-    form.setValue("details", nonRouteDetails);
-
     // Calculate the number of days between dates (inclusive)
     const start = moment(startDate);
     const end = moment(endDate);
     const daysDiff = end.diff(start, "days") + 1; // +1 to include both start and end dates
 
     // Generate route details for each day
+    const newRouteDetails: any = [];
     for (let i = 0; i < daysDiff; i++) {
       const currentDate = moment(startDate).add(i, "days");
 
       // Format date like "Friday, 15th August"
       const formattedDate = currentDate.format("dddd, Do MMMM");
 
-      appendDetail({
+      newRouteDetails.push({
         type: "route",
         name: formattedDate,
         index: nonRouteDetails.length + i + 1,
         data: [],
       });
     }
+
+    // Set all details at once to avoid multiple renders and auto-focus issues
+    form.setValue("details", [...nonRouteDetails, ...newRouteDetails]);
+  };
+
+  // Function for handling user-initiated date changes (allows scrolling)
+  const handleInteractiveDateChange = (startDate: Date, endDate: Date) => {
+    generateRouteDetailsForDateRange(startDate, endDate);
+
+    // Scroll to details section after a short delay to ensure DOM updates
+    setTimeout(() => {
+      const detailsSection = document.getElementById("details-section");
+      if (detailsSection) {
+        detailsSection.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
+      }
+    }, 300);
   };
 
   const generateDayDetails = (startDate: Date, endDate: Date) => {
@@ -586,11 +598,15 @@ const PlannerForm = ({ planner }: any) => {
     }
   }, [editingIndex, form]);
 
-  useEffect(() => {
-    if (planner) {
-      generateRouteDetailsForDateRange(planner.startDate, planner.endDate);
-    }
-  }, []);
+  // useEffect(() => {
+  //   if (planner && isInitialLoad) {
+  //     // Generate initial route details without causing scroll/focus issues
+  //     setTimeout(() => {
+  //       generateRouteDetailsForDateRange(planner.startDate, planner.endDate);
+  //       setIsInitialLoad(false);
+  //     }, 100); // Small delay to ensure component is fully mounted
+  //   }
+  // }, [planner, isInitialLoad]);
   const renderHotelForm = (index: number) => {
     const searchValue = hotelSearchValues[index] || "";
 
@@ -832,7 +848,26 @@ const PlannerForm = ({ planner }: any) => {
     // });
   };
 
-  console.log("Data Form", form.watch(), "Details", detailFields, "Session"); // Comment out để tránh rerender liên tục
+  const handleSubmit = async () => {
+    console.log("DataSubmit", form.watch());
+    const dataTest: any = { ...form.watch(), plannerId: planner._id };
+    const updatePlannerData = await updatePlanner(dataTest);
+    console.log("datePlannerData", updatePlannerData);
+    if (updatePlannerData) {
+      console.log("Update successful:", updatePlannerData);
+    } else {
+      console.error("Update failed");
+    }
+  };
+  console.log(
+    "Data Form",
+    planner,
+    form.watch(),
+    "Details",
+    detailFields,
+    "Session"
+  ); // Comment out để tránh rerender liên tục
+
   return (
     <div className="container mx-auto  max-w-4xl">
       <Form {...form}>
@@ -886,9 +921,10 @@ const PlannerForm = ({ planner }: any) => {
                   onDateSelect={(e) => {
                     form.setValue("startDate", e.from);
                     form.setValue("endDate", e.to);
-                    // Automatically generate route details for the selected date range
-                    if (e.from && e.to) {
-                      generateRouteDetailsForDateRange(e.from, e.to);
+                    // Only automatically generate route details if not initial load
+                    // and user has manually changed dates
+                    if (e.from && e.to && !isInitialLoad) {
+                      handleInteractiveDateChange(e.from, e.to);
                     }
                   }}
                 />
@@ -1131,7 +1167,7 @@ const PlannerForm = ({ planner }: any) => {
             />
             <Separator className="my-[24px]" />
 
-            <div>
+            <div id="details-section">
               <div className="mb-[24px]">
                 <h1 className="text-[36px] font-bold">Itinerary</h1>
               </div>
@@ -1759,6 +1795,7 @@ const PlannerForm = ({ planner }: any) => {
             <Button
               type="submit"
               disabled={isPending}
+              onClick={handleSubmit}
               className=" !w-fit bg-primary-500 hover:bg-primary-500 font-bold p-4 "
             >
               {isPending ? "Creating..." : "Create Planner"}
