@@ -925,17 +925,47 @@ export const UpdateTravelPlannerSchema = z
           data: z.array(
             z.object({
               type: z.enum(["place", "note", "checklist"]),
+              // Note fields
               content: z.string().optional(),
+              // Checklist fields
               items: z.array(z.string()).optional(),
               completed: z.array(z.boolean()).optional(),
+              // Place fields - Basic info
+              id: z.string().optional(),
               name: z.string().optional(),
               address: z.string().optional(),
               description: z.string().optional(),
+              // Place fields - Categories and tags
+              categories: z.array(z.string()).optional(),
               tags: z.array(z.string()).optional(),
+              // Place fields - Contact info
               phone: z.string().optional(),
+              website: z.string().optional(),
+              // Place fields - Images
               images: z.array(z.string()).optional(),
-              website: z.string().url().optional(),
               imageKeys: z.array(z.string()).optional(),
+              // Place fields - Ratings
+              rating: z.number().min(0).max(5).optional(),
+              numRatings: z.number().min(0).optional(),
+              // Place fields - External references
+              attractionId: z.number().optional(),
+              priceLevel: z.any().optional(), // Can be null, number, or string
+              // Place fields - Opening hours
+              openingPeriods: z
+                .array(
+                  z.object({
+                    open: z.object({
+                      day: z.number().min(0).max(6),
+                      time: z.string(),
+                    }),
+                    close: z.object({
+                      day: z.number().min(0).max(6),
+                      time: z.string(),
+                    }),
+                  })
+                )
+                .optional(),
+              // Place fields - Location
               location: z
                 .object({
                   type: z.literal("Point"),
@@ -944,6 +974,19 @@ export const UpdateTravelPlannerSchema = z
                   }),
                 })
                 .optional(),
+              // Place fields - Time and cost
+              timeStart: z.string().optional(),
+              timeEnd: z.string().optional(),
+              cost: z
+                .object({
+                  type: z.string().optional(),
+                  value: z.number().min(0).optional(),
+                  paidBy: z.string().optional(),
+                  description: z.string().optional(),
+                  splitBetween: z.array(z.any()).optional(),
+                })
+                .optional(),
+              // Place fields - Notes
               note: z.string().optional(),
             })
           ),

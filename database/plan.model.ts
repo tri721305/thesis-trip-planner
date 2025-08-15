@@ -79,6 +79,11 @@ const checklistDataSchema = new mongoose.Schema(
 // Schema cho type = 'place'
 const placeDataSchema = new mongoose.Schema(
   {
+    // Basic place information
+    id: {
+      type: String,
+      trim: true,
+    },
     name: {
       type: String,
       required: true,
@@ -93,6 +98,14 @@ const placeDataSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
+
+    // Categories and tags
+    categories: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
     tags: [
       {
         type: String,
@@ -100,30 +113,78 @@ const placeDataSchema = new mongoose.Schema(
         trim: true,
       },
     ],
+
+    // Contact information
     phone: {
       type: String,
       trim: true,
     },
+    website: {
+      type: String,
+      trim: true,
+    },
+
+    // Images and media
     images: [
       {
         type: String,
-        validate: {
-          validator: function (v: any) {
-            return /^https?:\/\/.+/.test(v);
-          },
-          message: "Image must be a valid URL",
-        },
+        trim: true,
       },
     ],
-    website: {
-      type: String,
-      validate: {
-        validator: function (v: any) {
-          return /^https?:\/\/.+/.test(v);
-        },
-        message: "Website must be a valid URL",
+    imageKeys: [
+      {
+        type: String,
+        trim: true,
       },
+    ],
+
+    // Ratings and reviews
+    rating: {
+      type: Number,
+      min: 0,
+      max: 5,
     },
+    numRatings: {
+      type: Number,
+      min: 0,
+    },
+
+    // External references
+    attractionId: {
+      type: Number,
+    },
+    priceLevel: {
+      type: mongoose.Schema.Types.Mixed, // Can be null, number, or string
+    },
+
+    // Opening hours
+    openingPeriods: [
+      {
+        open: {
+          day: {
+            type: Number,
+            min: 0,
+            max: 6, // 0 = Sunday, 6 = Saturday
+          },
+          time: {
+            type: String,
+            trim: true, // Remove regex validation
+          },
+        },
+        close: {
+          day: {
+            type: Number,
+            min: 0,
+            max: 6,
+          },
+          time: {
+            type: String,
+            trim: true, // Remove regex validation
+          },
+        },
+        _id: false,
+      },
+    ],
     location: {
       type: {
         type: String,
@@ -132,55 +193,16 @@ const placeDataSchema = new mongoose.Schema(
       },
       coordinates: {
         type: [Number], // [longitude, latitude]
-        required: true,
-        validate: {
-          validator: function (v: any) {
-            return (
-              v.length === 2 &&
-              v[0] >= -180 &&
-              v[0] <= 180 && // longitude
-              v[1] >= -90 &&
-              v[1] <= 90
-            ); // latitude
-          },
-          message:
-            "Coordinates must be [longitude, latitude] within valid ranges",
-        },
+        required: false, // Make it optional to avoid validation errors
       },
     },
     timeStart: {
       type: String,
       trim: true,
-      validate: {
-        validator: function (v: any) {
-          // Accept formats: "10:00", "10:00 AM", "14:30", "Morning", etc.
-          return (
-            !v ||
-            /^([0-9]{1,2}:[0-9]{2}(\s?(AM|PM))?|Morning|Afternoon|Evening|Night)$/i.test(
-              v
-            )
-          );
-        },
-        message:
-          "Time format should be like '10:00 AM', '14:30', or 'Morning/Afternoon/Evening/Night'",
-      },
     },
     timeEnd: {
       type: String,
       trim: true,
-      validate: {
-        validator: function (v: any) {
-          // Accept formats: "10:00", "10:00 AM", "14:30", "Morning", etc.
-          return (
-            !v ||
-            /^([0-9]{1,2}:[0-9]{2}(\s?(AM|PM))?|Morning|Afternoon|Evening|Night)$/i.test(
-              v
-            )
-          );
-        },
-        message:
-          "Time format should be like '10:00 AM', '14:30', or 'Morning/Afternoon/Evening/Night'",
-      },
     },
     cost: {
       type: {
@@ -260,12 +282,7 @@ const travelPlanSchema = new mongoose.Schema(
     },
     image: {
       type: String,
-      validate: {
-        validator: function (v: any) {
-          return !v || /^https?:\/\/.+/.test(v);
-        },
-        message: "Image must be a valid URL",
-      },
+      trim: true,
     },
     note: {
       type: String,
@@ -290,12 +307,7 @@ const travelPlanSchema = new mongoose.Schema(
         },
         image: {
           type: String,
-          validate: {
-            validator: function (v: any) {
-              return !v || /^https?:\/\/.+/.test(v);
-            },
-            message: "Image must be a valid URL",
-          },
+          trim: true,
         },
         userId: {
           type: Types.ObjectId,
@@ -325,19 +337,6 @@ const travelPlanSchema = new mongoose.Schema(
       coordinates: {
         type: [Number], // [longitude, latitude]
         required: true,
-        validate: {
-          validator: function (v: any) {
-            return (
-              v.length === 2 &&
-              v[0] >= -180 &&
-              v[0] <= 180 && // longitude
-              v[1] >= -90 &&
-              v[1] <= 90
-            ); // latitude
-          },
-          message:
-            "Coordinates must be [longitude, latitude] within valid ranges",
-        },
       },
       type: {
         type: String,

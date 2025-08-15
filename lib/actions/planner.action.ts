@@ -8,6 +8,10 @@ import {
   CreateTravelPlannerSchema,
   UpdateTravelPlannerSchema,
 } from "../validation";
+import {
+  uploadMultipleImagesAction,
+  deleteMultipleImagesFromS3,
+} from "./upload.action";
 
 export async function createPlanner(
   params: CreatePlannerParams
@@ -140,11 +144,6 @@ export async function getPlannerById(params: {
   }
 }
 
-/**
- * Update planner with all information
- * @param params - Update planner parameters
- * @returns Updated planner data or error
- */
 export async function updatePlanner(
   params: UpdatePlannerParams
 ): Promise<ActionResponse<TravelPlan>> {
@@ -161,6 +160,7 @@ export async function updatePlanner(
   const { plannerId, ...updateData } = validationResult.params!;
   const userId = validationResult?.session?.user?.id;
 
+  console.log("updateData", updateData);
   try {
     // PHASE: Database operations in transaction
     console.log("Starting MongoDB transaction for update...");
@@ -243,6 +243,10 @@ export async function updatePlanner(
       }
 
       console.log("Planner updated:", updatedPlanner._id);
+      console.log(
+        "Updated details:",
+        JSON.stringify(updatedPlanner.details, null, 2)
+      );
 
       // Commit transaction
       await session.commitTransaction();
@@ -517,6 +521,339 @@ export async function addLodging(params: {
     };
   } catch (error) {
     console.error("Error adding lodging:", error);
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+/**
+ * Upload images and update travel planner with image URLs
+ * @param params - Image upload and update parameters
+ * @returns Updated planner data or error
+ */
+export async function updatePlannerImages(params: {
+  plannerId: string;
+  imageFiles: File[];
+  targetType: "main" | "general" | "place" | "tripmate";
+  targetIndex?: number; // For place or tripmate specific images
+  detailIndex?: number; // For place images within details array
+  placeIndex?: number; // For specific place within detail data
+}): Promise<ActionResponse<TravelPlan>> {
+  const validationResult = await action({
+    params: { plannerId: params.plannerId },
+    authorize: true,
+  });
+
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  const { plannerId } = validationResult.params!;
+  const { imageFiles, targetType, targetIndex, detailIndex, placeIndex } =
+    params;
+  const userId = validationResult?.session?.user?.id;
+
+  try {
+    // Validate planner exists and user has permission
+    const existingPlanner = await TravelPlan.findById(plannerId);
+
+    if (!existingPlanner) {
+      return {
+        success: false,
+        error: {
+          message: "Planner not found",
+        },
+      };
+    }
+
+    // Check permissions
+    const isAuthor = existingPlanner.author.toString() === userId;
+    const isTripmate = existingPlanner.tripmates.some(
+      (tripmate: any) =>
+        tripmate.userId && tripmate.userId.toString() === userId
+    );
+
+    if (!isAuthor && !isTripmate) {
+      return {
+        success: false,
+        error: {
+          message:
+            "Permission denied: You are not authorized to update this planner",
+        },
+      };
+    }
+
+    // Upload images to S3
+    console.log(`Uploading ${imageFiles.length} images to S3...`);
+    const uploadResult = await uploadMultipleImagesAction(imageFiles);
+
+    if (!uploadResult.success || !uploadResult.data) {
+      return {
+        success: false,
+        error: {
+          message: uploadResult.error || "Failed to upload images to S3",
+        },
+      };
+    }
+
+    const imageUrls = uploadResult.data.map((img) => img.url);
+    console.log("Successfully uploaded images:", imageUrls);
+
+    // Start database transaction
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      let updateObject: any = {};
+
+      switch (targetType) {
+        case "main":
+          // Update main planner image (single image)
+          updateObject.image = imageUrls[0];
+          break;
+
+        case "general":
+          // Update general planner images (multiple images)
+          updateObject.images = [
+            ...(existingPlanner.images || []),
+            ...imageUrls,
+          ];
+          break;
+
+        case "tripmate":
+          // Update specific tripmate image
+          if (
+            targetIndex !== undefined &&
+            existingPlanner.tripmates[targetIndex]
+          ) {
+            updateObject = {
+              [`tripmates.${targetIndex}.image`]: imageUrls[0],
+            };
+          } else {
+            throw new Error("Invalid tripmate index");
+          }
+          break;
+
+        case "place":
+          // Update place images within details
+          if (detailIndex !== undefined && placeIndex !== undefined) {
+            const detail = existingPlanner.details[detailIndex];
+            if (detail && detail.data && detail.data[placeIndex]) {
+              const placeItem = detail.data[placeIndex];
+              if (placeItem.type === "place") {
+                // Update both images and imageKeys arrays
+                const updatedImages = [
+                  ...(placeItem.images || []),
+                  ...imageUrls,
+                ];
+                const updatedImageKeys = [
+                  ...(placeItem.imageKeys || []),
+                  ...imageUrls.map((url) => {
+                    // Extract key from URL for imageKeys
+                    const urlParts = url.split("/");
+                    return urlParts.slice(-2).join("/"); // Get "images/filename.jpg"
+                  }),
+                ];
+
+                updateObject = {
+                  [`details.${detailIndex}.data.${placeIndex}.images`]:
+                    updatedImages,
+                  [`details.${detailIndex}.data.${placeIndex}.imageKeys`]:
+                    updatedImageKeys,
+                };
+              } else {
+                throw new Error("Target is not a place item");
+              }
+            } else {
+              throw new Error("Invalid detail or place index");
+            }
+          } else {
+            throw new Error(
+              "Detail index and place index are required for place images"
+            );
+          }
+          break;
+
+        default:
+          throw new Error("Invalid target type");
+      }
+
+      // Update the planner
+      const updatedPlanner = await TravelPlan.findByIdAndUpdate(
+        plannerId,
+        { $set: updateObject },
+        {
+          new: true,
+          runValidators: true,
+          session,
+        }
+      );
+
+      if (!updatedPlanner) {
+        throw new Error("Failed to update planner with image URLs");
+      }
+
+      console.log("Planner updated with images:", updatedPlanner._id);
+
+      // Commit transaction
+      await session.commitTransaction();
+      console.log("MongoDB transaction committed successfully");
+
+      return {
+        success: true,
+        data: JSON.parse(JSON.stringify(updatedPlanner)),
+      };
+    } catch (dbError) {
+      // Rollback database transaction
+      await session.abortTransaction();
+      console.error("Database transaction failed, rolling back:", dbError);
+
+      // Also rollback S3 uploads
+      console.log("Rolling back S3 uploads...");
+      await deleteMultipleImagesFromS3(imageUrls);
+
+      throw dbError;
+    } finally {
+      session.endSession();
+    }
+  } catch (error) {
+    console.error("Error updating planner images:", error);
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+/**
+ * Upload single image for travel planner (main image)
+ * @param params - Single image upload parameters
+ * @returns Updated planner data or error
+ */
+export async function updatePlannerMainImage(params: {
+  plannerId: string;
+  imageFile: File;
+}): Promise<ActionResponse<TravelPlan>> {
+  return updatePlannerImages({
+    plannerId: params.plannerId,
+    imageFiles: [params.imageFile],
+    targetType: "main",
+  });
+}
+
+/**
+ * Upload multiple images for travel planner general gallery
+ * @param params - Multiple images upload parameters
+ * @returns Updated planner data or error
+ */
+export async function updatePlannerGeneralImages(params: {
+  plannerId: string;
+  imageFiles: File[];
+}): Promise<ActionResponse<TravelPlan>> {
+  return updatePlannerImages({
+    plannerId: params.plannerId,
+    imageFiles: params.imageFiles,
+    targetType: "general",
+  });
+}
+
+/**
+ * Upload image for specific tripmate
+ * @param params - Tripmate image upload parameters
+ * @returns Updated planner data or error
+ */
+export async function updateTripmateImage(params: {
+  plannerId: string;
+  imageFile: File;
+  tripmateIndex: number;
+}): Promise<ActionResponse<TravelPlan>> {
+  return updatePlannerImages({
+    plannerId: params.plannerId,
+    imageFiles: [params.imageFile],
+    targetType: "tripmate",
+    targetIndex: params.tripmateIndex,
+  });
+}
+
+/**
+ * Upload images for specific place in travel plan
+ * @param params - Place image upload parameters
+ * @returns Updated planner data or error
+ */
+export async function updatePlaceImages(params: {
+  plannerId: string;
+  imageFiles: File[];
+  detailIndex: number;
+  placeIndex: number;
+}): Promise<ActionResponse<TravelPlan>> {
+  return updatePlannerImages({
+    plannerId: params.plannerId,
+    imageFiles: params.imageFiles,
+    targetType: "place",
+    detailIndex: params.detailIndex,
+    placeIndex: params.placeIndex,
+  });
+}
+
+/**
+ * Upload images from FormData for travel planner
+ * @param formData - FormData containing images and planner info
+ * @returns Updated planner data or error
+ */
+export async function updatePlannerImagesFromFormData(
+  formData: FormData
+): Promise<ActionResponse<TravelPlan>> {
+  try {
+    const plannerId = formData.get("plannerId") as string;
+    const targetType = formData.get("targetType") as
+      | "main"
+      | "general"
+      | "place"
+      | "tripmate";
+    const targetIndex = formData.get("targetIndex")
+      ? parseInt(formData.get("targetIndex") as string)
+      : undefined;
+    const detailIndex = formData.get("detailIndex")
+      ? parseInt(formData.get("detailIndex") as string)
+      : undefined;
+    const placeIndex = formData.get("placeIndex")
+      ? parseInt(formData.get("placeIndex") as string)
+      : undefined;
+
+    if (!plannerId || !targetType) {
+      return {
+        success: false,
+        error: {
+          message: "plannerId and targetType are required",
+        },
+      };
+    }
+
+    // Extract image files from FormData
+    const imageFiles: File[] = [];
+    const files = formData.getAll("images") as File[];
+
+    for (const file of files) {
+      if (file && file.size > 0) {
+        imageFiles.push(file);
+      }
+    }
+
+    if (imageFiles.length === 0) {
+      return {
+        success: false,
+        error: {
+          message: "No valid image files found",
+        },
+      };
+    }
+
+    return updatePlannerImages({
+      plannerId,
+      imageFiles,
+      targetType,
+      targetIndex,
+      detailIndex,
+      placeIndex,
+    });
+  } catch (error) {
+    console.error("Error processing FormData for planner images:", error);
     return handleError(error) as ErrorResponse;
   }
 }

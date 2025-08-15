@@ -46,7 +46,7 @@ const PlaceSearch = ({
       openingPeriods: place.openingPeriods || [],
       priceLevel: place.priceLevel,
     };
-
+    console.log("handlePlaceSelect", placeData);
     // Call parent callback if provided
     if (onPlaceSelect) {
       onPlaceSelect(placeData);

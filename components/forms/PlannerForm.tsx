@@ -79,11 +79,16 @@ import Checklist from "../input/Checklist";
 import ImageGallery from "../images/ImageGallery";
 import RangeTimePicker from "../timepicker/RangeTimePicker";
 import { auth } from "@/auth";
-import { updatePlanner } from "@/lib/actions/planner.action";
+import {
+  updatePlanner,
+  updatePlannerMainImage,
+} from "@/lib/actions/planner.action";
+import { useToast } from "@/hooks/use-toast";
 type PlannerFormData = z.infer<typeof PlannerSchema>;
 
 const PlannerForm = ({ planner }: any) => {
   const router = useRouter();
+  const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
   const [showDialog, setShowDialog] = useState(false);
   const [manageTripmates, setManageTripmates] = useState(false);
@@ -93,6 +98,10 @@ const PlannerForm = ({ planner }: any) => {
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   const [showExpenses, setShowExpenses] = useState(false);
   const [openModalHotel, setOpenModalHotel] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [currentMainImage, setCurrentMainImage] = useState(
+    planner?.image || "/images/ocean.jpg"
+  );
   // State for hotel search values - moved to component level to follow Rules of Hooks
   const [hotelSearchValues, setHotelSearchValues] = useState<{
     [key: number]: string;
@@ -598,6 +607,13 @@ const PlannerForm = ({ planner }: any) => {
     }
   }, [editingIndex, form]);
 
+  // Sync main image when planner changes
+  useEffect(() => {
+    if (planner?.image) {
+      setCurrentMainImage(planner.image);
+    }
+  }, [planner?.image]);
+
   // useEffect(() => {
   //   if (planner && isInitialLoad) {
   //     // Generate initial route details without causing scroll/focus issues
@@ -838,16 +854,102 @@ const PlannerForm = ({ planner }: any) => {
     // Update the form with new item
     const updatedItems = [...currentItems, newPlaceItem];
     form.setValue(`details.${index}.data`, updatedItems);
-
-    // setSelectedAttractions((prev) => {
-    //   const exists = prev.some((attr) => attr.id === place.id);
-    //   if (!exists) {
-    //     return [...prev, place];
-    //   }
-    //   return prev;
-    // });
   };
+  const handleUploadImage = () => {
+    // Tạo một input file ẩn
+    const input = document.createElement("input");
+    input.type = "file";
+    input.accept = "image/*";
+    input.multiple = false;
 
+    input.onchange = async (event) => {
+      const file = (event.target as HTMLInputElement).files?.[0];
+      if (!file) return;
+
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast({
+          title: "File quá lớn",
+          description: "Vui lòng chọn ảnh có kích thước nhỏ hơn 5MB",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith("image/")) {
+        toast({
+          title: "File không hợp lệ",
+          description: "Vui lòng chọn file ảnh (jpg, png, webp, etc.)",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Show preview immediately while uploading
+      const previewUrl = URL.createObjectURL(file);
+      setCurrentMainImage(previewUrl);
+
+      try {
+        setIsUploadingImage(true);
+
+        // Gọi function upload ảnh
+        const result = await updatePlannerMainImage({
+          plannerId: planner._id,
+          imageFile: file,
+        });
+
+        if (result.success && result.data) {
+          // Cleanup preview URL
+          URL.revokeObjectURL(previewUrl);
+
+          // Cập nhật với URL thực từ S3
+          setCurrentMainImage(result.data.image);
+
+          // Cập nhật form data
+          form.setValue("image", result.data.image);
+
+          toast({
+            title: "Upload thành công!",
+            description: "Ảnh bìa đã được cập nhật",
+            variant: "success",
+          });
+
+          console.log("Image uploaded successfully:", result.data.image);
+        } else {
+          // Revert to original image on failure
+          setCurrentMainImage(planner?.image || "/images/ocean.jpg");
+          URL.revokeObjectURL(previewUrl);
+
+          toast({
+            title: "Upload thất bại",
+            description:
+              result.error?.message ||
+              "Không thể upload ảnh. Vui lòng thử lại!",
+            variant: "destructive",
+          });
+          console.error("Upload failed:", result.error);
+        }
+      } catch (error) {
+        // Revert to original image on error
+        setCurrentMainImage(planner?.image || "/images/ocean.jpg");
+        URL.revokeObjectURL(previewUrl);
+
+        toast({
+          title: "Có lỗi xảy ra",
+          description:
+            "Không thể upload ảnh. Vui lòng kiểm tra kết nối mạng và thử lại!",
+          variant: "destructive",
+        });
+        console.error("Error uploading image:", error);
+      } finally {
+        setIsUploadingImage(false);
+      }
+    };
+
+    // Trigger file picker
+    input.click();
+  };
   const handleSubmit = async () => {
     console.log("DataSubmit", form.watch());
     const dataTest: any = { ...form.watch(), plannerId: planner._id };
@@ -868,19 +970,43 @@ const PlannerForm = ({ planner }: any) => {
     "Session"
   ); // Comment out để tránh rerender liên tục
 
+  console.log("dataform", form.watch());
   return (
     <div className="container mx-auto  max-w-4xl">
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
           {/* Basic Information */}
           <div className="h-[400px] relative !pt-10">
-            <Image alt="image-places" src="/images/ocean.jpg" fill />
+            <Image
+              alt="image-places"
+              src={currentMainImage}
+              fill
+              className="object-cover transition-opacity duration-300"
+              priority
+            />
+
+            {/* Upload overlay */}
+            {isUploadingImage && (
+              <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-40">
+                <div className="text-white text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-4 border-white border-t-transparent mx-auto mb-2"></div>
+                  <p>Đang tải ảnh lên...</p>
+                </div>
+              </div>
+            )}
+
             <Button
-              className="absolute hover:text-white z-50 rounded-full top-4 right-4 !bg-[#21252980] hover:bg-[#21252980] text-white"
+              className="absolute hover:text-white z-50 rounded-full top-4 right-4 !bg-[#21252980] hover:bg-[#21252980] text-white transition-all duration-200 hover:scale-105"
               size="icon"
               variant="ghost"
+              onClick={handleUploadImage}
+              disabled={isUploadingImage}
             >
-              <Pencil />
+              {isUploadingImage ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+              ) : (
+                <Pencil />
+              )}
             </Button>
 
             <div

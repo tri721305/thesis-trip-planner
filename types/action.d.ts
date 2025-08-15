@@ -57,7 +57,7 @@ interface UpdatePlannerParams {
   generalTips?: string;
   destination?: {
     name: string;
-    coordinates: [number, number];
+    coordinates: number[];
     type: "province" | "ward";
     provinceId?: string;
     wardId?: string;
@@ -90,21 +90,58 @@ interface UpdatePlannerParams {
     index: number;
     data: Array<{
       type: "place" | "note" | "checklist";
+      // Note fields
       content?: string;
+      // Checklist fields
       items?: string[];
       completed?: boolean[];
+      // Place fields - Basic info
+      id?: string;
       name?: string;
       address?: string;
       description?: string;
+      // Place fields - Categories and tags
+      categories?: string[];
       tags?: string[];
+      // Place fields - Contact info
       phone?: string;
-      images?: string[];
       website?: string;
+      // Place fields - Images
+      images?: string[];
       imageKeys?: string[];
+      // Place fields - Ratings
+      rating?: number;
+      numRatings?: number;
+      // Place fields - External references
+      attractionId?: number;
+      priceLevel?: any;
+      // Place fields - Opening hours
+      openingPeriods?: Array<{
+        open: {
+          day: number;
+          time: string;
+        };
+        close: {
+          day: number;
+          time: string;
+        };
+      }>;
+      // Place fields - Location
       location?: {
         type: "Point";
-        coordinates: [number, number];
+        coordinates: number[];
       };
+      // Place fields - Time and cost
+      timeStart?: string;
+      timeEnd?: string;
+      cost?: {
+        type?: string;
+        value?: number;
+        paidBy?: string;
+        description?: string;
+        splitBetween?: any[];
+      };
+      // Place fields - Notes
       note?: string;
     }>;
   }>;
