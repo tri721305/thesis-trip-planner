@@ -2,9 +2,11 @@
 import React, { useRef, useEffect, useState } from "react";
 import GuideHeader from "../GuideHeader";
 import GuideContent from "../GuideContent";
-import SidebarDetail from "../sidebar/SidebarDetail";
+import SidebarDetailPlanner from "../sidebar/SidebarDetailPlanner";
+import PlannerForm from "../forms/PlannerForm";
+import Map from "../Map";
 
-const CustomScrollLayoutPlanner = () => {
+const CustomScrollLayoutPlanner = (planner: any) => {
   const leftContentRef = useRef<HTMLDivElement>(null);
   const hiddenScrollRef = useRef<HTMLDivElement>(null);
   const leftContainerRef = useRef<HTMLDivElement>(null);
@@ -63,65 +65,25 @@ const CustomScrollLayoutPlanner = () => {
   return (
     <div className="flex h-[calc(100vh-80px)] overflow-hidden relative">
       <div>
-        <SidebarDetail />
+        <SidebarDetailPlanner
+          planner={planner.planner}
+          leftContentRef={leftContentRef}
+          hiddenScrollRef={hiddenScrollRef}
+        />
       </div>
       {/* Phần bên trái - Content */}
       <div ref={leftContainerRef} className="flex-1 relative">
         <div ref={leftContentRef} className="h-full overflow-hidden">
           {/* Nội dung thực tế */}
           <div className="">
-            <GuideHeader />
-            <GuideContent />
+            <PlannerForm planner={planner.planner} />
           </div>
         </div>
       </div>
 
       {/* Map container - cố định */}
       <div className="w-1/2 h-[calc(100vh-80px)] bg-gradient-to-br from-blue-50 to-cyan-50 relative">
-        {/* Export button */}
-        <div className="absolute top-4 left-4 z-10">
-          <button className="bg-orange-500 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-orange-600 shadow-lg">
-            🗺️ Export PRO
-          </button>
-        </div>
-
-        {/* Map content */}
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="text-center">
-            <div className="w-80 h-60 bg-gradient-to-br from-blue-200 to-cyan-200 rounded-xl mb-4 flex items-center justify-center shadow-lg">
-              <div className="text-center">
-                <span className="text-4xl mb-2 block">🗺️</span>
-                <span className="text-blue-700 text-lg font-medium">
-                  Google Maps
-                </span>
-              </div>
-            </div>
-            <p className="text-blue-600 font-medium">
-              Interactive Map Component
-            </p>
-            <p className="text-sm text-blue-500 mt-2">Fixed 100vh height</p>
-          </div>
-        </div>
-
-        {/* Map controls */}
-        <div className="absolute top-4 right-4 space-y-2 z-10">
-          <button className="w-10 h-10 bg-white rounded-lg shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors">
-            <span className="text-gray-600">🔍</span>
-          </button>
-          <button className="w-10 h-10 bg-white rounded-lg shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors">
-            <span className="text-gray-600">📍</span>
-          </button>
-          <button className="w-10 h-10 bg-white rounded-lg shadow-md flex items-center justify-center hover:bg-gray-50 transition-colors">
-            <span className="text-gray-600">⚙️</span>
-          </button>
-        </div>
-
-        {/* Fit map button */}
-        <div className="absolute bottom-4 left-4 z-10">
-          <button className="bg-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-50 shadow-md border">
-            📐 Fit map to...
-          </button>
-        </div>
+        <Map />
       </div>
 
       {/* Thanh scroll ẩn ở bên phải */}

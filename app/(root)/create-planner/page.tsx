@@ -18,6 +18,7 @@ import { createPlanner } from "@/lib/actions/planner.action";
 import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import ROUTES from "@/constants/route";
+import moment from "moment";
 interface LocationType {
   displayName?: string;
   [key: string]: any;
@@ -34,15 +35,41 @@ const CreatePlan = () => {
   const [showAddTripMates, setShowAddTripMates] = useState(false);
   const [tripName, setTripName] = useState<string>("");
   const [type, setType] = useState<string>("public");
-
+  const [detailsData, setDetailsData] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const generateDayDetails = (startDate: Date, endDate: Date) => {
+    const details = [];
+    const currentDate = new Date(startDate);
+    let index = 1;
+
+    while (currentDate <= endDate) {
+      const dayName = moment(currentDate).format("dddd, Do MMMM");
+
+      details.push({
+        type: "route" as const,
+        name: dayName,
+        index: index,
+        data: [],
+      });
+
+      currentDate.setDate(currentDate.getDate() + 1);
+      index++;
+    }
+
+    return details;
+  };
   const handleCreatePlanner = async () => {
     // let plannerName = location?.displayName;
     setLoading(true);
     if (!location?.displayName) {
       return;
     }
+    const detailsGenerate = generateDayDetails(
+      selectedDateRange.from,
+      selectedDateRange.to
+    );
+    console.log("detailsGenerate", detailsGenerate);
 
     let dataSubmit: any = {
       title: tripName,
@@ -59,6 +86,7 @@ const CreatePlan = () => {
       startDate: selectedDateRange.from,
       endDate: selectedDateRange.to,
       type: type,
+      details: detailsGenerate,
     };
     console.log("data", dataSubmit, location);
 

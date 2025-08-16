@@ -2,7 +2,13 @@
 import { PlannerSchema } from "@/lib/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
-import React, { useEffect, useRef, useState, useTransition } from "react";
+import React, {
+  useEffect,
+  useRef,
+  useState,
+  useTransition,
+  useCallback,
+} from "react";
 import { useForm, useFieldArray, FormProvider } from "react-hook-form";
 import { z } from "zod";
 import {
@@ -84,6 +90,7 @@ import {
   updatePlannerMainImage,
 } from "@/lib/actions/planner.action";
 import { useToast } from "@/hooks/use-toast";
+import { Toast } from "../ui/toast";
 type PlannerFormData = z.infer<typeof PlannerSchema>;
 
 const PlannerForm = ({ planner }: any) => {
@@ -102,6 +109,10 @@ const PlannerForm = ({ planner }: any) => {
   const [currentMainImage, setCurrentMainImage] = useState(
     planner?.image || "/images/ocean.jpg"
   );
+  // State for preserving scroll position and preventing auto-scroll conflicts
+  const [isUserScrolling, setIsUserScrolling] = useState(false);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
   // State for hotel search values - moved to component level to follow Rules of Hooks
   const [hotelSearchValues, setHotelSearchValues] = useState<{
     [key: number]: string;
@@ -131,8 +142,10 @@ const PlannerForm = ({ planner }: any) => {
     },
   });
 
-  const { watch } = form;
-  const hotelsWatch = watch("lodging");
+  // Use specific watchers instead of general watch to reduce re-renders
+  // const { watch } = form;
+  // const hotelsWatch = watch("lodging");
+
   // Field arrays for dynamic sections
   const {
     fields: tripmateFields,
@@ -236,20 +249,29 @@ const PlannerForm = ({ planner }: any) => {
   };
 
   // Function for handling user-initiated date changes (allows scrolling)
-  const handleInteractiveDateChange = (startDate: Date, endDate: Date) => {
-    generateRouteDetailsForDateRange(startDate, endDate);
+  const handleInteractiveDateChange = useCallback(
+    (startDate: Date, endDate: Date) => {
+      // Only auto-scroll if user is not currently scrolling manually
+      if (!isUserScrolling) {
+        generateRouteDetailsForDateRange(startDate, endDate);
 
-    // Scroll to details section after a short delay to ensure DOM updates
-    setTimeout(() => {
-      const detailsSection = document.getElementById("details-section");
-      if (detailsSection) {
-        detailsSection.scrollIntoView({
-          behavior: "smooth",
-          block: "start",
-        });
+        // Scroll to details section after a short delay to ensure DOM updates
+        setTimeout(() => {
+          const detailsSection = document.getElementById("details-section");
+          if (detailsSection && !isUserScrolling) {
+            detailsSection.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            });
+          }
+        }, 300);
+      } else {
+        // Just generate route details without scrolling
+        generateRouteDetailsForDateRange(startDate, endDate);
       }
-    }, 300);
-  };
+    },
+    [isUserScrolling]
+  );
 
   const generateDayDetails = (startDate: Date, endDate: Date) => {
     const details = [];
@@ -319,10 +341,13 @@ const PlannerForm = ({ planner }: any) => {
   };
 
   const renderDetailForm = (index: number) => {
-    // const sectionRef = getSectionRef(index);
-    const currentRouteItems = form.watch(`details.${index}.data`) || [];
+    // Use form.getValues() instead of form.watch() to avoid re-renders
+    // const currentRouteItems = form.watch(`details.${index}.data`) || [];
+    const getCurrentRouteItems = () =>
+      form.getValues(`details.${index}.data`) || [];
 
     const updateItemData = (itemIndex: number, newData: any) => {
+      const currentRouteItems = getCurrentRouteItems();
       const updatedItems = [...currentRouteItems];
 
       // Update the appropriate field based on item type
@@ -350,9 +375,13 @@ const PlannerForm = ({ planner }: any) => {
 
     // Helper function to remove item
     const removeItem = (itemIndex: number) => {
+      const currentRouteItems = getCurrentRouteItems();
       const updatedItems = currentRouteItems.filter((_, i) => i !== itemIndex);
       form.setValue(`details.${index}.data`, updatedItems);
     };
+
+    // Get current items for rendering
+    const currentRouteItems = getCurrentRouteItems();
 
     return (
       <div
@@ -506,6 +535,7 @@ const PlannerForm = ({ planner }: any) => {
                               {item.address}
                             </p>
                           )}
+
                           {/* {item.description && (
                             <p className="text-sm text-gray-700 mb-2">
                               {item.description}
@@ -517,7 +547,106 @@ const PlannerForm = ({ planner }: any) => {
                             </p>
                           )} */}
                           <div className="flex">
-                            <RangeTimePicker />
+                            <RangeTimePicker
+                              key={`time-picker-${index}-${idx}`}
+                              value={{
+                                startTime: item.timeStart || "",
+                                endTime: item.timeEnd || "",
+                              }}
+                              onChange={(timeRange: {
+                                startTime: string;
+                                endTime: string;
+                              }) => {
+                                // Get current route items
+                                const currentRouteItems =
+                                  getCurrentRouteItems();
+                                console.log(
+                                  "🔍 Current route items:",
+                                  currentRouteItems
+                                );
+
+                                const updatedItems = [...currentRouteItems];
+
+                                // Update the specific place item with new time values
+                                if (
+                                  updatedItems[idx] &&
+                                  updatedItems[idx].type === "place"
+                                ) {
+                                  console.log(
+                                    "🔧 Updating item at index:",
+                                    idx
+                                  );
+                                  console.log(
+                                    "🔧 Before update:",
+                                    updatedItems[idx]
+                                  );
+
+                                  updatedItems[idx] = {
+                                    ...updatedItems[idx],
+                                    timeStart: timeRange.startTime,
+                                    timeEnd: timeRange.endTime,
+                                  };
+
+                                  console.log(
+                                    "🔧 After update:",
+                                    updatedItems[idx]
+                                  );
+
+                                  // Update the form with the new data
+                                  form.setValue(
+                                    `details.${index}.data`,
+                                    updatedItems,
+                                    {
+                                      shouldValidate: false,
+                                      shouldDirty: true,
+                                      shouldTouch: false,
+                                    }
+                                  );
+
+                                  // Force re-render by triggering a form state update
+                                  form.trigger(`details.${index}.data`);
+
+                                  // Force trigger to ensure the update is registered
+                                  setTimeout(() => {
+                                    const verifyData = form.getValues(
+                                      `details.${index}.data`
+                                    );
+                                    console.log(
+                                      "✅ Verification after 100ms:",
+                                      verifyData[idx]
+                                    );
+                                    if (
+                                      verifyData[idx]?.type === "place" &&
+                                      (!verifyData[idx]?.timeStart ||
+                                        !verifyData[idx]?.timeEnd)
+                                    ) {
+                                      console.warn(
+                                        "⚠️ Time values seem to be missing after update, retrying..."
+                                      );
+                                      // Retry the update
+                                      form.setValue(
+                                        `details.${index}.data`,
+                                        updatedItems,
+                                        {
+                                          shouldValidate: false,
+                                          shouldDirty: true,
+                                          shouldTouch: true,
+                                        }
+                                      );
+                                    }
+                                  }, 100);
+                                } else {
+                                  console.error(
+                                    "❌ Failed to find item or item is not a place:",
+                                    {
+                                      itemExists: !!updatedItems[idx],
+                                      itemType: updatedItems[idx]?.type,
+                                      expectedIndex: idx,
+                                    }
+                                  );
+                                }
+                              }}
+                            />
                             <Button
                               variant="ghost"
                               onClick={() => {
@@ -613,6 +742,32 @@ const PlannerForm = ({ planner }: any) => {
       setCurrentMainImage(planner.image);
     }
   }, [planner?.image]);
+
+  // Detect user scrolling to prevent auto-scroll interference
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsUserScrolling(true);
+
+      // Clear existing timeout
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+
+      // Reset user scrolling flag after user stops scrolling
+      scrollTimeoutRef.current = setTimeout(() => {
+        setIsUserScrolling(false);
+      }, 1500); // 1.5 second delay after user stops scrolling
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
 
   // useEffect(() => {
   //   if (planner && isInitialLoad) {
@@ -849,6 +1004,8 @@ const PlannerForm = ({ planner }: any) => {
     const newPlaceItem = {
       type: "place" as const,
       ...place,
+      timeStart: place.timeStart || "", // Ensure timeStart exists
+      timeEnd: place.timeEnd || "", // Ensure timeEnd exists
     };
 
     // Update the form with new item
@@ -951,26 +1108,25 @@ const PlannerForm = ({ planner }: any) => {
     input.click();
   };
   const handleSubmit = async () => {
-    console.log("DataSubmit", form.watch());
-    const dataTest: any = { ...form.watch(), plannerId: planner._id };
+    const formData = form.getValues();
+    console.log("DataSubmit", formData);
+    const dataTest: any = { ...formData, plannerId: planner._id };
     const updatePlannerData = await updatePlanner(dataTest);
     console.log("datePlannerData", updatePlannerData);
     if (updatePlannerData) {
       console.log("Update successful:", updatePlannerData);
+      toast({
+        title: "Update Planner Successfully!",
+        description: "Your planner has been updated successfully.",
+        variant: "success",
+      });
     } else {
       console.error("Update failed");
     }
   };
-  console.log(
-    "Data Form",
-    planner,
-    form.watch(),
-    "Details",
-    detailFields,
-    "Session"
-  ); // Comment out để tránh rerender liên tục
 
-  console.log("dataform", form.watch());
+  console.log("Value Form", form.watch());
+
   return (
     <div className="container mx-auto  max-w-4xl">
       <Form {...form}>
@@ -1034,25 +1190,35 @@ const PlannerForm = ({ planner }: any) => {
               />
 
               <div className="px-8 flex items-center justify-between">
-                <CalendarDatePicker
-                  className="!w-fit "
-                  date={{
-                    from: form.watch("startDate")
-                      ? moment(form.watch("startDate")).toDate()
-                      : new Date(),
-                    to: form.watch("endDate")
-                      ? moment(form.watch("endDate")).toDate()
-                      : new Date(),
-                  }}
-                  onDateSelect={(e) => {
-                    form.setValue("startDate", e.from);
-                    form.setValue("endDate", e.to);
-                    // Only automatically generate route details if not initial load
-                    // and user has manually changed dates
-                    if (e.from && e.to && !isInitialLoad) {
-                      handleInteractiveDateChange(e.from, e.to);
-                    }
-                  }}
+                <FormField
+                  control={form.control}
+                  name="startDate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <CalendarDatePicker
+                          className="!w-fit "
+                          date={{
+                            from: field.value
+                              ? moment(field.value).toDate()
+                              : new Date(),
+                            to: form.getValues("endDate")
+                              ? moment(form.getValues("endDate")).toDate()
+                              : new Date(),
+                          }}
+                          onDateSelect={(e) => {
+                            form.setValue("startDate", e.from);
+                            form.setValue("endDate", e.to);
+                            // Only automatically generate route details if not initial load
+                            // and user has manually changed dates
+                            if (e.from && e.to && !isInitialLoad) {
+                              handleInteractiveDateChange(e.from, e.to);
+                            }
+                          }}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
                 />
                 <div className="flex items-center gap-2 ">
                   <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
@@ -1144,114 +1310,129 @@ const PlannerForm = ({ planner }: any) => {
                 </h1>
               </div>
             </div>
-            <Collaps
-              keyId={"note"}
-              titleFeature={
-                <p className="pl-[28px] border-none font-bold !text-[24px] shadow-none no-focus ">
-                  Note
-                </p>
-              }
-              itemExpand={
-                <div>
-                  <FormField
-                    control={form.control}
-                    name="note"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Textarea
-                            placeholder="Describe your travel plan..."
-                            {...field}
-                            rows={3}
-                            className="py-4 border-none paragraph-regular background-light800_darkgradient light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              }
-            />
+            <div id="note-section">
+              <Collaps
+                keyId={"note"}
+                titleFeature={
+                  <p className="pl-[28px] border-none font-bold !text-[24px] shadow-none no-focus ">
+                    Note
+                  </p>
+                }
+                itemExpand={
+                  <div>
+                    <FormField
+                      control={form.control}
+                      name="note"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Textarea
+                              placeholder="Describe your travel plan..."
+                              {...field}
+                              rows={3}
+                              className="py-4 border-none paragraph-regular background-light800_darkgradient light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                }
+              />
+            </div>
             <Separator className="my-[24px]" />
             {/* General Tips */}
-            <Collaps
-              keyId="General-tips"
-              titleFeature={
-                <p className="pl-[28px] border-none font-bold !text-[24px] shadow-none no-focus ">
-                  General Tips
-                </p>
-              }
-              itemExpand={
-                <div>
-                  <FormField
-                    control={form.control}
-                    name="generalTips"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormControl>
-                          <Textarea
-                            placeholder="General Tips..."
-                            {...field}
-                            rows={3}
-                            className="py-4 border-none paragraph-regular background-light800_darkgradient light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border"
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              }
-            />
+            <div id="generalTips-section">
+              <Collaps
+                keyId="General-tips"
+                titleFeature={
+                  <p className="pl-[28px] border-none font-bold !text-[24px] shadow-none no-focus ">
+                    General Tips
+                  </p>
+                }
+                itemExpand={
+                  <div>
+                    <FormField
+                      control={form.control}
+                      name="generalTips"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Textarea
+                              placeholder="General Tips..."
+                              {...field}
+                              rows={3}
+                              className="py-4 border-none paragraph-regular background-light800_darkgradient light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                }
+              />
+            </div>
             {/* Lodging */}
             <Separator className="my-[24px]" />
 
-            <Collaps
-              keyId="lodging"
-              titleFeature={
-                <p className="pl-[28px] border-none font-bold !text-[24px] shadow-none no-focus ">
-                  Hotels and Lodging
-                </p>
-              }
-              itemExpand={
-                <div className="flex flex-col gap-4">
-                  {showAddHotel ? (
+            <div id="lodging-section">
+              <Collaps
+                keyId="lodging"
+                titleFeature={
+                  <p className="pl-[28px] border-none font-bold !text-[24px] shadow-none no-focus ">
+                    Hotels and Lodging
+                  </p>
+                }
+                itemExpand={
+                  <div className="flex flex-col gap-4">
+                    {/* {showAddHotel ? (
+                      <LodgingSearch
+                        size="large"
+                        onSelectHotel={(hotel: any) => {
+                          addNewLodging(hotel);
+                        }}
+                      />
+                    ) : (
+                      <Button
+                        onClick={() => {
+                          setShowAddHotel(true);
+                        }}
+                      >
+                        Add Hotel
+                      </Button>
+                    )} */}{" "}
                     <LodgingSearch
                       size="large"
                       onSelectHotel={(hotel: any) => {
                         addNewLodging(hotel);
                       }}
                     />
-                  ) : (
-                    <Button
-                      onClick={() => {
-                        setShowAddHotel(true);
-                      }}
-                    >
-                      Add Hotel
-                    </Button>
-                  )}
-                  {lodgingFields.map((field, index) => (
-                    <Card
-                      key={field.id}
-                      className="relative border-none shadow-none"
-                    >
-                      <CardContent className="relative !p-0">
-                        {editingIndex === index ? (
-                          renderHotelForm(index)
-                        ) : (
-                          <div
-                            className="cursor-pointer min-h-[60px] flex items-center"
-                            onClick={() => setEditingIndex(index)}
-                          >
-                            {hotelsWatch &&
-                              renderHotelPreview(hotelsWatch[index], index)}
-                          </div>
-                        )}
-                        {/* <div className="flex items-center justify-between absolute right-2 bottom-2">
+                    {lodgingFields.map((field, index) => (
+                      <Card
+                        key={field.id}
+                        className="relative border-none shadow-none"
+                      >
+                        <CardContent className="relative !p-0">
+                          {editingIndex === index ? (
+                            renderHotelForm(index)
+                          ) : (
+                            <div
+                              className="cursor-pointer min-h-[60px] flex items-center"
+                              onClick={() => setEditingIndex(index)}
+                            >
+                              {form.getValues("lodging") &&
+                                form.getValues("lodging")![index] &&
+                                renderHotelPreview(
+                                  form.getValues("lodging")![index],
+                                  index
+                                )}
+                            </div>
+                          )}
+                          {/* <div className="flex items-center justify-between absolute right-2 bottom-2">
                           <div className="flex items-center gap-2">
-                            {hotelsWatch?.length > 1 && index > 0 && (
+                            {form.getValues("lodging")?.length > 1 && index > 0 && (
                               <Button
                                 type="button"
                                 variant="ghost"
@@ -1264,33 +1445,34 @@ const PlannerForm = ({ planner }: any) => {
                             )}
                           </div>
                         </div> */}
-                      </CardContent>
-                    </Card>
-                  ))}
-                  <div className="flex gap-4 items-center pl-[18px]">
-                    <div
-                      onClick={() => {
-                        setOpenModalHotel(true);
-                      }}
-                      className="flex  cursor-pointer h-5 items-center gap-2"
-                    >
-                      <Plus size={16} />
-                      <span className="text-dark400_light700 font-bold text-[12px]">
-                        Add another Lodging
-                      </span>
-                      <Separator orientation="vertical" />
-                    </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                    <div className="flex gap-4 items-center pl-[18px]">
+                      <div
+                        onClick={() => {
+                          setOpenModalHotel(true);
+                        }}
+                        className="flex  cursor-pointer h-5 items-center gap-2"
+                      >
+                        <Plus size={16} />
+                        <span className="text-dark400_light700 font-bold text-[12px]">
+                          Add another Lodging
+                        </span>
+                        <Separator orientation="vertical" />
+                      </div>
 
-                    <div className="flex items-center gap-2 cursor-pointer">
-                      <BiSolidHotel />
-                      <span className="text-dark400_light700 font-bold text-[12px]">
-                        Find hotels
-                      </span>
+                      <div className="flex items-center gap-2 cursor-pointer">
+                        <BiSolidHotel />
+                        <span className="text-dark400_light700 font-bold text-[12px]">
+                          Find hotels
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              }
-            />
+                }
+              />
+            </div>
             <Separator className="my-[24px]" />
 
             <div id="details-section">
@@ -1917,7 +2099,7 @@ const PlannerForm = ({ planner }: any) => {
           </Card> */}
 
           {/* Submit Button */}
-          <div className="flex gap-4 w-full justify-end">
+          <div className="flex gap-4 w-full p-4 justify-end">
             <Button
               type="submit"
               disabled={isPending}

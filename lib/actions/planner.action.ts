@@ -26,7 +26,7 @@ export async function createPlanner(
     return handleError(validationResult) as ErrorResponse;
   }
 
-  const { title, destination, startDate, endDate, type } =
+  const { title, destination, startDate, endDate, type, details } =
     validationResult.params!;
   const userId = validationResult?.session?.user?.id;
 
@@ -60,7 +60,7 @@ export async function createPlanner(
             state: "planning",
             tripmates: [], // Empty initially, can be added later
             lodging: [], // Empty initially, can be added later
-            details: [], // Empty initially, can be added later
+            details: details || [], // Empty initially, can be added later
           },
         ],
         { session }

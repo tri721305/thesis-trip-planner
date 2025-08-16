@@ -799,6 +799,7 @@ export const CreateTravelPlannerSchema = z
     type: z.enum(["public", "private", "friend"], {
       message: "Plan type must be 'public', 'private', or 'friend'.",
     }),
+    details: z.array(z.object({})),
   })
   .refine(
     (data) => {
