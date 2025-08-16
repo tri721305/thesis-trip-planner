@@ -894,7 +894,7 @@ const PlannerForm = ({ planner }: any) => {
         setIsUploadingImage(true);
 
         // Gọi function upload ảnh
-        const result = await updatePlannerMainImage({
+        const result: any = await updatePlannerMainImage({
           plannerId: planner._id,
           imageFile: file,
         });
