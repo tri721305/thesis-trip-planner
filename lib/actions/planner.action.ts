@@ -161,6 +161,31 @@ export async function updatePlanner(
   const userId = validationResult?.session?.user?.id;
 
   console.log("updateData", updateData);
+
+  // Debug details specifically for place location data
+  if (updateData.details) {
+    console.log(
+      "🔍 DEBUG - updateData.details:",
+      JSON.stringify(updateData.details, null, 2)
+    );
+    updateData.details.forEach((detail: any, detailIndex: number) => {
+      if (detail.data) {
+        detail.data.forEach((item: any, itemIndex: number) => {
+          if (item.type === "place") {
+            console.log(
+              `🔍 DEBUG - Place ${detailIndex}-${itemIndex} in updateData:`,
+              {
+                name: item.name,
+                hasLocation: !!item.location,
+                location: item.location,
+                coordinates: item.location?.coordinates,
+              }
+            );
+          }
+        });
+      }
+    });
+  }
   try {
     // PHASE: Database operations in transaction
     console.log("Starting MongoDB transaction for update...");
@@ -187,6 +212,30 @@ export async function updatePlanner(
         throw new Error(
           "Permission denied: You are not authorized to update this planner"
         );
+      }
+
+      console.log("🔍 DEBUG - updatePlanner received data:", {
+        hasDetails: !!updateData.details,
+        detailsLength: updateData.details?.length,
+        firstDetailSample: updateData.details?.[0],
+      });
+
+      // Debug: Check place items in details for location data
+      if (updateData.details) {
+        updateData.details.forEach((detail: any, detailIndex: number) => {
+          if (detail.data) {
+            detail.data.forEach((item: any, itemIndex: number) => {
+              if (item.type === "place") {
+                console.log(`🔍 Place item [${detailIndex}-${itemIndex}]:`, {
+                  name: item.name,
+                  hasLocation: !!item.location,
+                  location: item.location,
+                  coordinates: item.location?.coordinates,
+                });
+              }
+            });
+          }
+        });
       }
 
       // Prepare update object

@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Map Marker Removal Test</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background-color: #f5f5f5;
+      }
+      .test-container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+      .test-step {
+        background: #f8f9fa;
+        padding: 15px;
+        margin: 10px 0;
+        border-left: 4px solid #007bff;
+        border-radius: 4px;
+      }
+      .test-step.expected {
+        border-left-color: #28a745;
+      }
+      .test-step.error {
+        border-left-color: #dc3545;
+        background: #f8d7da;
+      }
+      .code {
+        background: #f4f4f4;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-family: "Courier New", monospace;
+        font-size: 0.9em;
+      }
+      .log-output {
+        background: #1e1e1e;
+        color: #ffffff;
+        padding: 15px;
+        border-radius: 4px;
+        font-family: "Courier New", monospace;
+        font-size: 0.85em;
+        max-height: 300px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+      }
+      .status {
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-weight: bold;
+        display: inline-block;
+        margin: 5px 0;
+      }
+      .status.pass {
+        background: #d4edda;
+        color: #155724;
+      }
+      .status.fail {
+        background: #f8d7da;
+        color: #721c24;
+      }
+      .status.pending {
+        background: #fff3cd;
+        color: #856404;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🗺️ Map Marker Removal Test</h1>
+    <p>
+      This test verifies that Map markers are properly removed when places are
+      deleted from PlannerForm.
+    </p>
+
+    <div class="test-container">
+      <h2>🎯 Test Objective</h2>
+      <p>
+        Ensure that when a place is removed from PlannerForm using the trash
+        button, the corresponding marker is also removed from the Map component.
+      </p>
+
+      <div class="status pending">Status: Ready to Test</div>
+    </div>
+
+    <div class="test-container">
+      <h2>🚀 Test Steps</h2>
+
+      <div class="test-step">
+        <strong>Step 1:</strong> Navigate to a planner detail page with existing
+        places <br /><small
+          >URL:
+          <span class="code">http://localhost:3000/planners/[id]</span></small
+        >
+      </div>
+
+      <div class="test-step">
+        <strong>Step 2:</strong> Add a new place using PlaceSearch component
+        <br /><small>Ensure the place has location coordinates</small>
+      </div>
+
+      <div class="test-step expected">
+        <strong>Expected:</strong> Marker should appear on the Map component
+        <br /><small
+          >Look for debug logs:
+          <span class="code"
+            >🗺️ Extracted places for map with coordinates</span
+          ></small
+        >
+      </div>
+
+      <div class="test-step">
+        <strong>Step 3:</strong> Click the trash button to remove a place
+        <br /><small
+          >This calls <span class="code">removeItem()</span> function</small
+        >
+      </div>
+
+      <div class="test-step expected">
+        <strong>Expected:</strong> Marker should disappear from the Map
+        <br /><small
+          >Look for debug logs indicating form data change and map update</small
+        >
+      </div>
+    </div>
+
+    <div class="test-container">
+      <h2>🔍 Debug Logs to Monitor</h2>
+      <p>Open browser console and look for these log messages:</p>
+
+      <div class="log-output">
+        🔄 PlannerForm - Notifying parent of removeItem change: {
+        removedItemIndex: 0, detailIndex: 0, remainingItems: 1 } 🔄
+        CustomScrollLayoutPlanner - Received form data update: { details: [....]
+        } 🔍 Processing details source: { usingFormData: true, detailsCount: 1 }
+        🗺️ Extracted places for map with coordinates: 1 [...] 🗺️ Map data
+        updated: { destination: {...}, placesCount: 1 }
+      </div>
+    </div>
+
+    <div class="test-container">
+      <h2>🔧 Fixed Issues</h2>
+
+      <div class="test-step">
+        <strong>Problem:</strong> CustomScrollLayoutPlanner useEffect dependency
+        <span class="code">[planner.planner?.details]</span> didn't update when
+        form state changed
+      </div>
+
+      <div class="test-step expected">
+        <strong>Solution:</strong> Added form data change notification from
+        PlannerForm to CustomScrollLayoutPlanner
+        <ul>
+          <li>
+            Added <span class="code">onFormDataChange</span> prop to PlannerForm
+          </li>
+          <li>
+            Added <span class="code">formDetailsData</span> state in
+            CustomScrollLayoutPlanner
+          </li>
+          <li>
+            Updated useEffect dependency to include
+            <span class="code">formDetailsData</span>
+          </li>
+          <li>Prioritize form data over planner prop data for map updates</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="test-container">
+      <h2>🎯 Test Results</h2>
+      <div id="test-results">
+        <p>Run the test steps above and update results here:</p>
+        <ul>
+          <li>✅ Place addition shows marker on map</li>
+          <li>⏳ Place removal removes marker from map (TO BE TESTED)</li>
+          <li>⏳ Debug logs show proper data flow (TO BE TESTED)</li>
+        </ul>
+      </div>
+    </div>
+
+    <script>
+      // Test helper functions
+      function logTestResult(step, status, message) {
+        const results = document.getElementById("test-results");
+        const entry = document.createElement("div");
+        entry.className = `test-step ${status}`;
+        entry.innerHTML = `<strong>${step}:</strong> ${message}`;
+        results.appendChild(entry);
+      }
+
+      function startTest() {
+        console.log("🚀 Starting Map Marker Removal Test");
+        console.log("Navigate to planner page and follow test steps...");
+      }
+
+      // Auto-start test info
+      console.log("📋 Map Marker Removal Test loaded");
+      console.log("Call startTest() to begin testing");
+
+      // Make test functions available globally
+      window.logTestResult = logTestResult;
+      window.startTest = startTest;
+    </script>
+  </body>
+</html>

@@ -130,6 +130,16 @@ export async function getPlaces(params: PaginatedSearchParams): Promise<
       .sort(sortCriteria)
       .lean();
 
+    console.log(
+      "🔍 getPlaces - Database results (first 2):",
+      places.slice(0, 2).map((place) => ({
+        name: place.name,
+        hasLocation: !!place.location,
+        location: place.location,
+        coordinates: place.location?.coordinates,
+      }))
+    );
+
     const isNext = totalPlaces > skip + places.length;
 
     return {

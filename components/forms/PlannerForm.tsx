@@ -93,7 +93,13 @@ import { useToast } from "@/hooks/use-toast";
 import { Toast } from "../ui/toast";
 type PlannerFormData = z.infer<typeof PlannerSchema>;
 
-const PlannerForm = ({ planner }: any) => {
+const PlannerForm = ({
+  planner,
+  onFormDataChange,
+}: {
+  planner?: any;
+  onFormDataChange?: (formData: any) => void;
+}) => {
   const router = useRouter();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
@@ -371,13 +377,53 @@ const PlannerForm = ({ planner }: any) => {
       }
 
       form.setValue(`details.${index}.data`, updatedItems);
+
+      // Notify parent about form data change for map updates
+      if (onFormDataChange) {
+        const formData = form.getValues();
+        console.log(
+          "🔄 PlannerForm - Notifying parent of updateItemData change:",
+          {
+            itemIndex,
+            detailIndex: index,
+            itemsCount: updatedItems.length,
+          }
+        );
+        onFormDataChange(formData);
+      }
     };
 
     // Helper function to remove item
     const removeItem = (itemIndex: number) => {
+      console.log("🗑️ removeItem called:", { itemIndex, detailIndex: index });
+      
       const currentRouteItems = getCurrentRouteItems();
+      const removedItem = currentRouteItems[itemIndex];
+      
+      console.log("🗑️ Item being removed:", {
+        item: removedItem,
+        itemType: removedItem?.type,
+        itemName: (removedItem as any)?.name || (removedItem as any)?.content || "Unknown item",
+        hasLocation: removedItem?.type === "place" && !!(removedItem as any)?.location
+      });
+      
       const updatedItems = currentRouteItems.filter((_, i) => i !== itemIndex);
       form.setValue(`details.${index}.data`, updatedItems);
+
+      // Notify parent about form data change for map updates
+      if (onFormDataChange) {
+        const formData = form.getValues();
+        console.log("🔄 PlannerForm - Notifying parent of removeItem change:", {
+          removedItemIndex: itemIndex,
+          detailIndex: index,
+          remainingItems: updatedItems.length,
+          removedItemType: removedItem?.type,
+          wasPlace: removedItem?.type === "place"
+        });
+        onFormDataChange(formData);
+      } else {
+        console.warn("⚠️ onFormDataChange callback not available!");
+      }
     };
 
     // Get current items for rendering
@@ -981,6 +1027,19 @@ const PlannerForm = ({ planner }: any) => {
     // Update the form with new item
     const updatedItems = [...currentItems, newNoteItem];
     form.setValue(`details.${parentIndex}.data`, updatedItems);
+
+    // Notify parent about form data change for map updates
+    if (onFormDataChange) {
+      const formData = form.getValues();
+      console.log(
+        "🔄 PlannerForm - Notifying parent of handleAddNoteItem change:",
+        {
+          detailIndex: parentIndex,
+          totalItems: updatedItems.length,
+        }
+      );
+      onFormDataChange(formData);
+    }
   };
   const handleAddChecklistItem = (parentIndex: number) => {
     const currentItems = form.getValues(`details.${parentIndex}.data`) || [];
@@ -994,6 +1053,19 @@ const PlannerForm = ({ planner }: any) => {
     // Update the form with new item
     const updatedItems = [...currentItems, newChecklistItem];
     form.setValue(`details.${parentIndex}.data`, updatedItems);
+
+    // Notify parent about form data change for map updates
+    if (onFormDataChange) {
+      const formData = form.getValues();
+      console.log(
+        "🔄 PlannerForm - Notifying parent of handleAddChecklistItem change:",
+        {
+          detailIndex: parentIndex,
+          totalItems: updatedItems.length,
+        }
+      );
+      onFormDataChange(formData);
+    }
   };
 
   const handlePlaceSelect = (place: any, index: any) => {
@@ -1004,13 +1076,58 @@ const PlannerForm = ({ planner }: any) => {
     const newPlaceItem = {
       type: "place" as const,
       ...place,
+      // Explicitly ensure location data is preserved
+      location: place.location
+        ? {
+            type: place.location.type || "Point",
+            coordinates: place.location.coordinates,
+          }
+        : undefined,
       timeStart: place.timeStart || "", // Ensure timeStart exists
       timeEnd: place.timeEnd || "", // Ensure timeEnd exists
     };
 
+    console.log("🔍 DEBUG - handlePlaceSelect:", {
+      place: place,
+      hasLocation: !!place.location,
+      location: place.location,
+      coordinates: place.location?.coordinates,
+      newPlaceItem: newPlaceItem,
+      newItemHasLocation: !!newPlaceItem.location,
+      newItemCoordinates: newPlaceItem.location?.coordinates,
+    });
+
     // Update the form with new item
     const updatedItems = [...currentItems, newPlaceItem];
     form.setValue(`details.${index}.data`, updatedItems);
+
+    // Notify parent about form data change for map updates
+    if (onFormDataChange) {
+      const formData = form.getValues();
+      console.log(
+        "🔄 PlannerForm - Notifying parent of handlePlaceSelect change:",
+        {
+          addedPlace: newPlaceItem.name,
+          detailIndex: index,
+          totalItems: updatedItems.length,
+          hasLocation: !!newPlaceItem.location,
+        }
+      );
+      onFormDataChange(formData);
+    }
+
+    // Verify the form value was set correctly
+    setTimeout(() => {
+      const verifyData = form.getValues(`details.${index}.data`);
+      const addedItem = verifyData[verifyData.length - 1];
+      if (addedItem.type === "place") {
+        console.log("🔍 DEBUG - Verified form data after adding place:", {
+          hasLocation: !!addedItem.location,
+          location: addedItem.location,
+          coordinates: addedItem.location?.coordinates,
+        });
+      }
+    }, 100);
   };
   const handleUploadImage = () => {
     // Tạo một input file ẩn
@@ -1110,7 +1227,43 @@ const PlannerForm = ({ planner }: any) => {
   const handleSubmit = async () => {
     const formData = form.getValues();
     console.log("DataSubmit", formData);
-    const dataTest: any = { ...formData, plannerId: planner._id };
+
+    // Debug: Check if location data exists in form data
+    if (formData.details) {
+      formData.details.forEach((detail: any, detailIndex: number) => {
+        if (detail.data) {
+          detail.data.forEach((item: any, itemIndex: number) => {
+            if (item.type === "place") {
+              console.log(`Place ${detailIndex}-${itemIndex}:`, {
+                name: item.name,
+                hasLocation: !!item.location,
+                location: item.location,
+                coordinates: item.location?.coordinates,
+              });
+            }
+          });
+        }
+      });
+    }
+
+    // Workaround: Ensure location data is preserved for place items
+    const processedFormData = {
+      ...formData,
+      details: formData.details?.map((detail: any) => ({
+        ...detail,
+        data: detail.data?.map((item: any) => {
+          if (item.type === "place" && !item.location && item.id) {
+            console.log(
+              "⚠️ Place missing location data, will be fetched by ID:",
+              item.name
+            );
+          }
+          return item;
+        }),
+      })),
+    };
+
+    const dataTest: any = { ...processedFormData, plannerId: planner._id };
     const updatePlannerData = await updatePlanner(dataTest);
     console.log("datePlannerData", updatePlannerData);
     if (updatePlannerData) {
@@ -1126,6 +1279,29 @@ const PlannerForm = ({ planner }: any) => {
   };
 
   console.log("Value Form", form.watch());
+
+  // Debug: Monitor form data changes for location preservation
+  const watchedDetails = form.watch("details");
+  React.useEffect(() => {
+    if (watchedDetails) {
+      console.log(
+        "🔍 Form details changed:",
+        watchedDetails.map((detail: any, detailIndex: number) => ({
+          name: detail.name,
+          type: detail.type,
+          dataItems: detail.data?.length || 0,
+          places:
+            detail.data
+              ?.filter((item: any) => item.type === "place")
+              .map((place: any) => ({
+                name: place.name,
+                hasLocation: !!place.location,
+                coordinates: place.location?.coordinates,
+              })) || [],
+        }))
+      );
+    }
+  }, [watchedDetails]);
 
   return (
     <div className="container mx-auto  max-w-4xl">

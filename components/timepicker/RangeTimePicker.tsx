@@ -59,13 +59,6 @@ const RangeTimePicker: React.FC<RangeTimePickerProps> = ({
   const prevValueRef = useRef(value);
 
   useEffect(() => {
-    console.log("🔄 RangeTimePicker useEffect triggered with value:", value);
-    console.log("🔄 Current internal state:", {
-      selectedStartTime,
-      selectedEndTime,
-    });
-    console.log("🔄 Previous value ref:", prevValueRef.current);
-
     // Always update if value prop exists and is different from previous ref
     if (
       value &&
@@ -113,7 +106,6 @@ const RangeTimePicker: React.FC<RangeTimePickerProps> = ({
 
       // Auto-focus to end time selection after selecting start time
       setTimeout(() => {
-        console.log("⏰ Auto-switching to end time input");
         setActiveInput("end");
       }, 150); // Small delay for smooth UX
     } else if (activeInput === "end") {
@@ -122,7 +114,6 @@ const RangeTimePicker: React.FC<RangeTimePickerProps> = ({
         console.warn("⏰ End time cannot be before or equal to start time");
         return;
       }
-      console.log("⏰ Setting end time:", time);
       setSelectedEndTime(time);
     } else {
       console.warn("⏰ No active input set");
@@ -131,16 +122,11 @@ const RangeTimePicker: React.FC<RangeTimePickerProps> = ({
 
   // Handle save
   const handleSave = () => {
-    console.log("💾 RangeTimePicker handleSave called:", {
-      selectedStartTime,
-      selectedEndTime,
-    });
     if (selectedStartTime && selectedEndTime && onChange) {
       const timeRange = {
         startTime: selectedStartTime,
         endTime: selectedEndTime,
       };
-      console.log("💾 Calling onChange with:", timeRange);
 
       // Use setTimeout to ensure proper state update order
       setTimeout(() => {
@@ -159,7 +145,6 @@ const RangeTimePicker: React.FC<RangeTimePickerProps> = ({
 
   // Handle clear
   const handleClear = () => {
-    console.log("🗑️ RangeTimePicker handleClear called");
     setSelectedStartTime("");
     setSelectedEndTime("");
     setActiveInput(null);
@@ -170,10 +155,8 @@ const RangeTimePicker: React.FC<RangeTimePickerProps> = ({
 
   // Handle cancel
   const handleCancel = () => {
-    console.log("❌ RangeTimePicker handleCancel called");
     // Reset to original values
     if (value) {
-      console.log("❌ Resetting to original values:", value);
       setSelectedStartTime(value.startTime || "");
       setSelectedEndTime(value.endTime || "");
     } else {
@@ -185,20 +168,13 @@ const RangeTimePicker: React.FC<RangeTimePickerProps> = ({
 
   // Handle popover open change
   const handlePopoverOpenChange = (open: boolean) => {
-    console.log("📂 Popover open change:", {
-      open,
-      selectedStartTime,
-      selectedEndTime,
-    });
     setIsPopoverOpen(open);
     if (open && !selectedStartTime && !selectedEndTime) {
       // Auto-focus to start time when opening popover for the first time
-      console.log("📂 Auto-focusing to start time");
       setTimeout(() => {
         setActiveInput("start");
       }, 100);
     } else if (!open) {
-      console.log("📂 Clearing active input");
       setActiveInput(null);
     }
   };
@@ -263,7 +239,6 @@ const RangeTimePicker: React.FC<RangeTimePickerProps> = ({
                       !selectedStartTime && "text-muted-foreground"
                     )}
                     onClick={() => {
-                      console.log("🎯 Start time button clicked");
                       setActiveInput("start");
                     }}
                   >
@@ -287,7 +262,6 @@ const RangeTimePicker: React.FC<RangeTimePickerProps> = ({
                         "bg-blue-500 text-white hover:bg-blue-600"
                     )}
                     onClick={() => {
-                      console.log("🎯 End time button clicked");
                       setActiveInput("end");
                     }}
                   >
@@ -326,11 +300,6 @@ const RangeTimePicker: React.FC<RangeTimePickerProps> = ({
                                 "opacity-50 cursor-not-allowed"
                             )}
                             onClick={() => {
-                              console.log("🎯 Time slot clicked:", {
-                                time,
-                                activeInput,
-                                disabled: isTimeSlotDisabled(time),
-                              });
                               handleTimeSelect(time);
                             }}
                             disabled={isTimeSlotDisabled(time)}

@@ -108,6 +108,10 @@ const PlaceSearch = ({
         });
 
         if (places?.success && places?.data?.places) {
+          console.log(
+            "🔍 PlaceSearch API Response:",
+            places.data.places.slice(0, 2)
+          ); // Log first 2 places to check location data
           setResult(places.data.places);
         } else {
           setResult([]);

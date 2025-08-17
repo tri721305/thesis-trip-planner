@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map Marker Debug Test</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 1200px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            line-height: 1.6;
+        }
+        .test-section { 
+            margin: 20px 0; 
+            padding: 20px; 
+            border: 1px solid #ddd; 
+            border-radius: 8px; 
+            background: #f9f9f9;
+        }
+        .test-section h3 { 
+            margin-top: 0; 
+            color: #333; 
+        }
+        .status { 
+            padding: 8px 12px; 
+            border-radius: 4px; 
+            font-weight: bold; 
+            margin: 5px 0;
+            display: inline-block;
+        }
+        .status.pass { background: #d4edda; color: #155724; }
+        .status.fail { background: #f8d7da; color: #721c24; }
+        .status.pending { background: #fff3cd; color: #856404; }
+        .log-output { 
+            background: #1e1e1e; 
+            color: #00ff00; 
+            padding: 15px; 
+            border-radius: 4px; 
+            font-family: 'Courier New', monospace; 
+            font-size: 12px;
+            max-height: 300px; 
+            overflow-y: auto; 
+            white-space: pre-wrap;
+            margin: 10px 0;
+        }
+        .action-button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .action-button:hover {
+            background: #0056b3;
+        }
+        .debug-instructions {
+            background: #e7f3ff;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>🗺️ Map Marker Debug Test Dashboard</h1>
+    
+    <div class="debug-instructions">
+        <h3>📋 Test Instructions</h3>
+        <ol>
+            <li><strong>Navigate to planner page:</strong> Go to <code>http://localhost:3000/planners/[id]</code></li>
+            <li><strong>Open this page in a separate tab</strong></li>
+            <li><strong>Open console</strong> in the planner page (F12)</li>
+            <li><strong>Run tests</strong> using the buttons below</li>
+            <li><strong>Try manual actions:</strong> Add/remove places and watch logs</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h3>🔧 Quick Actions</h3>
+        <button class="action-button" onclick="copyDebugScript()">📋 Copy Debug Script</button>
+        <button class="action-button" onclick="copySimpleTest()">📋 Copy Simple Test</button>
+        <button class="action-button" onclick="showExpectedLogs()">📊 Show Expected Logs</button>
+        <button class="action-button" onclick="clearResults()">🗑️ Clear Results</button>
+    </div>
+
+    <div class="test-section">
+        <h3>🎯 Expected Debug Flow</h3>
+        <div class="log-output" id="expected-logs">
+# When adding a place:
+🔍 DEBUG - handlePlaceSelect: { place: {...}, hasLocation: true, ... }
+🔄 Callback invoked in CustomScrollLayoutPlanner: { hasFormData: true, detailsCount: 1 }
+🔄 CustomScrollLayoutPlanner - Received form data update: {...}
+🔄 CustomScrollLayoutPlanner - Applied IMMEDIATE form data update: { detailsCount: 1, totalPlaces: 1 }
+🔍 formDetailsData changed: { length: 1, data: [...] }
+🔍 useEffect triggered with dependencies: { plannerDetailsCount: 0, formDetailsDataCount: 1, triggerSource: "formData" }
+🔍 Processing details source: { usingFormData: true, detailsCount: 1, ... }
+🔍 CustomScrollLayoutPlanner - Processing place item: { name: "Place Name", hasLocation: true, ... }
+✅ Using coordinates from item location: [lng, lat]
+🗺️ Extracted places for map with coordinates: 1 [...]
+🗺️ Map data updated: { destination: {...}, placesCount: 1 }
+
+# When removing a place:
+🗑️ removeItem called: { itemIndex: 0, detailIndex: 0 }
+🗑️ Item being removed: { item: {...}, itemType: "place", itemName: "Place Name", hasLocation: true }
+🔄 PlannerForm - Notifying parent of removeItem change: { removedItemIndex: 0, ... }
+🔄 Callback invoked in CustomScrollLayoutPlanner: { hasFormData: true, detailsCount: 1 }
+🔄 CustomScrollLayoutPlanner - Received form data update: {...}
+🔄 CustomScrollLayoutPlanner - Applied IMMEDIATE form data update: { detailsCount: 1, totalPlaces: 0 }
+🔍 formDetailsData changed: { length: 1, data: [...] }
+🔍 useEffect triggered with dependencies: { triggerSource: "formData" }
+🗺️ Extracted places for map with coordinates: 0 []
+🗺️ Map data updated: { destination: {...}, placesCount: 0 }
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>📊 Test Results</h3>
+        <div id="test-results">
+            <div class="status pending">🔄 Waiting for test results...</div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>🔍 Troubleshooting Guide</h3>
+        <div id="troubleshooting">
+            <h4>❌ If no debug messages appear:</h4>
+            <ul>
+                <li>Check if you're on the correct planner detail page</li>
+                <li>Verify PlaceSearch components exist (look for search inputs)</li>
+                <li>Ensure items exist to remove (add some places first)</li>
+                <li>Check browser console for errors</li>
+            </ul>
+
+            <h4>❌ If handlePlaceSelect/removeItem logs appear but no map updates:</h4>
+            <ul>
+                <li>Check if onFormDataChange callback is triggered</li>
+                <li>Verify CustomScrollLayoutPlanner receives form data</li>
+                <li>Check useEffect dependencies and triggers</li>
+            </ul>
+
+            <h4>❌ If useEffect triggers but no map updates:</h4>
+            <ul>
+                <li>Check place coordinate extraction logic</li>
+                <li>Verify Map component receives updated places prop</li>
+                <li>Check Map component rendering logic</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function copyDebugScript() {
+            const script = `
+// Paste this in planner page console
+console.log("🧪 Map Marker Debug Script loaded");
+
+// Monitor all relevant debug messages
+const originalLog = console.log;
+let debugData = {
+    handlePlaceSelect: [],
+    removeItem: [],
+    formDataChange: [],
+    useEffectTriggers: [],
+    mapUpdates: []
+};
+
+console.log = (...args) => {
+    const message = args.join(' ');
+    
+    if (message.includes('🔍 DEBUG - handlePlaceSelect:')) {
+        debugData.handlePlaceSelect.push(args);
+    }
+    if (message.includes('🗑️ removeItem called:')) {
+        debugData.removeItem.push(args);
+    }
+    if (message.includes('🔄') && message.includes('form data')) {
+        debugData.formDataChange.push(args);
+    }
+    if (message.includes('🔍 useEffect triggered')) {
+        debugData.useEffectTriggers.push(args);
+    }
+    if (message.includes('🗺️ Map data updated:')) {
+        debugData.mapUpdates.push(args);
+    }
+    
+    originalLog(...args);
+};
+
+// Helper to check debug data
+window.checkDebugData = () => {
+    originalLog("📊 Debug Data Summary:", debugData);
+    return debugData;
+};
+
+console.log("✅ Debug monitoring active. Use checkDebugData() to see results.");
+            `;
+            
+            navigator.clipboard.writeText(script).then(() => {
+                alert("Debug script copied! Paste it in the planner page console.");
+            });
+        }
+
+        function copySimpleTest() {
+            fetch('/simple-map-test.js')
+                .then(response => response.text())
+                .then(script => {
+                    navigator.clipboard.writeText(script).then(() => {
+                        alert("Simple test script copied! Paste it in the planner page console.");
+                    });
+                })
+                .catch(() => {
+                    alert("Could not load simple test script. Check if simple-map-test.js exists.");
+                });
+        }
+
+        function showExpectedLogs() {
+            document.getElementById('expected-logs').style.display = 
+                document.getElementById('expected-logs').style.display === 'none' ? 'block' : 'none';
+        }
+
+        function clearResults() {
+            document.getElementById('test-results').innerHTML = 
+                '<div class="status pending">🔄 Waiting for test results...</div>';
+        }
+
+        // Auto-update test results every 5 seconds
+        function updateResults() {
+            // This would normally get data from the actual test
+            // For now, just show instructions
+            const results = document.getElementById('test-results');
+            results.innerHTML = `
+                <div class="status pending">📝 Manual testing required</div>
+                <p>Follow the instructions above and check console logs in the planner page.</p>
+            `;
+        }
+
+        // Initialize
+        updateResults();
+        
+        console.log("🧪 Map Debug Dashboard loaded");
+        console.log("Use the buttons above to copy test scripts to the planner page console");
+    </script>
+</body>
+</html>
