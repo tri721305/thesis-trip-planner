@@ -41,6 +41,7 @@ const CustomScrollLayoutPlanner = (planner: any) => {
     return null;
   }, [planner.planner?.destination]);
 
+  console.log("MapDestination", mapDestination, mapPlaces, "mapPlaces");
   // Function to fetch place coordinates by ID
   const fetchPlaceCoordinates = async (placeId: string) => {
     try {
@@ -73,16 +74,34 @@ const CustomScrollLayoutPlanner = (planner: any) => {
       clearTimeout(debounceTimeoutRef.current);
     }
 
-    // Immediate update for testing - remove debounce temporarily
-    setFormDetailsData(formData.details || []);
+    // Create a new array reference to ensure React detects the change
+    const newDetailsData = formData.details ? [...formData.details] : [];
+
+    // Add timestamp to force re-render detection
+    const detailsWithTimestamp = newDetailsData.map((detail: any) => ({
+      ...detail,
+      _updateTimestamp: Date.now(),
+    }));
+
     console.log(
-      "🔄 CustomScrollLayoutPlanner - Applied IMMEDIATE form data update",
+      "🔄 CustomScrollLayoutPlanner - Applying state update with new reference:",
       {
-        detailsCount: formData.details?.length || 0,
-        totalPlaces: formData.details?.reduce((acc: number, detail: any) => 
-          acc + (detail.data?.filter((item: any) => item.type === "place")?.length || 0), 0)
+        oldLength: formDetailsData.length,
+        newLength: detailsWithTimestamp.length,
+        oldReference: formDetailsData,
+        newReference: detailsWithTimestamp,
+        totalPlaces: detailsWithTimestamp.reduce(
+          (acc: number, detail: any) =>
+            acc +
+            (detail.data?.filter((item: any) => item.type === "place")
+              ?.length || 0),
+          0
+        ),
       }
     );
+
+    // Force state update with new reference
+    setFormDetailsData(detailsWithTimestamp);
 
     // Optional: keep debounce as fallback
     debounceTimeoutRef.current = setTimeout(() => {
@@ -93,11 +112,18 @@ const CustomScrollLayoutPlanner = (planner: any) => {
   // Extract places from details and fetch their coordinates
   // Use formDetailsData if available, otherwise fallback to planner.planner.details
   useEffect(() => {
-    console.log("🔍 useEffect triggered with dependencies:", {
-      plannerDetailsCount: planner.planner?.details?.length || 0,
-      formDetailsDataCount: formDetailsData.length,
-      triggerSource: formDetailsData.length > 0 ? "formData" : "plannerProp"
-    });
+    const timestamp = Date.now();
+    console.log(
+      "🔍 useEffect triggered at:",
+      new Date(timestamp).toLocaleTimeString(),
+      {
+        plannerDetailsCount: planner.planner?.details?.length || 0,
+        formDetailsDataCount: formDetailsData.length,
+        triggerSource: formDetailsData.length > 0 ? "formData" : "plannerProp",
+        formDetailsDataReference: formDetailsData,
+        plannerDetailsReference: planner.planner?.details,
+      }
+    );
 
     const extractPlacesWithCoordinates = async () => {
       const detailsToProcess =
@@ -116,8 +142,11 @@ const CustomScrollLayoutPlanner = (planner: any) => {
           name: d.name,
           type: d.type,
           dataCount: d.data?.length || 0,
-          placesCount: d.data?.filter((item: any) => item.type === "place")?.length || 0
-        }))
+          placesCount:
+            d.data?.filter((item: any) => item.type === "place")?.length || 0,
+          hasTimestamp: !!d._updateTimestamp,
+          timestamp: d._updateTimestamp,
+        })),
       });
 
       const places: Array<{
@@ -208,48 +237,24 @@ const CustomScrollLayoutPlanner = (planner: any) => {
 
   // Debug: Log when formDetailsData changes
   useEffect(() => {
-    console.log("🔍 formDetailsData changed:", {
-      length: formDetailsData.length,
-      data: formDetailsData.map(d => ({
-        name: d.name,
-        type: d.type,
-        dataCount: d.data?.length || 0,
-        placesCount: d.data?.filter((item: any) => item.type === "place")?.length || 0
-      }))
-    });
+    console.log(
+      "🔍 formDetailsData changed at:",
+      new Date().toLocaleTimeString(),
+      {
+        length: formDetailsData.length,
+        reference: formDetailsData,
+        data: formDetailsData.map((d) => ({
+          name: d.name,
+          type: d.type,
+          dataCount: d.data?.length || 0,
+          placesCount:
+            d.data?.filter((item: any) => item.type === "place")?.length || 0,
+          hasTimestamp: !!d._updateTimestamp,
+          timestamp: d._updateTimestamp,
+        })),
+      }
+    );
   }, [formDetailsData]);
-
-  // Debug: Log when mapPlaces changes
-  useEffect(() => {
-    console.log("🎯 MAP PLACES UPDATED:", {
-      count: mapPlaces.length,
-      places: mapPlaces.map(p => ({
-        name: p.name,
-        order: p.order,
-        hasCoordinates: !!p.location?.coordinates,
-        coordinates: p.location?.coordinates
-      }))
-    });
-  }, [mapPlaces]);
-
-  // Debug: Enhanced logging for both data sources
-  useEffect(() => {
-    console.log("📊 DATA SOURCE COMPARISON:", {
-      plannerDetailsLength: planner.planner?.details?.length || 0,
-      formDetailsDataLength: formDetailsData.length,
-      usingFormData: formDetailsData.length > 0,
-      plannerDetails: planner.planner?.details?.map(d => ({
-        name: d.name,
-        type: d.type,
-        dataCount: d.data?.length || 0
-      })) || [],
-      formDetails: formDetailsData.map(d => ({
-        name: d.name,
-        type: d.type,
-        dataCount: d.data?.length || 0
-      }))
-    });
-  }, [planner.planner?.details, formDetailsData]);
 
   useEffect(() => {
     console.log("🗺️ Map data updated:", {
@@ -350,10 +355,13 @@ const CustomScrollLayoutPlanner = (planner: any) => {
             <PlannerForm
               planner={planner.planner}
               onFormDataChange={(formData) => {
-                console.log("🔄 Callback invoked in CustomScrollLayoutPlanner:", {
-                  hasFormData: !!formData,
-                  detailsCount: formData?.details?.length || 0
-                });
+                console.log(
+                  "🔄 Callback invoked in CustomScrollLayoutPlanner:",
+                  {
+                    hasFormData: !!formData,
+                    detailsCount: formData?.details?.length || 0,
+                  }
+                );
                 updateFormData(formData);
               }}
             />

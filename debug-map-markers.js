@@ -20,10 +20,14 @@ if (!currentPath.includes("/planners/")) {
 console.log("🔍 Test 2: Setting up console monitoring");
 console.log("Watch for these debug messages when you add/remove places:");
 console.log("1. 🔍 DEBUG - handlePlaceSelect: (when adding places)");
-console.log("2. 🔄 PlannerForm - Notifying parent of handlePlaceSelect change:");
+console.log(
+  "2. 🔄 PlannerForm - Notifying parent of handlePlaceSelect change:"
+);
 console.log("3. 🔄 PlannerForm - Notifying parent of removeItem change:");
 console.log("4. 🔄 CustomScrollLayoutPlanner - Received form data update:");
-console.log("5. 🔄 CustomScrollLayoutPlanner - Applied IMMEDIATE form data update");
+console.log(
+  "5. 🔄 CustomScrollLayoutPlanner - Applied IMMEDIATE form data update"
+);
 console.log("6. 🔍 useEffect triggered with dependencies:");
 console.log("7. 🗺️ Extracted places for map with coordinates:");
 
@@ -31,7 +35,7 @@ console.log("7. 🗺️ Extracted places for map with coordinates:");
 setTimeout(() => {
   const mapElements = document.querySelectorAll('[class*="Map"], [id*="map"]');
   console.log("🔍 Test 3: Map elements found:", mapElements.length);
-  
+
   if (mapElements.length === 0) {
     console.warn("⚠️ No map elements found on page");
   } else {
@@ -56,20 +60,26 @@ if (window.__REACT_DEVTOOLS_GLOBAL_HOOK__) {
   console.log("⚠️ React DevTools not found - install for better debugging");
 }
 
-console.log("🧪 Debug setup complete! Follow the manual test instructions above.");
+console.log(
+  "🧪 Debug setup complete! Follow the manual test instructions above."
+);
 
 // Helper function to test data flow
 window.testDataFlow = () => {
   console.log("🧪 Testing data flow...");
-  const placeSearchInputs = document.querySelectorAll('input[placeholder*="Search for museums"]');
+  const placeSearchInputs = document.querySelectorAll(
+    'input[placeholder*="Search for museums"]'
+  );
   console.log("PlaceSearch inputs found:", placeSearchInputs.length);
-  
-  const trashButtons = document.querySelectorAll('button svg[data-lucide="trash"]');
+
+  const trashButtons = document.querySelectorAll(
+    'button svg[data-lucide="trash"]'
+  );
   console.log("Trash buttons found:", trashButtons.length);
-  
+
   return {
     placeSearchInputs: placeSearchInputs.length,
-    trashButtons: trashButtons.length
+    trashButtons: trashButtons.length,
   };
 };
 

@@ -396,17 +396,21 @@ const PlannerForm = ({
     // Helper function to remove item
     const removeItem = (itemIndex: number) => {
       console.log("🗑️ removeItem called:", { itemIndex, detailIndex: index });
-      
+
       const currentRouteItems = getCurrentRouteItems();
       const removedItem = currentRouteItems[itemIndex];
-      
+
       console.log("🗑️ Item being removed:", {
         item: removedItem,
         itemType: removedItem?.type,
-        itemName: (removedItem as any)?.name || (removedItem as any)?.content || "Unknown item",
-        hasLocation: removedItem?.type === "place" && !!(removedItem as any)?.location
+        itemName:
+          (removedItem as any)?.name ||
+          (removedItem as any)?.content ||
+          "Unknown item",
+        hasLocation:
+          removedItem?.type === "place" && !!(removedItem as any)?.location,
       });
-      
+
       const updatedItems = currentRouteItems.filter((_, i) => i !== itemIndex);
       form.setValue(`details.${index}.data`, updatedItems);
 
@@ -418,7 +422,7 @@ const PlannerForm = ({
           detailIndex: index,
           remainingItems: updatedItems.length,
           removedItemType: removedItem?.type,
-          wasPlace: removedItem?.type === "place"
+          wasPlace: removedItem?.type === "place",
         });
         onFormDataChange(formData);
       } else {

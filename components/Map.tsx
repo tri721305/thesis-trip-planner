@@ -42,17 +42,18 @@ const Map: React.FC<MapProps> = ({ destination, places = [], className }) => {
   useEffect(() => {
     console.log("🗺️ MAP COMPONENT - Places prop updated:", {
       placesCount: places.length,
-      placesData: places.map(p => ({
+      placesData: places.map((p) => ({
         name: p.name,
         order: p.order,
         hasLocation: !!p.location,
         coordinates: p.location?.coordinates,
-        validCoordinates: p.location?.coordinates && 
-          Array.isArray(p.location.coordinates) && 
+        validCoordinates:
+          p.location?.coordinates &&
+          Array.isArray(p.location.coordinates) &&
           p.location.coordinates.length === 2 &&
-          typeof p.location.coordinates[0] === 'number' &&
-          typeof p.location.coordinates[1] === 'number'
-      }))
+          typeof p.location.coordinates[0] === "number" &&
+          typeof p.location.coordinates[1] === "number",
+      })),
     });
   }, [places]);
 
