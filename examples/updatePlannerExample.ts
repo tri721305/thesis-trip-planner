@@ -181,7 +181,7 @@ export const updateFullPlanner = async (plannerId: string) => {
       startDate: "2025-10-01T17:00:00.000Z",
       endDate: "2025-10-05T16:59:59.999Z",
       type: "public",
-      state: "confirmed",
+      state: "ongoing",
       tripmates: [
         {
           name: "Updated Tripmate",
@@ -237,7 +237,7 @@ export const updateFullPlanner = async (plannerId: string) => {
 // Example 6: Update state only (useful for workflow management)
 export const updatePlannerState = async (
   plannerId: string,
-  newState: "planning" | "confirmed" | "ongoing" | "completed" | "cancelled"
+  newState: "planning" | "ongoing" | "completed" | "cancelled"
 ) => {
   try {
     const result = await updatePlanner({
@@ -340,18 +340,21 @@ export const addSingleLodging = async (plannerId: string) => {
 };
 
 // Example 10: Update only the planner state (workflow management)
-export const markPlannerAsConfirmed = async (plannerId: string) => {
+export const markPlannerAsOngoing = async (plannerId: string) => {
   try {
     const result = await partialUpdatePlanner({
       plannerId,
-      state: "confirmed",
+      state: "ongoing",
     });
 
     if (result.success) {
-      console.log("✅ Planner marked as confirmed!");
+      console.log("✅ Planner marked as ongoing!");
       return result.data;
     } else {
-      console.error("❌ Failed to confirm planner:", result.error?.message);
+      console.error(
+        "❌ Failed to update planner state:",
+        result.error?.message
+      );
       return null;
     }
   } catch (error) {

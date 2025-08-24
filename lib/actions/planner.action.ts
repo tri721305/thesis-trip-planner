@@ -37,6 +37,14 @@ export async function createPlanner(
     session.startTransaction();
 
     try {
+      // Determine initial state based on start date
+      const now = new Date();
+      const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const planStartDate = new Date(startDate);
+      const startOfStartDate = new Date(planStartDate.getFullYear(), planStartDate.getMonth(), planStartDate.getDate());
+      
+      const initialState = startOfStartDate <= today ? "ongoing" : "planning";
+
       // Create travel plan with basic structure
       const [planner] = await TravelPlan.create(
         [
@@ -57,7 +65,7 @@ export async function createPlanner(
             startDate: new Date(startDate),
             endDate: new Date(endDate),
             type,
-            state: "planning",
+            state: initialState,
             tripmates: [], // Empty initially, can be added later
             lodging: [], // Empty initially, can be added later
             details: details || [], // Empty initially, can be added later
@@ -147,6 +155,16 @@ export async function getPlannerById(params: {
 export async function updatePlanner(
   params: UpdatePlannerParams
 ): Promise<ActionResponse<TravelPlan>> {
+  console.log("🔍 updatePlanner called with params:", {
+    plannerId: params.plannerId,
+    hasTitle: !!params.title,
+    hasStartDate: !!params.startDate,
+    hasEndDate: !!params.endDate,
+    hasDestination: !!params.destination,
+    hasDetails: !!params.details,
+    detailsCount: params.details?.length || 0,
+  });
+
   const validationResult = await action({
     params,
     authorize: true,
@@ -154,41 +172,19 @@ export async function updatePlanner(
   });
 
   if (validationResult instanceof Error) {
+    console.error("❌ Validation failed:", validationResult.message);
     return handleError(validationResult) as ErrorResponse;
   }
+
+  console.log("✅ Validation passed");
 
   const { plannerId, ...updateData } = validationResult.params!;
   const userId = validationResult?.session?.user?.id;
 
   console.log("updateData", updateData);
 
-  // Debug details specifically for place location data
-  if (updateData.details) {
-    console.log(
-      "🔍 DEBUG - updateData.details:",
-      JSON.stringify(updateData.details, null, 2)
-    );
-    updateData.details.forEach((detail: any, detailIndex: number) => {
-      if (detail.data) {
-        detail.data.forEach((item: any, itemIndex: number) => {
-          if (item.type === "place") {
-            console.log(
-              `🔍 DEBUG - Place ${detailIndex}-${itemIndex} in updateData:`,
-              {
-                name: item.name,
-                hasLocation: !!item.location,
-                location: item.location,
-                coordinates: item.location?.coordinates,
-              }
-            );
-          }
-        });
-      }
-    });
-  }
   try {
     // PHASE: Database operations in transaction
-    console.log("Starting MongoDB transaction for update...");
     const session = await mongoose.startSession();
     session.startTransaction();
 
@@ -265,11 +261,29 @@ export async function updatePlanner(
         };
       }
 
-      // Dates
-      if (updateData.startDate)
-        updateObject.startDate = new Date(updateData.startDate);
-      if (updateData.endDate)
-        updateObject.endDate = new Date(updateData.endDate);
+      // Dates with error handling
+      if (updateData.startDate) {
+        try {
+          updateObject.startDate = new Date(updateData.startDate);
+          console.log("✅ startDate parsed:", updateObject.startDate);
+        } catch (error) {
+          console.error(
+            "❌ Error parsing startDate:",
+            updateData.startDate,
+            error
+          );
+          throw new Error(`Invalid startDate format: ${updateData.startDate}`);
+        }
+      }
+      if (updateData.endDate) {
+        try {
+          updateObject.endDate = new Date(updateData.endDate);
+          console.log("✅ endDate parsed:", updateObject.endDate);
+        } catch (error) {
+          console.error("❌ Error parsing endDate:", updateData.endDate, error);
+          throw new Error(`Invalid endDate format: ${updateData.endDate}`);
+        }
+      }
 
       // Arrays - replace entirely if provided
       if (updateData.tripmates) updateObject.tripmates = updateData.tripmates;
@@ -282,7 +296,7 @@ export async function updatePlanner(
         { $set: updateObject },
         {
           new: true,
-          runValidators: true,
+          runValidators: false,
           session,
         }
       );
@@ -401,7 +415,7 @@ export async function partialUpdatePlanner(
       { $set: updateObject },
       {
         new: true,
-        runValidators: true,
+        runValidators: false,
       }
     );
 
@@ -478,7 +492,7 @@ export async function addTripmate(params: {
     const updatedPlanner = await TravelPlan.findByIdAndUpdate(
       plannerId,
       { $push: { tripmates: tripmate } },
-      { new: true, runValidators: true }
+      { new: true, runValidators: false }
     );
 
     return {
@@ -561,7 +575,7 @@ export async function addLodging(params: {
     const updatedPlanner = await TravelPlan.findByIdAndUpdate(
       plannerId,
       { $push: { lodging: processedLodging } },
-      { new: true, runValidators: true }
+      { new: true, runValidators: false }
     );
 
     return {
@@ -732,7 +746,7 @@ export async function updatePlannerImages(params: {
         { $set: updateObject },
         {
           new: true,
-          runValidators: true,
+          runValidators: false,
           session,
         }
       );

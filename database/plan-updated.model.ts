@@ -308,32 +308,32 @@ const travelPlanSchema = new mongoose.Schema(
     state: {
       type: String,
       required: true,
-      enum: ["planning", "confirmed", "ongoing", "completed", "cancelled"],
+      enum: ["planning", "ongoing", "completed", "cancelled"],
       default: "planning",
     },
     startDate: {
       type: Date,
       required: true,
-      validate: {
-        validator: function (value: any) {
-          // Start date should not be in the past (with some tolerance for time zones)
-          const today = new Date();
-          today.setHours(0, 0, 0, 0);
-          return value >= today;
-        },
-        message: "Start date cannot be in the past",
-      },
+      // validate: {
+      //   validator: function (value: any) {
+      //     // Start date should not be in the past (with some tolerance for time zones)
+      //     const today = new Date();
+      //     today.setHours(0, 0, 0, 0);
+      //     return value >= today;
+      //   },
+      //   message: "Start date cannot be in the past",
+      // },
     },
     endDate: {
       type: Date,
       required: true,
-      validate: {
-        validator: function (this: any, value: any) {
-          // End date must be after start date
-          return !this.startDate || !value || value >= this.startDate;
-        },
-        message: "End date must be after start date",
-      },
+      // validate: {
+      //   validator: function (this: any, value: any) {
+      //     // End date must be after start date
+      //     return !this.startDate || !value || value >= this.startDate;
+      //   },
+      //   message: "End date must be after start date",
+      // },
     },
     generalTips: {
       type: String,
@@ -464,15 +464,19 @@ travelPlanSchema.pre("save", function (next) {
 
   // Auto-update state based on dates
   const now = new Date();
-  if (
-    this.state === "confirmed" &&
-    this.startDate <= now &&
-    this.endDate >= now
-  ) {
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()); // Start of today
+  const startOfStartDate = new Date(
+    this.startDate.getFullYear(),
+    this.startDate.getMonth(),
+    this.startDate.getDate()
+  ); // Start of startDate
+
+  // Automatically change from planning to ongoing when startDate is today or in the past
+  if (this.state === "planning" && startOfStartDate <= today) {
     this.state = "ongoing";
-  } else if (this.state === "ongoing" && this.endDate < now) {
-    this.state = "completed";
   }
+
+  // Note: completed and cancelled states are only changed manually by users
 
   next();
 });
@@ -836,7 +840,7 @@ const plansWithUnsettledExpenses = await TravelPlan.find({
 // Tìm plans trong khoảng thời gian
 const upcomingPlans = await TravelPlan.find({
   startDate: { $gte: new Date() },
-  state: { $in: ["planning", "confirmed"] }
+  state: { $in: ["planning", "ongoing"] }
 });
 
 // Tìm ongoing plans
@@ -866,7 +870,7 @@ const nearbyPlans = await TravelPlan.find({
 });
 
 // Update plan state
-await TravelPlan.findByIdAndUpdate(planId, { state: "confirmed" });
+await TravelPlan.findByIdAndUpdate(planId, { state: "ongoing" });
 
 // Add tripmate
 await TravelPlan.findByIdAndUpdate(planId, {

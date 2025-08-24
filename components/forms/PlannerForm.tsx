@@ -11,6 +11,7 @@ import React, {
 } from "react";
 import { useForm, useFieldArray, FormProvider } from "react-hook-form";
 import { z } from "zod";
+import { usePlannerStore } from "@/store/plannerStore";
 import {
   Form,
   FormControl,
@@ -93,16 +94,13 @@ import { useToast } from "@/hooks/use-toast";
 import { Toast } from "../ui/toast";
 type PlannerFormData = z.infer<typeof PlannerSchema>;
 
-const PlannerForm = ({
-  planner,
-  onFormDataChange,
-}: {
-  planner?: any;
-  onFormDataChange?: (formData: any) => void;
-}) => {
+const PlannerForm = ({ planner }: { planner?: any }) => {
   const router = useRouter();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
+
+  // Zustand store for planner data
+  const { setPlannerData, updatePlannerDetails } = usePlannerStore();
   const [showDialog, setShowDialog] = useState(false);
   const [manageTripmates, setManageTripmates] = useState(false);
   const [showAddHotel, setShowAddHotel] = useState(false);
@@ -145,8 +143,23 @@ const PlannerForm = ({
       tripmates: planner?.tripmates || [],
       lodging: planner?.lodging || [],
       details: planner?.details || [],
+      type: planner?.type || "private", // Add missing type field
     },
   });
+
+  // Initialize store with planner data on component mount
+  useEffect(() => {
+    if (planner) {
+      setPlannerData(planner);
+    }
+  }, [planner, setPlannerData]);
+
+  // Helper function to update store when form changes
+  const updateStore = React.useCallback(() => {
+    const currentFormData = form.getValues();
+
+    setPlannerData(currentFormData);
+  }, [form, setPlannerData]);
 
   // Use specific watchers instead of general watch to reduce re-renders
   // const { watch } = form;
@@ -378,56 +391,19 @@ const PlannerForm = ({
 
       form.setValue(`details.${index}.data`, updatedItems);
 
-      // Notify parent about form data change for map updates
-      if (onFormDataChange) {
-        const formData = form.getValues();
-        console.log(
-          "🔄 PlannerForm - Notifying parent of updateItemData change:",
-          {
-            itemIndex,
-            detailIndex: index,
-            itemsCount: updatedItems.length,
-          }
-        );
-        onFormDataChange(formData);
-      }
+      updateStore();
     };
 
     // Helper function to remove item
     const removeItem = (itemIndex: number) => {
-      console.log("🗑️ removeItem called:", { itemIndex, detailIndex: index });
-
       const currentRouteItems = getCurrentRouteItems();
       const removedItem = currentRouteItems[itemIndex];
-
-      console.log("🗑️ Item being removed:", {
-        item: removedItem,
-        itemType: removedItem?.type,
-        itemName:
-          (removedItem as any)?.name ||
-          (removedItem as any)?.content ||
-          "Unknown item",
-        hasLocation:
-          removedItem?.type === "place" && !!(removedItem as any)?.location,
-      });
 
       const updatedItems = currentRouteItems.filter((_, i) => i !== itemIndex);
       form.setValue(`details.${index}.data`, updatedItems);
 
-      // Notify parent about form data change for map updates
-      if (onFormDataChange) {
-        const formData = form.getValues();
-        console.log("🔄 PlannerForm - Notifying parent of removeItem change:", {
-          removedItemIndex: itemIndex,
-          detailIndex: index,
-          remainingItems: updatedItems.length,
-          removedItemType: removedItem?.type,
-          wasPlace: removedItem?.type === "place",
-        });
-        onFormDataChange(formData);
-      } else {
-        console.warn("⚠️ onFormDataChange callback not available!");
-      }
+      // Update store immediately after removal
+      updateStore();
     };
 
     // Get current items for rendering
@@ -610,10 +586,6 @@ const PlannerForm = ({
                                 // Get current route items
                                 const currentRouteItems =
                                   getCurrentRouteItems();
-                                console.log(
-                                  "🔍 Current route items:",
-                                  currentRouteItems
-                                );
 
                                 const updatedItems = [...currentRouteItems];
 
@@ -622,25 +594,11 @@ const PlannerForm = ({
                                   updatedItems[idx] &&
                                   updatedItems[idx].type === "place"
                                 ) {
-                                  console.log(
-                                    "🔧 Updating item at index:",
-                                    idx
-                                  );
-                                  console.log(
-                                    "🔧 Before update:",
-                                    updatedItems[idx]
-                                  );
-
                                   updatedItems[idx] = {
                                     ...updatedItems[idx],
                                     timeStart: timeRange.startTime,
                                     timeEnd: timeRange.endTime,
                                   };
-
-                                  console.log(
-                                    "🔧 After update:",
-                                    updatedItems[idx]
-                                  );
 
                                   // Update the form with the new data
                                   form.setValue(
@@ -661,10 +619,7 @@ const PlannerForm = ({
                                     const verifyData = form.getValues(
                                       `details.${index}.data`
                                     );
-                                    console.log(
-                                      "✅ Verification after 100ms:",
-                                      verifyData[idx]
-                                    );
+
                                     if (
                                       verifyData[idx]?.type === "place" &&
                                       (!verifyData[idx]?.timeStart ||
@@ -1032,18 +987,8 @@ const PlannerForm = ({
     const updatedItems = [...currentItems, newNoteItem];
     form.setValue(`details.${parentIndex}.data`, updatedItems);
 
-    // Notify parent about form data change for map updates
-    if (onFormDataChange) {
-      const formData = form.getValues();
-      console.log(
-        "🔄 PlannerForm - Notifying parent of handleAddNoteItem change:",
-        {
-          detailIndex: parentIndex,
-          totalItems: updatedItems.length,
-        }
-      );
-      onFormDataChange(formData);
-    }
+    // Trigger immediate store update
+    updateStore();
   };
   const handleAddChecklistItem = (parentIndex: number) => {
     const currentItems = form.getValues(`details.${parentIndex}.data`) || [];
@@ -1058,18 +1003,8 @@ const PlannerForm = ({
     const updatedItems = [...currentItems, newChecklistItem];
     form.setValue(`details.${parentIndex}.data`, updatedItems);
 
-    // Notify parent about form data change for map updates
-    if (onFormDataChange) {
-      const formData = form.getValues();
-      console.log(
-        "🔄 PlannerForm - Notifying parent of handleAddChecklistItem change:",
-        {
-          detailIndex: parentIndex,
-          totalItems: updatedItems.length,
-        }
-      );
-      onFormDataChange(formData);
-    }
+    // Trigger immediate store update
+    updateStore();
   };
 
   const handlePlaceSelect = (place: any, index: any) => {
@@ -1091,47 +1026,25 @@ const PlannerForm = ({
       timeEnd: place.timeEnd || "", // Ensure timeEnd exists
     };
 
-    console.log("🔍 DEBUG - handlePlaceSelect:", {
-      place: place,
-      hasLocation: !!place.location,
-      location: place.location,
-      coordinates: place.location?.coordinates,
-      newPlaceItem: newPlaceItem,
-      newItemHasLocation: !!newPlaceItem.location,
-      newItemCoordinates: newPlaceItem.location?.coordinates,
-    });
-
     // Update the form with new item
     const updatedItems = [...currentItems, newPlaceItem];
     form.setValue(`details.${index}.data`, updatedItems);
 
-    // Notify parent about form data change for map updates
-    if (onFormDataChange) {
-      const formData = form.getValues();
-      console.log(
-        "🔄 PlannerForm - Notifying parent of handlePlaceSelect change:",
-        {
-          addedPlace: newPlaceItem.name,
-          detailIndex: index,
-          totalItems: updatedItems.length,
-          hasLocation: !!newPlaceItem.location,
-        }
-      );
-      onFormDataChange(formData);
-    }
+    // Update store immediately after adding place
+    updateStore();
 
-    // Verify the form value was set correctly
-    setTimeout(() => {
-      const verifyData = form.getValues(`details.${index}.data`);
-      const addedItem = verifyData[verifyData.length - 1];
-      if (addedItem.type === "place") {
-        console.log("🔍 DEBUG - Verified form data after adding place:", {
-          hasLocation: !!addedItem.location,
-          location: addedItem.location,
-          coordinates: addedItem.location?.coordinates,
-        });
-      }
-    }, 100);
+    // // Verify the form value was set correctly
+    // setTimeout(() => {
+    //   const verifyData = form.getValues(`details.${index}.data`);
+    //   const addedItem = verifyData[verifyData.length - 1];
+    //   if (addedItem.type === "place") {
+    //     console.log("🔍 DEBUG - Verified form data after adding place:", {
+    //       hasLocation: !!addedItem.location,
+    //       location: addedItem.location,
+    //       coordinates: addedItem.location?.coordinates,
+    //     });
+    //   }
+    // }, 100);
   };
   const handleUploadImage = () => {
     // Tạo một input file ẩn
@@ -1192,8 +1105,6 @@ const PlannerForm = ({
             description: "Ảnh bìa đã được cập nhật",
             variant: "success",
           });
-
-          console.log("Image uploaded successfully:", result.data.image);
         } else {
           // Revert to original image on failure
           setCurrentMainImage(planner?.image || "/images/ocean.jpg");
@@ -1230,25 +1141,51 @@ const PlannerForm = ({
   };
   const handleSubmit = async () => {
     const formData = form.getValues();
-    console.log("DataSubmit", formData);
 
-    // Debug: Check if location data exists in form data
-    if (formData.details) {
-      formData.details.forEach((detail: any, detailIndex: number) => {
-        if (detail.data) {
-          detail.data.forEach((item: any, itemIndex: number) => {
-            if (item.type === "place") {
-              console.log(`Place ${detailIndex}-${itemIndex}:`, {
-                name: item.name,
-                hasLocation: !!item.location,
-                location: item.location,
-                coordinates: item.location?.coordinates,
-              });
-            }
-          });
-        }
-      });
-    }
+    // Format and validate data before sending
+    const formatDataForServer = (data: any) => {
+      const formatted = { ...data };
+
+      // Format dates to ISO strings if they're Date objects
+      if (formatted.startDate) {
+        formatted.startDate =
+          formatted.startDate instanceof Date
+            ? formatted.startDate.toISOString()
+            : formatted.startDate;
+      }
+
+      if (formatted.endDate) {
+        formatted.endDate =
+          formatted.endDate instanceof Date
+            ? formatted.endDate.toISOString()
+            : formatted.endDate;
+      }
+
+      // Ensure required fields are present
+      if (!formatted.title || formatted.title.trim() === "") {
+        throw new Error("Title is required");
+      }
+
+      return formatted;
+    };
+
+    // // Debug: Check if location data exists in form data
+    // if (formData.details) {
+    //   formData.details.forEach((detail: any, detailIndex: number) => {
+    //     if (detail.data) {
+    //       detail.data.forEach((item: any, itemIndex: number) => {
+    //         if (item.type === "place") {
+    //           console.log(`Place ${detailIndex}-${itemIndex}:`, {
+    //             name: item.name,
+    //             hasLocation: !!item.location,
+    //             location: item.location,
+    //             coordinates: item.location?.coordinates,
+    //           });
+    //         }
+    //       });
+    //     }
+    //   });
+    // }
 
     // Workaround: Ensure location data is preserved for place items
     const processedFormData = {
@@ -1267,45 +1204,81 @@ const PlannerForm = ({
       })),
     };
 
-    const dataTest: any = { ...processedFormData, plannerId: planner._id };
-    const updatePlannerData = await updatePlanner(dataTest);
-    console.log("datePlannerData", updatePlannerData);
-    if (updatePlannerData) {
-      console.log("Update successful:", updatePlannerData);
+    try {
+      // Format data for server
+      const formattedData = formatDataForServer(processedFormData);
+
+      // Create Date objects with proper start/end times
+      const startDate = new Date(formattedData.startDate);
+      startDate.setHours(0, 0, 0, 0); // Set to beginning of day (00:00:00)
+
+      const endDate = new Date(formattedData.endDate);
+      endDate.setHours(23, 59, 59, 999); // Set to end of day (23:59:59.999)
+
+      const dataTest: any = {
+        ...formattedData,
+        plannerId: planner._id,
+        startDate: startDate,
+        endDate: endDate,
+      };
+
+      const updatePlannerData: any = await updatePlanner(dataTest);
+
+      if (updatePlannerData && updatePlannerData.success) {
+        toast({
+          title: "Update Planner Successfully!",
+          description: "Your planner has been updated successfully.",
+          variant: "success",
+        });
+      } else {
+        console.error("Update failed:", updatePlannerData);
+
+        // Show detailed error message
+        const errorMessage =
+          updatePlannerData?.error?.message ||
+          updatePlannerData?.message ||
+          "Unknown error occurred";
+
+        toast({
+          title: "Update Failed!",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error updating planner:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "An unexpected error occurred";
       toast({
-        title: "Update Planner Successfully!",
-        description: "Your planner has been updated successfully.",
-        variant: "success",
+        title: "Error!",
+        description: errorMessage,
+        variant: "destructive",
       });
-    } else {
-      console.error("Update failed");
     }
   };
 
-  console.log("Value Form", form.watch());
-
-  // Debug: Monitor form data changes for location preservation
-  const watchedDetails = form.watch("details");
-  React.useEffect(() => {
-    if (watchedDetails) {
-      console.log(
-        "🔍 Form details changed:",
-        watchedDetails.map((detail: any, detailIndex: number) => ({
-          name: detail.name,
-          type: detail.type,
-          dataItems: detail.data?.length || 0,
-          places:
-            detail.data
-              ?.filter((item: any) => item.type === "place")
-              .map((place: any) => ({
-                name: place.name,
-                hasLocation: !!place.location,
-                coordinates: place.location?.coordinates,
-              })) || [],
-        }))
-      );
-    }
-  }, [watchedDetails]);
+  // // Debug: Monitor form data changes for location preservation
+  // const watchedDetails = form.watch("details");
+  // React.useEffect(() => {
+  //   if (watchedDetails) {
+  //     console.log(
+  //       "🔍 Form details changed:",
+  //       watchedDetails.map((detail: any, detailIndex: number) => ({
+  //         name: detail.name,
+  //         type: detail.type,
+  //         dataItems: detail.data?.length || 0,
+  //         places:
+  //           detail.data
+  //             ?.filter((item: any) => item.type === "place")
+  //             .map((place: any) => ({
+  //               name: place.name,
+  //               hasLocation: !!place.location,
+  //               coordinates: place.location?.coordinates,
+  //             })) || [],
+  //       }))
+  //     );
+  //   }
+  // }, [watchedDetails]);
 
   return (
     <div className="container mx-auto  max-w-4xl">

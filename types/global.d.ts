@@ -197,7 +197,7 @@ declare global {
     startDate: Date;
     endDate: Date;
     type: "public" | "private" | "friend";
-    state: "planning" | "confirmed" | "ongoing" | "completed" | "cancelled";
+    state: "planning" | "ongoing" | "completed" | "cancelled";
     tripmates: Array<{
       name: string;
       email?: string;

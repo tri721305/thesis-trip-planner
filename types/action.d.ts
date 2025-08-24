@@ -47,6 +47,7 @@ interface CreatePlannerParams {
   startDate: string | Date;
   endDate: string | Date;
   type: "public" | "private" | "friend";
+  details: [];
 }
 
 interface UpdatePlannerParams {
@@ -65,7 +66,7 @@ interface UpdatePlannerParams {
   startDate?: string | Date;
   endDate?: string | Date;
   type?: "public" | "private" | "friend";
-  state?: "planning" | "confirmed" | "ongoing" | "completed" | "cancelled";
+  state?: "planning" | "ongoing" | "completed" | "cancelled";
   tripmates?: Array<{
     name: string;
     email?: string;

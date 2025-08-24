@@ -446,587 +446,521 @@ export const CreatePlannerSchema = z.object({
   plannerName: z.string().min(1, { message: "Planner name is required." }),
 });
 
-export const PlannerSchema = z
-  .object({
-    title: z
-      .string()
-      .min(1, { message: "Title is required." })
-      .max(200, { message: "Title cannot exceed 200 characters." })
-      .optional(),
+export const PlannerSchema = z.object({
+  title: z
+    .string()
+    .min(1, { message: "Title is required." })
+    .max(200, { message: "Title cannot exceed 200 characters." })
+    .optional(),
 
-    // image: z.string().url({ message: "Image must be a valid URL." }).optional(),
-    image: z.string().optional().or(z.literal("")),
-    note: z.string().optional(),
+  // image: z.string().url({ message: "Image must be a valid URL." }).optional(),
+  image: z.string().optional().or(z.literal("")),
+  note: z.string().optional(),
+  type: z.string().optional(),
+  author: z.string().optional(), // ObjectId as string
 
-    author: z.string().optional(), // ObjectId as string
-
-    tripmates: z
-      .array(
-        z.object({
-          name: z
-            .string()
-            .min(1, { message: "Tripmate name is required." })
-            .optional(),
-          email: z
-            .string()
-            .email({ message: "Invalid email format." })
-            .optional(),
-          image: z.string().optional().or(z.literal("")),
-          userId: z.string().optional(), // ObjectId as string
-        })
-      )
-      .optional(),
-
-    state: z
-      .enum(["planning", "confirmed", "ongoing", "completed", "cancelled"])
-      .default("planning")
-      .optional(),
-
-    startDate: z
-      .string()
-      .datetime({ message: "Start date must be a valid ISO date." })
-      .or(z.date())
-      .optional(),
-
-    endDate: z
-      .string()
-      .datetime({ message: "End date must be a valid ISO date." })
-      .or(z.date())
-      .optional(),
-    destination: z
-      .object({
+  tripmates: z
+    .array(
+      z.object({
         name: z
           .string()
-          .min(1, { message: "Destination name is required." })
-          .max(200, {
-            message: "Destination name cannot exceed 200 characters.",
-          }),
+          .min(1, { message: "Tripmate name is required." })
+          .optional(),
+        email: z
+          .string()
+          .email({ message: "Invalid email format." })
+          .optional(),
+        image: z.string().optional().or(z.literal("")),
+        userId: z.string().optional(), // ObjectId as string
+      })
+    )
+    .optional(),
 
-        coordinates: z
-          .array(z.number())
-          .length(2, { message: "Coordinates must be [longitude, latitude]." })
-          .refine(
-            (coords) =>
-              coords[0] >= -180 &&
-              coords[0] <= 180 &&
-              coords[1] >= -90 &&
-              coords[1] <= 90,
-            { message: "Invalid coordinates range." }
-          ),
+  state: z
+    .enum(["planning", "ongoing", "completed", "cancelled"])
+    .default("planning")
+    .optional(),
 
-        type: z.enum(["province", "ward"], {
-          message: "Destination type must be 'province' or 'ward'.",
+  startDate: z
+    .string()
+    .datetime({ message: "Start date must be a valid ISO date." })
+    .or(z.date())
+    .optional(),
+
+  endDate: z
+    .string()
+    .datetime({ message: "End date must be a valid ISO date." })
+    .or(z.date())
+    .optional(),
+  destination: z
+    .object({
+      name: z
+        .string()
+        .min(1, { message: "Destination name is required." })
+        .max(200, {
+          message: "Destination name cannot exceed 200 characters.",
         }),
 
-        provinceId: z.string().optional(),
+      coordinates: z
+        .array(z.number())
+        .length(2, { message: "Coordinates must be [longitude, latitude]." })
+        .refine(
+          (coords) =>
+            coords[0] >= -180 &&
+            coords[0] <= 180 &&
+            coords[1] >= -90 &&
+            coords[1] <= 90,
+          { message: "Invalid coordinates range." }
+        ),
 
-        wardId: z.string().optional(),
-      })
-      .refine(
-        (data) => {
-          // provinceId is required when type is "province"
-          if (data.type === "province" && !data.provinceId) {
-            return false;
-          }
-          // wardId is required when type is "ward"
-          if (data.type === "ward" && !data.wardId) {
-            return false;
-          }
-          return true;
-        },
-        {
-          message:
-            "provinceId is required for province type, wardId is required for ward type",
-          path: ["provinceId", "wardId"],
+      type: z.enum(["province", "ward"], {
+        message: "Destination type must be 'province' or 'ward'.",
+      }),
+
+      provinceId: z.string().optional(),
+
+      wardId: z.string().optional(),
+    })
+    .refine(
+      (data) => {
+        // provinceId is required when type is "province"
+        if (data.type === "province" && !data.provinceId) {
+          return false;
         }
-      ),
-
-    generalTips: z.string().optional(),
-
-    lodging: z
-      .array(
-        z.object({
-          name: z
-            .string()
-            .min(1, { message: "Lodging name is required." })
-            .optional(),
-          address: z
-            .string()
-            .min(1, { message: "Address is required." })
-            .optional(),
-          checkIn: z
-            .string()
-            .datetime({ message: "Check-in must be a valid ISO date." })
-            .or(z.date())
-            .optional(),
-          checkOut: z
-            .string()
-            .datetime({ message: "Check-out must be a valid ISO date." })
-            .or(z.date())
-            .optional(),
-          confirmation: z.string().optional(),
-          notes: z.string().optional(),
-          cost: z
-            .object({
-              type: z.enum(["VND", "USD", "EUR"]),
-              value: z.number().positive({ message: "Cost must be positive." }),
-              paidBy: z.string().optional(),
-              description: z
-                .string()
-                .max(500, {
-                  message: "Cost description cannot exceed 500 characters.",
-                })
-                .optional(),
-            })
-            .optional(),
-        })
-      )
-      .optional(),
-
-    details: z
-      .array(
-        z.object({
-          type: z.enum(["route", "list"]),
-          name: z.string().min(1, { message: "Detail name is required." }),
-          index: z.number().int().positive(),
-          data: z.array(
-            z.discriminatedUnion("type", [
-              // Note type
-              z.object({
-                type: z.literal("note"),
-                content: z
-                  .string()
-                  .min(1, { message: "Note content is required." }),
-              }),
-              // Checklist type
-              z.object({
-                type: z.literal("checklist"),
-                items: z.array(z.string()).min(1, {
-                  message: "At least one checklist item is required.",
-                }),
-                completed: z.array(z.boolean()).optional(),
-              }),
-              // Place type
-              z.object({
-                type: z.literal("place"),
-                name: z.string().optional(),
-                address: z.string().optional(),
-                description: z.string().optional(),
-                tags: z.array(z.string()).optional(),
-                phone: z.string().optional(),
-                images: z
-                  .array(
-                    z.string().url({ message: "Image must be a valid URL." })
-                  )
-                  .optional(),
-                imageKeys: z.array(z.string()).optional(),
-
-                website: z
-                  .string()
-                  .url({ message: "Website must be a valid URL." })
-                  .optional(),
-                location: z
-                  .object({
-                    type: z.literal("Point"),
-                    coordinates: z
-                      .array(z.number())
-                      .length(2, {
-                        message: "Coordinates must be [longitude, latitude].",
-                      })
-                      .refine(
-                        (coords) =>
-                          coords[0] >= -180 &&
-                          coords[0] <= 180 &&
-                          coords[1] >= -90 &&
-                          coords[1] <= 90,
-                        { message: "Invalid coordinates range." }
-                      ),
-                  })
-                  .optional(),
-                note: z.string().optional(),
-                timeStart: z
-                  .string()
-                  .regex(
-                    /^([0-9]{1,2}:[0-9]{2}(\s?(AM|PM))?|Morning|Afternoon|Evening|Night)$/i,
-                    {
-                      message:
-                        "Invalid time format. Use formats like '10:00 AM', '14:30', or 'Morning/Afternoon/Evening/Night'",
-                    }
-                  )
-                  .optional(),
-                timeEnd: z
-                  .string()
-                  .regex(
-                    /^([0-9]{1,2}:[0-9]{2}(\s?(AM|PM))?|Morning|Afternoon|Evening|Night)$/i,
-                    {
-                      message:
-                        "Invalid time format. Use formats like '10:00 AM', '14:30', or 'Morning/Afternoon/Evening/Night'",
-                    }
-                  )
-                  .optional(),
-                cost: z
-                  .object({
-                    type: z.enum(["VND", "USD", "EUR"]),
-                    value: z
-                      .number()
-                      .min(0, { message: "Cost must be non-negative." }),
-                    paidBy: z.string().optional(),
-                    description: z
-                      .string()
-                      .max(500, {
-                        message:
-                          "Cost description cannot exceed 500 characters.",
-                      })
-                      .optional(),
-                    splitBetween: z.array(z.object({})).optional(),
-                  })
-                  .optional(),
-              }),
-            ])
-          ),
-        })
-      )
-      .optional(),
-    timeStart: z
-      .string()
-      .regex(
-        /^([0-9]{1,2}:[0-9]{2}(\s?(AM|PM))?|Morning|Afternoon|Evening|Night)$/i,
-        {
-          message:
-            "Invalid time format. Use formats like '10:00 AM', '14:30', or 'Morning/Afternoon/Evening/Night'",
+        // wardId is required when type is "ward"
+        if (data.type === "ward" && !data.wardId) {
+          return false;
         }
-      )
-      .optional(),
-  })
-  .refine(
-    (data) => {
-      // Custom validation: endDate must be after startDate if both exist
-      if (data.startDate && data.endDate) {
-        const start = new Date(data.startDate);
-        const end = new Date(data.endDate);
-        return end >= start;
+        return true;
+      },
+      {
+        message:
+          "provinceId is required for province type, wardId is required for ward type",
+        path: ["provinceId", "wardId"],
       }
-      return true;
-    },
-    {
-      message: "End date must be after start date.",
-      path: ["endDate"],
-    }
-  )
-  .refine(
-    (data) => {
-      // Custom validation: startDate should not be in the past if provided
-      if (data.startDate) {
-        const start = new Date(data.startDate);
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        return start >= today;
-      }
-      return true;
-    },
-    {
-      message: "Start date cannot be in the past.",
-      path: ["startDate"],
-    }
-  );
+    ),
 
-// Schema for creating a new travel planner with basic info
-export const CreateTravelPlannerSchema = z
-  .object({
-    title: z
-      .string()
-      .min(1, { message: "Title is required." })
-      .max(200, { message: "Title cannot exceed 200 characters." }),
+  generalTips: z.string().optional(),
 
-    destination: z
-      .object({
+  lodging: z
+    .array(
+      z.object({
         name: z
           .string()
-          .min(1, { message: "Destination name is required." })
-          .max(200, {
-            message: "Destination name cannot exceed 200 characters.",
-          }),
-
-        coordinates: z
-          .array(z.number())
-          .length(2, { message: "Coordinates must be [longitude, latitude]." })
-          .refine(
-            (coords) =>
-              coords[0] >= -180 &&
-              coords[0] <= 180 &&
-              coords[1] >= -90 &&
-              coords[1] <= 90,
-            { message: "Invalid coordinates range." }
-          ),
-
-        type: z.enum(["province", "ward"], {
-          message: "Destination type must be 'province' or 'ward'.",
-        }),
-
-        provinceId: z.string().optional(),
-
-        wardId: z.string().optional(),
-      })
-      .refine(
-        (data) => {
-          // provinceId is required when type is "province"
-          if (data.type === "province" && !data.provinceId) {
-            return false;
-          }
-          // wardId is required when type is "ward"
-          if (data.type === "ward" && !data.wardId) {
-            return false;
-          }
-          return true;
-        },
-        {
-          message:
-            "provinceId is required for province type, wardId is required for ward type",
-          path: ["provinceId", "wardId"],
-        }
-      ),
-
-    startDate: z
-      .string()
-      .datetime({ message: "Start date must be a valid ISO date." })
-      .or(z.date()),
-
-    endDate: z
-      .string()
-      .datetime({ message: "End date must be a valid ISO date." })
-      .or(z.date()),
-
-    type: z.enum(["public", "private", "friend"], {
-      message: "Plan type must be 'public', 'private', or 'friend'.",
-    }),
-    details: z.array(z.object({})),
-  })
-  .refine(
-    (data) => {
-      const startDate = new Date(data.startDate);
-      const endDate = new Date(data.endDate);
-      return endDate > startDate;
-    },
-    {
-      message: "End date must be after start date",
-      path: ["endDate"],
-    }
-  );
-
-// Schema for updating travel planner with all information
-export const UpdateTravelPlannerSchema = z
-  .object({
-    plannerId: z.string().min(1, { message: "Planner ID is required." }),
-
-    title: z
-      .string()
-      .min(1, { message: "Title is required." })
-      .max(200, { message: "Title cannot exceed 200 characters." })
-      .optional(),
-
-    image: z.string().optional().or(z.literal("")),
-
-    note: z.string().optional(),
-
-    generalTips: z.string().optional(),
-
-    destination: z
-      .object({
-        name: z
+          .min(1, { message: "Lodging name is required." })
+          .optional(),
+        address: z
           .string()
-          .min(1, { message: "Destination name is required." })
-          .max(200, {
-            message: "Destination name cannot exceed 200 characters.",
-          }),
-
-        coordinates: z
-          .array(z.number())
-          .length(2, { message: "Coordinates must be [longitude, latitude]." })
-          .refine(
-            (coords) =>
-              coords[0] >= -180 &&
-              coords[0] <= 180 &&
-              coords[1] >= -90 &&
-              coords[1] <= 90,
-            { message: "Invalid coordinates range." }
-          ),
-
-        type: z.enum(["province", "ward"], {
-          message: "Destination type must be 'province' or 'ward'.",
-        }),
-
-        provinceId: z.string().optional(),
-        wardId: z.string().optional(),
+          .min(1, { message: "Address is required." })
+          .optional(),
+        checkIn: z
+          .string()
+          .datetime({ message: "Check-in must be a valid ISO date." })
+          .or(z.date())
+          .optional(),
+        checkOut: z
+          .string()
+          .datetime({ message: "Check-out must be a valid ISO date." })
+          .or(z.date())
+          .optional(),
+        confirmation: z.string().optional(),
+        notes: z.string().optional(),
+        cost: z
+          .object({
+            type: z.enum(["VND", "USD", "EUR"]),
+            value: z.number().positive({ message: "Cost must be positive." }),
+            paidBy: z.string().optional(),
+            description: z
+              .string()
+              .max(500, {
+                message: "Cost description cannot exceed 500 characters.",
+              })
+              .optional(),
+          })
+          .optional(),
       })
-      .optional(),
+    )
+    .optional(),
 
-    startDate: z
-      .string()
-      .datetime({ message: "Start date must be a valid ISO date." })
-      .or(z.date())
-      .optional(),
-
-    endDate: z
-      .string()
-      .datetime({ message: "End date must be a valid ISO date." })
-      .or(z.date())
-      .optional(),
-
-    type: z
-      .enum(["public", "private", "friend"], {
-        message: "Plan type must be 'public', 'private', or 'friend'.",
-      })
-      .optional(),
-
-    state: z
-      .enum(["planning", "confirmed", "ongoing", "completed", "cancelled"], {
-        message: "State must be one of the valid states.",
-      })
-      .optional(),
-
-    tripmates: z
-      .array(
-        z.object({
-          name: z.string().min(1, { message: "Name is required." }),
-          email: z
-            .string()
-            .email({ message: "Invalid email format." })
-            .optional(),
-          image: z.string().optional().or(z.literal("")),
-          userId: z.string().optional(),
-        })
-      )
-      .optional(),
-
-    lodging: z
-      .array(
-        z.object({
-          name: z.string().min(1, { message: "Lodging name is required." }),
-          address: z.string().optional(),
-          checkIn: z.date().or(z.string()).optional(),
-          checkOut: z.date().or(z.string()).optional(),
-          confirmation: z.string().optional(),
-          notes: z.string().optional(),
-          cost: z
-            .object({
-              type: z.string(),
-              value: z.number().min(0),
-            })
-            .optional(),
-        })
-      )
-      .optional(),
-
-    details: z
-      .array(
-        z.object({
-          type: z.enum(["route", "list"]),
-          name: z.string().min(1, { message: "Detail name is required." }),
-          index: z.number().int().min(1),
-          data: z.array(
+  details: z
+    .array(
+      z.object({
+        type: z.enum(["route", "list"]),
+        name: z.string().min(1, { message: "Detail name is required." }),
+        index: z.number().int().positive(),
+        data: z.array(
+          z.discriminatedUnion("type", [
+            // Note type
             z.object({
-              type: z.enum(["place", "note", "checklist"]),
-              // Note fields
-              content: z.string().optional(),
-              // Checklist fields
-              items: z.array(z.string()).optional(),
+              type: z.literal("note"),
+              content: z
+                .string()
+                .min(1, { message: "Note content is required." }),
+            }),
+            // Checklist type
+            z.object({
+              type: z.literal("checklist"),
+              items: z.array(z.string()).min(1, {
+                message: "At least one checklist item is required.",
+              }),
               completed: z.array(z.boolean()).optional(),
-              // Place fields - Basic info
-              id: z.string().optional(),
+            }),
+            // Place type
+            z.object({
+              type: z.literal("place"),
               name: z.string().optional(),
               address: z.string().optional(),
               description: z.string().optional(),
-              // Place fields - Categories and tags
-              categories: z.array(z.string()).optional(),
               tags: z.array(z.string()).optional(),
-              // Place fields - Contact info
               phone: z.string().optional(),
-              website: z.string().optional(),
-              // Place fields - Images
-              images: z.array(z.string()).optional(),
-              imageKeys: z.array(z.string()).optional(),
-              // Place fields - Ratings
-              rating: z.number().min(0).max(5).optional(),
-              numRatings: z.number().min(0).optional(),
-              // Place fields - External references
-              attractionId: z.number().optional(),
-              priceLevel: z.any().optional(), // Can be null, number, or string
-              // Place fields - Opening hours
-              openingPeriods: z
+              images: z
                 .array(
-                  z.object({
-                    open: z.object({
-                      day: z.number().min(0).max(6),
-                      time: z.string(),
-                    }),
-                    close: z.object({
-                      day: z.number().min(0).max(6),
-                      time: z.string(),
-                    }),
-                  })
+                  z.string().url({ message: "Image must be a valid URL." })
                 )
                 .optional(),
-              // Place fields - Location
+              imageKeys: z.array(z.string()).optional(),
+
+              website: z
+                .string()
+                .url({ message: "Website must be a valid URL." })
+                .optional(),
               location: z
                 .object({
                   type: z.literal("Point"),
-                  coordinates: z.array(z.number()).length(2, {
-                    message: "Coordinates must be an array of two numbers.",
-                  }),
+                  coordinates: z
+                    .array(z.number())
+                    .length(2, {
+                      message: "Coordinates must be [longitude, latitude].",
+                    })
+                    .refine(
+                      (coords) =>
+                        coords[0] >= -180 &&
+                        coords[0] <= 180 &&
+                        coords[1] >= -90 &&
+                        coords[1] <= 90,
+                      { message: "Invalid coordinates range." }
+                    ),
                 })
                 .optional(),
-              // Place fields - Time and cost
-              timeStart: z.string().optional(),
-              timeEnd: z.string().optional(),
+              note: z.string().optional(),
+              timeStart: z
+                .string()
+                .regex(
+                  /^([0-9]{1,2}:[0-9]{2}(\s?(AM|PM))?|Morning|Afternoon|Evening|Night)$/i,
+                  {
+                    message:
+                      "Invalid time format. Use formats like '10:00 AM', '14:30', or 'Morning/Afternoon/Evening/Night'",
+                  }
+                )
+                .optional(),
+              timeEnd: z
+                .string()
+                .regex(
+                  /^([0-9]{1,2}:[0-9]{2}(\s?(AM|PM))?|Morning|Afternoon|Evening|Night)$/i,
+                  {
+                    message:
+                      "Invalid time format. Use formats like '10:00 AM', '14:30', or 'Morning/Afternoon/Evening/Night'",
+                  }
+                )
+                .optional(),
               cost: z
                 .object({
-                  type: z.string().optional(),
-                  value: z.number().min(0).optional(),
+                  type: z.enum(["VND", "USD", "EUR"]),
+                  value: z
+                    .number()
+                    .min(0, { message: "Cost must be non-negative." }),
                   paidBy: z.string().optional(),
-                  description: z.string().optional(),
-                  splitBetween: z.array(z.any()).optional(),
+                  description: z
+                    .string()
+                    .max(500, {
+                      message: "Cost description cannot exceed 500 characters.",
+                    })
+                    .optional(),
+                  splitBetween: z.array(z.object({})).optional(),
                 })
                 .optional(),
-              // Place fields - Notes
-              note: z.string().optional(),
-            })
-          ),
-        })
-      )
-      .optional(),
-  })
-  .refine(
-    (data) => {
-      // Validate destination constraints if destination is provided
-      if (data.destination) {
-        const { type, provinceId, wardId } = data.destination;
-        if (type === "province" && !provinceId) {
+            }),
+          ])
+        ),
+      })
+    )
+    .optional(),
+  timeStart: z
+    .string()
+    .regex(
+      /^([0-9]{1,2}:[0-9]{2}(\s?(AM|PM))?|Morning|Afternoon|Evening|Night)$/i,
+      {
+        message:
+          "Invalid time format. Use formats like '10:00 AM', '14:30', or 'Morning/Afternoon/Evening/Night'",
+      }
+    )
+    .optional(),
+});
+// Removed date validations - allow any start/end dates and past dates
+
+// Schema for creating a new travel planner with basic info
+export const CreateTravelPlannerSchema = z.object({
+  title: z
+    .string()
+    .min(1, { message: "Title is required." })
+    .max(200, { message: "Title cannot exceed 200 characters." }),
+
+  destination: z
+    .object({
+      name: z
+        .string()
+        .min(1, { message: "Destination name is required." })
+        .max(200, {
+          message: "Destination name cannot exceed 200 characters.",
+        }),
+
+      coordinates: z
+        .array(z.number())
+        .length(2, { message: "Coordinates must be [longitude, latitude]." })
+        .refine(
+          (coords) =>
+            coords[0] >= -180 &&
+            coords[0] <= 180 &&
+            coords[1] >= -90 &&
+            coords[1] <= 90,
+          { message: "Invalid coordinates range." }
+        ),
+
+      type: z.enum(["province", "ward"], {
+        message: "Destination type must be 'province' or 'ward'.",
+      }),
+
+      provinceId: z.string().optional(),
+
+      wardId: z.string().optional(),
+    })
+    .refine(
+      (data) => {
+        // provinceId is required when type is "province"
+        if (data.type === "province" && !data.provinceId) {
           return false;
         }
-        if (type === "ward" && !wardId) {
+        // wardId is required when type is "ward"
+        if (data.type === "ward" && !data.wardId) {
           return false;
         }
+        return true;
+      },
+      {
+        message:
+          "provinceId is required for province type, wardId is required for ward type",
+        path: ["provinceId", "wardId"],
       }
-      return true;
-    },
-    {
-      message:
-        "provinceId is required for province type, wardId is required for ward type",
-      path: ["destination"],
-    }
-  )
-  .refine(
-    (data) => {
-      // Validate date range if both dates are provided
-      if (data.startDate && data.endDate) {
-        const startDate = new Date(data.startDate);
-        const endDate = new Date(data.endDate);
-        return endDate > startDate;
-      }
-      return true;
-    },
-    {
-      message: "End date must be after start date",
-      path: ["endDate"],
-    }
-  );
+    ),
+
+  startDate: z
+    .string()
+    .datetime({ message: "Start date must be a valid ISO date." })
+    .or(z.date()),
+
+  endDate: z
+    .string()
+    .datetime({ message: "End date must be a valid ISO date." })
+    .or(z.date()),
+
+  type: z.enum(["public", "private", "friend"], {
+    message: "Plan type must be 'public', 'private', or 'friend'.",
+  }),
+  details: z.array(z.object({})).optional(),
+});
+// Removed date validation - allow any start/end dates
+
+// Schema for updating travel planner with all information
+export const UpdateTravelPlannerSchema = z.object({
+  plannerId: z.string().min(1, { message: "Planner ID is required." }),
+
+  title: z
+    .string()
+    .min(1, { message: "Title is required." })
+    .max(200, { message: "Title cannot exceed 200 characters." })
+    .optional(),
+
+  image: z.string().optional().or(z.literal("")),
+
+  note: z.string().optional(),
+
+  generalTips: z.string().optional(),
+
+  destination: z
+    .object({
+      name: z
+        .string()
+        .min(1, { message: "Destination name is required." })
+        .max(200, {
+          message: "Destination name cannot exceed 200 characters.",
+        }),
+
+      coordinates: z
+        .array(z.number())
+        .length(2, { message: "Coordinates must be [longitude, latitude]." })
+        .refine(
+          (coords) =>
+            coords[0] >= -180 &&
+            coords[0] <= 180 &&
+            coords[1] >= -90 &&
+            coords[1] <= 90,
+          { message: "Invalid coordinates range." }
+        ),
+
+      type: z.enum(["province", "ward"], {
+        message: "Destination type must be 'province' or 'ward'.",
+      }),
+
+      provinceId: z.string().optional(),
+      wardId: z.string().optional(),
+    })
+    .optional(),
+
+  startDate: z.union([z.string(), z.date()]).optional(),
+
+  endDate: z.union([z.string(), z.date()]).optional(),
+
+  type: z
+    .enum(["public", "private", "friend"], {
+      message: "Plan type must be 'public', 'private', or 'friend'.",
+    })
+    .optional(),
+
+  state: z
+    .enum(["planning", "ongoing", "completed", "cancelled"], {
+      message: "State must be one of the valid states.",
+    })
+    .optional(),
+
+  tripmates: z
+    .array(
+      z.object({
+        name: z.string().min(1, { message: "Name is required." }),
+        email: z
+          .string()
+          .email({ message: "Invalid email format." })
+          .optional(),
+        image: z.string().optional().or(z.literal("")),
+        userId: z.string().optional(),
+      })
+    )
+    .optional(),
+
+  lodging: z
+    .array(
+      z.object({
+        name: z.string().min(1, { message: "Lodging name is required." }),
+        address: z.string().optional(),
+        checkIn: z.date().or(z.string()).optional(),
+        checkOut: z.date().or(z.string()).optional(),
+        confirmation: z.string().optional(),
+        notes: z.string().optional(),
+        cost: z
+          .object({
+            type: z.string(),
+            value: z.number().min(0),
+          })
+          .optional(),
+      })
+    )
+    .optional(),
+
+  details: z
+    .array(
+      z.object({
+        type: z.enum(["route", "list"]),
+        name: z.string().min(1, { message: "Detail name is required." }),
+        index: z.number().int().min(1),
+        data: z.array(
+          z.object({
+            type: z.enum(["place", "note", "checklist"]),
+            // Note fields
+            content: z.string().optional(),
+            // Checklist fields
+            items: z.array(z.string()).optional(),
+            completed: z.array(z.boolean()).optional(),
+            // Place fields - Basic info
+            id: z.string().optional(),
+            name: z.string().optional(),
+            address: z.string().optional(),
+            description: z.string().optional(),
+            // Place fields - Categories and tags
+            categories: z.array(z.string()).optional(),
+            tags: z.array(z.string()).optional(),
+            // Place fields - Contact info
+            phone: z.string().optional(),
+            website: z.string().optional(),
+            // Place fields - Images
+            images: z.array(z.string()).optional(),
+            imageKeys: z.array(z.string()).optional(),
+            // Place fields - Ratings
+            rating: z.number().min(0).max(5).optional(),
+            numRatings: z.number().min(0).optional(),
+            // Place fields - External references
+            attractionId: z.number().optional(),
+            priceLevel: z.any().optional(), // Can be null, number, or string
+            // Place fields - Opening hours
+            openingPeriods: z
+              .array(
+                z.object({
+                  open: z.object({
+                    day: z.number().min(0).max(6),
+                    time: z.string(),
+                  }),
+                  close: z.object({
+                    day: z.number().min(0).max(6),
+                    time: z.string(),
+                  }),
+                })
+              )
+              .optional(),
+            // Place fields - Location
+            location: z
+              .object({
+                type: z.literal("Point"),
+                coordinates: z.array(z.number()).length(2, {
+                  message: "Coordinates must be an array of two numbers.",
+                }),
+              })
+              .optional(),
+            // Place fields - Time and cost
+            timeStart: z.string().optional(),
+            timeEnd: z.string().optional(),
+            cost: z
+              .object({
+                type: z.string().optional(),
+                value: z.number().min(0).optional(),
+                paidBy: z.string().optional(),
+                description: z.string().optional(),
+                splitBetween: z.array(z.any()).optional(),
+              })
+              .optional(),
+            // Place fields - Notes
+            note: z.string().optional(),
+          })
+        ),
+      })
+    )
+    .optional(),
+});
+// .refine(
+//   (data) => {
+//     // Validate destination constraints if destination is provided
+//     if (data.destination) {
+//       const { type, provinceId, wardId } = data.destination;
+//       if (type === "province" && !provinceId) {
+//         return false;
+//       }
+//       if (type === "ward" && !wardId) {
+//         return false;
+//       }
+//     }
+//     return true;
+//   },
+//   {
+//     message:
+//       "provinceId is required for province type, wardId is required for ward type",
+//     path: ["destination"],
+//   }
+// );
+// Removed date validation - allow any start/end dates
