@@ -1,12 +1,9 @@
-import PlannerForm from "@/components/forms/PlannerForm";
 import CustomScrollLayoutPlanner from "@/components/scroll/CustomScrollLayoutPlanner";
 import { getPlannerById } from "@/lib/actions/planner.action";
 import React from "react";
 
 const PlannerDetail = async ({ params }: { params: { id: string } }) => {
   const { id } = params;
-
-  console.log("data  paramss", params);
 
   const plannerResult = await getPlannerById({
     plannerId: id,
@@ -16,7 +13,6 @@ const PlannerDetail = async ({ params }: { params: { id: string } }) => {
   }
 
   const planner = plannerResult.data;
-  console.log("planner Result", id, planner);
   return (
     // <div className="flex">
     //   <section className="flex-1">

@@ -41,8 +41,12 @@ export async function createPlanner(
       const now = new Date();
       const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
       const planStartDate = new Date(startDate);
-      const startOfStartDate = new Date(planStartDate.getFullYear(), planStartDate.getMonth(), planStartDate.getDate());
-      
+      const startOfStartDate = new Date(
+        planStartDate.getFullYear(),
+        planStartDate.getMonth(),
+        planStartDate.getDate()
+      );
+
       const initialState = startOfStartDate <= today ? "ongoing" : "planning";
 
       // Create travel plan with basic structure

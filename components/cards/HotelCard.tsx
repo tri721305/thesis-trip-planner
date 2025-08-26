@@ -1,6 +1,6 @@
 import React from "react";
 
-const HotelCard = () => {
+const HotelCard = (props: any) => {
   return <div>HotelCard</div>;
 };
 
