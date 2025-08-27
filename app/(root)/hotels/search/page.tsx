@@ -13,11 +13,13 @@ import {
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { Star } from "lucide-react";
+import { Hotel, Star } from "lucide-react";
 import { GrLikeFill } from "react-icons/gr";
 import { BiSolidLike } from "react-icons/bi";
 import { getHotels } from "@/lib/actions/hotel.action";
 import ImageGallery from "@/components/images/ImageGallery";
+import { capitalizeFirstLetter } from "@/lib/utils";
+
 const HotelSearchPage = () => {
   const [location, setLocation] = useState();
   const [selectedDateRange, setSelectedDateRange] = useState({
@@ -29,6 +31,23 @@ const HotelSearchPage = () => {
     { hotels: any[]; isNext: boolean } | undefined
   >();
 
+  // Function to format rating without unnecessary decimals
+  const formatRating = (rating: number) => {
+    return rating % 1 === 0 ? rating.toString() : rating.toFixed(1);
+  };
+  const handleGetHotelsByWanderLog = async () => {
+    const listWanderlog = await getHotels({
+      page: 1,
+      pageSize: 10,
+      // filter: {
+      //   source: "wanderlog",
+      //   // sortBy: "rating",
+      // },
+      query: "Ngan Ha Apartment 2",
+    });
+
+    console.log("listWanderlog", listWanderlog);
+  };
   useEffect(() => {
     const funcGetHotels = async () => {
       const { data, success } = await getHotels({
@@ -164,22 +183,86 @@ const HotelSearchPage = () => {
             <div className="flex gap-2 bg-gray-200 items-center p-2 rounded-[40px] w-fit px-4 cursor-pointer">
               <BiSolidLike size={14} /> Rated
             </div>
+            <div
+              onClick={handleGetHotelsByWanderLog}
+              className="flex gap-2 bg-gray-200 items-center p-2 rounded-[40px] w-fit px-4 cursor-pointer"
+            >
+              <Hotel size={14} /> By
+            </div>
           </div>
         </div>
         <Separator className="my-2" />
         <div>
           {hotelList?.hotels?.map((hotel, index) => {
             console.log("hotel", hotel);
-            const listImgs = hotel?.lodging?.images?.map((img) => img?.url);
+            const listImgs = hotel?.lodging?.images?.map(
+              (img: any) => img?.url
+            );
             return (
-              <div key={hotel?._id}>
-                {hotel?.lodging?.name}
+              <div
+                key={hotel?._id}
+                className="flex gap-2 items-center px-4 py-2"
+              >
                 <ImageGallery
+                  className="w-[180px]  h-[120px] rounded-md overflow-hidden object-cover"
                   images={listImgs}
                   mainImageIndex={0}
                   alt="Gallery description"
                   // className="w-full"
                 />
+                <div className="px-4 flex-1  flex justify-between">
+                  <div className="max-w-[360px] flex-1">
+                    <h1>{hotel?.lodging?.name}</h1>
+                    <div>
+                      <ul
+                        className="flex flex-wrap gap-[12px] gap-y-0 "
+                        style={{ listStyle: "circle" }}
+                      >
+                        {hotel?.lodging?.hotelClass && (
+                          <li className="text-[10px]">
+                            {`${hotel?.lodging?.hotelClass}-star hotel`}
+                          </li>
+                        )}
+                        {hotel?.lodging?.amenities
+                          ?.slice(0, 8)
+                          .map((amentity: any, i: number) => (
+                            <li
+                              className="text-[10px]"
+                              key={amentity?.name + i}
+                            >
+                              {amentity?.name}
+                            </li>
+                          ))}
+                      </ul>
+                    </div>
+                  </div>
+                  <div className="flex gap-1 items-center">
+                    <div className="p-2 text-white w-[40px] h-[40px] flex-center rounded-md bg-blue-900">
+                      <p className="font-bold">
+                        {formatRating(hotel?.lodging?.wanderlogRating || 10)}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px]">
+                        Exceptional ({hotel?.lodging?.ratingCount})
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center gap-2">
+                    <h1 className="font-bold text-[16px]">
+                      {hotel?.priceRate?.total?.amount?.toLocaleString("vi", {
+                        style: "currency",
+                        currency: "VND",
+                      })}
+                    </h1>
+                    <Button className="bg-primary-500 hover:bg-primary-500">
+                      View Deal
+                    </Button>
+                    <p className="text-[10px] text-gray-500">
+                      {capitalizeFirstLetter(hotel?.source)}
+                    </p>
+                  </div>
+                </div>
               </div>
             );
           })}

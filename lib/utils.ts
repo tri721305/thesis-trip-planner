@@ -90,3 +90,10 @@ export const isValidVND = (amount: string | number): boolean => {
   const num = typeof amount === "string" ? parseVND(amount) : amount;
   return !isNaN(num) && num >= 0;
 };
+
+export const capitalizeFirstLetter = (str: string) => {
+  if (typeof str !== "string" || str.length === 0) {
+    return str; // Handle non-string or empty input
+  }
+  return str.charAt(0).toUpperCase() + str.slice(1);
+};

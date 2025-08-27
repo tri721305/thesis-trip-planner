@@ -379,6 +379,14 @@ export const PaginatedSearchParamsSchema = z.object({
   sort: z.string().optional(),
 });
 
+export const PaginatedSearchParamsHotelSchema = z.object({
+  page: z.number().int().positive().default(1),
+  pageSize: z.number().int().positive().default(10),
+  query: z.string().optional(),
+  filter: z.object({}).optional(),
+  sort: z.string().optional(),
+});
+
 export const NewGuideSchema = z.object({
   title: z.string().min(5, { message: "Title is required." }).max(100, {
     message: "Title cannot exceed 100 characters.",

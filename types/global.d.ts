@@ -173,7 +173,23 @@ declare global {
     pageSize?: number;
     query?: string;
     filter?: string;
+    // filter?: {
+    //   source?: string;
+    //   sortBy?: string;
+    // };
   }
+
+  interface PaginatedSearchHotelParams {
+    page?: number;
+    pageSize?: number;
+    query?: string;
+    // filter?: string;
+    filter?: {
+      source?: string;
+      sortBy?: string;
+    };
+  }
+
   interface Hotel {
     _id: string;
     offerId: string;
