@@ -4,10 +4,14 @@ import Hotel from "@/database/hotel.model";
 import action from "../handler/action";
 import { handleError } from "../handler/error";
 import {
+  GetHotelDetailByIdSchema,
+  GetHotelOfferByIdSchema,
   PaginatedSearchParamsHotelSchema,
   PaginatedSearchParamsSchema,
 } from "../validation";
 import { FilterQuery } from "mongoose";
+import HotelDetails from "@/database/hotel-details.model";
+import HotelOffers from "@/database/hotel-offers.model";
 
 interface FilterOptions {
   source?: string;
@@ -86,6 +90,66 @@ export async function getHotels(
         isNext,
         hotels: JSON.parse(JSON.stringify(hotels)),
       },
+    };
+  } catch (error) {
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+export async function getHotelDetailById(
+  params: GetHotelDetailByIdParams
+): Promise<ActionResponse<{ hotel: {} }>> {
+  const validationResult = await action({
+    params,
+    schema: GetHotelDetailByIdSchema,
+    authorize: false,
+  });
+
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+  const { hotelId } = params;
+
+  try {
+    const hotel = await HotelDetails.findOne({
+      hotel_id: hotelId,
+    });
+    if (!hotel) throw new Error("Hotel not found");
+
+    return {
+      success: true,
+      data: { hotel: JSON.parse(JSON.stringify(hotel)) },
+    };
+  } catch (error) {
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+export async function getHotelOfferById(
+  params: GetHotelOfferByIdParams
+): Promise<ActionResponse<{ hotel: {} }>> {
+  console.log("paramsOffer", params);
+  const validationResult = await action({
+    params,
+    schema: GetHotelOfferByIdSchema,
+    authorize: false,
+  });
+
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  const { hotelId } = params;
+
+  try {
+    const hotel = await HotelOffers.findOne({
+      hotel_id: hotelId,
+    });
+    if (!hotel) throw new Error("Hotel not found");
+
+    return {
+      success: true,
+      data: { hotel: JSON.parse(JSON.stringify(hotel)) },
     };
   } catch (error) {
     return handleError(error) as ErrorResponse;

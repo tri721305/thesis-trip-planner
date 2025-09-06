@@ -147,3 +147,11 @@ interface UpdatePlannerParams {
     }>;
   }>;
 }
+
+interface GetHotelDetailByIdParams {
+  hotelId: string;
+}
+
+interface GetHotelOfferByIdParams {
+  hotelId: number;
+}

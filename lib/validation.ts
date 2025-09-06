@@ -972,3 +972,11 @@ export const UpdateTravelPlannerSchema = z.object({
 //   }
 // );
 // Removed date validation - allow any start/end dates
+
+export const GetHotelDetailByIdSchema = z.object({
+  hotelId: z.string(),
+});
+
+export const GetHotelOfferByIdSchema = z.object({
+  hotelId: z.number(),
+});

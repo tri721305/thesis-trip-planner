@@ -1,0 +1,8 @@
+.list-custom ul {
+  display: block;
+  list-style-type: disc;
+  margin-block-start: 0.5em;
+  margin-block-end: 0.5em;
+  padding-inline-start: 40px;
+  unicode-bidi: isolate;
+}
