@@ -43,6 +43,7 @@ const config: Config = {
       },
       fontFamily: {
         inter: ["var(--font-inter)"],
+        olibrick: ["var(--font-olibrick)"],
         "space-grotesk": ["var(--font-space-grotesk)"],
       },
       borderRadius: {

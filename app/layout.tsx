@@ -20,6 +20,11 @@ const spaceGrotesk = localFont({
   weight: "100 200 300 400 500 700 800 900",
 });
 
+const olibrick = localFont({
+  src: "./fonts/Olibrick.ttf",
+  variable: "--font-olibrick",
+  weight: "100 200 300 400 500 700 800 900",
+});
 export const metadata: Metadata = {
   title: "TripPlanner",
   description:
@@ -44,7 +49,7 @@ const RootLayout = async ({
     >
       <SessionProvider session={session}>
         <body
-          className={`${inter.className} ${spaceGrotesk.variable} antialiased`}
+          className={`${inter.className} ${spaceGrotesk.variable} ${olibrick.variable} antialiased`}
         >
           <ThemeProvider
             attribute="class"
