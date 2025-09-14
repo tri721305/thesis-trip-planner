@@ -96,6 +96,7 @@ import {
 import { getPlaceById } from "@/lib/actions/place.action";
 import { useToast } from "@/hooks/use-toast";
 import { Toast } from "../ui/toast";
+import UserSearch from "../search/UserSearch";
 type PlannerFormData = z.infer<typeof PlannerSchema>;
 
 const PlannerForm = ({ planner }: { planner?: any }) => {
@@ -3153,12 +3154,55 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                       <div className="flex flex-col gap-2">
                         <div className="flex gap-2 items-center border border-gray-300 p-2 rounded-md text-[1rem] ">
                           <Link />
-                          <Input className="border-none no-focus shadow-none" />
-                          <Button className="bg-primary-500">Copy link</Button>
+                          <Input
+                            className="border-none no-focus shadow-none"
+                            value={
+                              typeof window !== "undefined"
+                                ? window.location.href
+                                : ""
+                            }
+                            readOnly
+                          />
+                          <Button
+                            className="bg-primary-500 hover:bg-[#fe9a4d]"
+                            onClick={() => {
+                              const url =
+                                typeof window !== "undefined"
+                                  ? window.location.href
+                                  : "";
+                              navigator.clipboard
+                                .writeText(url)
+                                .then(() => {
+                                  toast({
+                                    title: "Link copied!",
+                                    description:
+                                      "The link has been copied to clipboard.",
+                                    variant: "success",
+                                  });
+                                })
+                                .catch(() => {
+                                  toast({
+                                    title: "Copy failed",
+                                    description:
+                                      "Failed to copy link to clipboard.",
+                                    variant: "destructive",
+                                  });
+                                });
+                            }}
+                          >
+                            Copy link
+                          </Button>
                         </div>
-                        <div className="flex gap-2 items-center border-1 background-light800_dark300 p-2 rounded-md text-[1rem] ">
-                          <User />
-                          <Input className="border-none no-focus shadow-none" />
+                        <div className="flex gap-2 items-start border-1 background-light800_dark300 p-2 rounded-md text-[1rem] ">
+                          <User className="mt-[18px]" />
+                          {/* <Input className="border-none no-focus shadow-none" /> */}
+                          <UserSearch
+                            onUserSelect={(user) =>
+                              console.log("Selected user:", user)
+                            }
+                            placeholder="Enter user email to search"
+                            // className="border-none no-focus shadow-none"
+                          />
                         </div>
                         <Separator className="my-4" />
                         <Button

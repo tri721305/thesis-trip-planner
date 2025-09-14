@@ -35,6 +35,10 @@ interface GetWardByName {
   wardName: string;
 }
 
+interface GetUserByEmailParams {
+  email: string;
+}
+
 interface CreatePlannerParams {
   title: string;
   destination: {

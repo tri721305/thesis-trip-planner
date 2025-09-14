@@ -2,8 +2,9 @@ import mongoose, { Mongoose } from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI as string;
 
-if (!MONGODB_URI) {
-  throw new Error("MONGODB_URI is not defined");
+// Only check for MONGODB_URI on server side
+if (typeof window === "undefined" && !MONGODB_URI) {
+  throw new Error("MONGODB_URI is not defined in environment variables");
 }
 
 interface MongooseCache {
@@ -23,6 +24,15 @@ if (!cached) {
 }
 
 const dbConnect = async (): Promise<Mongoose> => {
+  // Only run on server side
+  if (typeof window !== "undefined") {
+    throw new Error("dbConnect should only be called on server side");
+  }
+
+  if (!MONGODB_URI) {
+    throw new Error("MONGODB_URI is not defined in environment variables");
+  }
+
   if (cached.conn) {
     return cached.conn;
   }
@@ -36,7 +46,7 @@ const dbConnect = async (): Promise<Mongoose> => {
         return result;
       })
       .catch((error) => {
-        console.error("Error connecteing to MongoDB", error);
+        console.error("Error connecting to MongoDB", error);
         throw error;
       });
   }

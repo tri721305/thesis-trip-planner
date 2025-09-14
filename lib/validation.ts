@@ -363,6 +363,12 @@ export const GetWardByNameSchema = z.object({
   wardName: z.string().min(1, { message: "Ward name is required." }),
 });
 
+export const GetUserByEmailSchema = z.object({
+  email: z.string().min(1, { message: "Email is required." }).email({
+    message: "Please provide a valid email address.",
+  }),
+});
+
 export const createBlogSchema = z.object({
   title: z.string().min(1, { message: "Title is required." }),
   description: z.string().optional(),
