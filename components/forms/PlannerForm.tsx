@@ -92,6 +92,7 @@ import { auth } from "@/auth";
 import {
   updatePlanner,
   updatePlannerMainImage,
+  getPlannerById,
 } from "@/lib/actions/planner.action";
 import { getPlaceById } from "@/lib/actions/place.action";
 import { useToast } from "@/hooks/use-toast";
@@ -119,6 +120,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
   const [currentMainImage, setCurrentMainImage] = useState(
     planner?.image || "/images/ocean.jpg"
   );
+  const [currentPlannerData, setCurrentPlannerData] = useState(planner);
   // State for preserving scroll position and preventing auto-scroll conflicts
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -132,6 +134,25 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
   const [noteInputValues, setNoteInputValues] = useState<{
     [key: string]: string; // key format: "detailIndex-itemIndex"
   }>({});
+
+  // State for expense management
+  const [currentExpenseContext, setCurrentExpenseContext] = useState<{
+    detailIndex: number;
+    itemIndex: number;
+  } | null>(null);
+
+  const [expenseFormData, setExpenseFormData] = useState({
+    value: 0,
+    type: "VND",
+    description: "",
+    paidBy: "",
+    splitBetween: [] as Array<{
+      userId?: string;
+      name: string;
+      amount: number;
+      settled: boolean;
+    }>,
+  });
 
   // NEW: State for routing information from OpenStreetMap API
   const [localRoutingData, setLocalRoutingData] = useState<{
@@ -1314,7 +1335,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                             <Button
                               variant="ghost"
                               onClick={() => {
-                                setShowExpenses(true);
+                                handleOpenExpenseDialog(index, idx);
                               }}
                             >
                               <BiMoney /> Add Cost
@@ -1909,6 +1930,148 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     //   }
     // }, 100);
   };
+
+  // Expense management functions
+  const handleOpenExpenseDialog = (detailIndex: number, itemIndex: number) => {
+    // Get current place data
+    const currentPlace = form.getValues(
+      `details.${detailIndex}.data.${itemIndex}`
+    );
+
+    if (currentPlace?.type === "place") {
+      // Set the context for which place we're editing
+      setCurrentExpenseContext({ detailIndex, itemIndex });
+
+      // Pre-populate form with existing cost data if available
+      const existingCost = currentPlace.cost || ({} as any);
+
+      // Get available tripmates for splitting
+      const tripmates = form.getValues("tripmates") || [];
+      const totalValue = existingCost.value || 0;
+      const splitCount = tripmates.length + 1; // +1 for the user
+      const defaultSplitAmount = splitCount > 0 ? totalValue / splitCount : 0;
+
+      // Create split between array including user and tripmates
+      const defaultSplitBetween = [
+        {
+          userId: "current-user", // This would be the current user ID
+          name: "You", // This would be the current user name
+          amount: defaultSplitAmount,
+          settled: false,
+        },
+        ...tripmates.map((tripmate: any) => ({
+          userId: tripmate.userId || "",
+          name: tripmate.name,
+          amount: defaultSplitAmount,
+          settled: false,
+        })),
+      ];
+
+      setExpenseFormData({
+        value: existingCost.value || 0,
+        type: existingCost.type || "VND",
+        description: existingCost.description || "",
+        paidBy: existingCost.paidBy || "You",
+        splitBetween: existingCost.splitBetween || defaultSplitBetween,
+      });
+
+      setShowExpenses(true);
+    }
+  };
+
+  const handleSaveExpense = () => {
+    if (!currentExpenseContext) return;
+
+    const { detailIndex, itemIndex } = currentExpenseContext;
+
+    // Get current place data
+    const currentPlace = form.getValues(
+      `details.${detailIndex}.data.${itemIndex}`
+    );
+
+    if (currentPlace?.type === "place") {
+      // Update the place with new cost information
+      const updatedPlace = {
+        ...currentPlace,
+        cost: {
+          value: expenseFormData.value,
+          type: expenseFormData.type as "VND" | "USD" | "EUR",
+          description: expenseFormData.description,
+          paidBy: expenseFormData.paidBy,
+          splitBetween: expenseFormData.splitBetween,
+        },
+      };
+
+      // Update the form
+      const currentItems = form.getValues(`details.${detailIndex}.data`) || [];
+      const updatedItems = [...currentItems];
+      updatedItems[itemIndex] = updatedPlace;
+
+      form.setValue(`details.${detailIndex}.data`, updatedItems, {
+        shouldValidate: false,
+        shouldDirty: true,
+        shouldTouch: true,
+      });
+
+      // Update store
+      updateStore();
+
+      // Show success message
+      toast({
+        title: "Expense saved!",
+        description: "Cost information has been updated for this place.",
+        variant: "default",
+      });
+
+      // Close dialog and reset state
+      setShowExpenses(false);
+      setCurrentExpenseContext(null);
+      resetExpenseForm();
+    }
+  };
+
+  const resetExpenseForm = () => {
+    setExpenseFormData({
+      value: 0,
+      type: "VND",
+      description: "",
+      paidBy: "",
+      splitBetween: [],
+    });
+  };
+
+  const handleExpenseFormChange = (field: string, value: any) => {
+    setExpenseFormData((prev) => ({
+      ...prev,
+      [field]: value,
+    }));
+
+    // If value changes, recalculate split amounts
+    if (field === "value") {
+      const splitCount = expenseFormData.splitBetween.length;
+      if (splitCount > 0) {
+        const splitAmount = value / splitCount;
+        setExpenseFormData((prev) => ({
+          ...prev,
+          value,
+          splitBetween: prev.splitBetween.map((person) => ({
+            ...person,
+            amount: splitAmount,
+          })),
+        }));
+      }
+    }
+  };
+
+  const updateSplitAmount = (personIndex: number, amount: number) => {
+    setExpenseFormData((prev) => ({
+      ...prev,
+      splitBetween: prev.splitBetween.map((person, index) =>
+        index === personIndex ? { ...person, amount } : person
+      ),
+    }));
+  };
+
   const handleUploadImage = () => {
     // Tạo một input file ẩn
     const input = document.createElement("input");
@@ -1916,7 +2079,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     input.accept = "image/*";
     input.multiple = false;
 
-    input.onchange = async (event) => {
+    input.onchange = async (event: Event) => {
       const file = (event.target as HTMLInputElement).files?.[0];
       if (!file) return;
 
@@ -2002,6 +2165,41 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     // Trigger file picker
     input.click();
   };
+
+  // Function to refresh planner data after tripmate is added
+  const refreshPlannerData = async () => {
+    if (!planner?._id && !planner?.id) {
+      console.error("No planner ID available for refresh");
+      return;
+    }
+
+    try {
+      const plannerId = planner._id || planner.id;
+      const refreshedPlanner = await getPlannerById({ plannerId });
+
+      if (refreshedPlanner.success && refreshedPlanner.data) {
+        console.log("✅ Planner data refreshed:", refreshedPlanner.data);
+        setCurrentPlannerData(refreshedPlanner.data);
+
+        // Update form with fresh tripmates data
+        form.setValue("tripmates", refreshedPlanner.data.tripmates || []);
+
+        // Update store as well
+        setPlannerData(refreshedPlanner.data);
+
+        toast({
+          title: "Updated!",
+          description: "Planner refreshed with latest tripmate data.",
+          variant: "default",
+        });
+      } else {
+        console.error("Failed to refresh planner:", refreshedPlanner.error);
+      }
+    } catch (error) {
+      console.error("Error refreshing planner data:", error);
+    }
+  };
+
   const handleSubmit = async () => {
     const formData = form.getValues();
 
@@ -2216,27 +2414,50 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                 />
                 <div className="flex items-center gap-2 ">
                   <div className="*:data-[slot=avatar]:ring-background flex -space-x-2 *:data-[slot=avatar]:ring-2 *:data-[slot=avatar]:grayscale">
-                    <Avatar>
-                      <AvatarImage
-                        src="https://github.com/shadcn.png"
-                        alt="@shadcn"
-                      />
-                      <AvatarFallback>CN</AvatarFallback>
-                    </Avatar>
-                    <Avatar>
-                      <AvatarImage
-                        src="https://github.com/leerob.png"
-                        alt="@leerob"
-                      />
-                      <AvatarFallback>LR</AvatarFallback>
-                    </Avatar>
-                    <Avatar>
-                      <AvatarImage
-                        src="https://github.com/evilrabbit.png"
-                        alt="@evilrabbit"
-                      />
-                      <AvatarFallback>ER</AvatarFallback>
-                    </Avatar>
+                    {/* Display tripmates from current planner data */}
+                    {(currentPlannerData?.tripmates || planner?.tripmates || [])
+                      .slice(0, 3)
+                      .map((tripmate: any, index: number) => (
+                        <Avatar key={index}>
+                          <AvatarImage
+                            src={tripmate.image || ""}
+                            alt={tripmate.name || "Tripmate"}
+                          />
+                          <AvatarFallback>
+                            {tripmate.name
+                              ? tripmate.name.charAt(0).toUpperCase()
+                              : "U"}
+                          </AvatarFallback>
+                        </Avatar>
+                      ))}
+                    {/* Show additional count if more than 3 tripmates */}
+                    {(currentPlannerData?.tripmates || planner?.tripmates || [])
+                      .length > 3 && (
+                      <Avatar>
+                        <AvatarFallback className="bg-gray-200 text-gray-600 text-xs">
+                          +
+                          {(
+                            currentPlannerData?.tripmates ||
+                            planner?.tripmates ||
+                            []
+                          ).length - 3}
+                        </AvatarFallback>
+                      </Avatar>
+                    )}
+
+                    {/* Show placeholder if no tripmates */}
+                    {(!currentPlannerData?.tripmates ||
+                      currentPlannerData.tripmates.length === 0) &&
+                      (!planner?.tripmates ||
+                        planner.tripmates.length === 0) && (
+                        <Avatar>
+                          <AvatarImage
+                            src="https://github.com/shadcn.png"
+                            alt="@shadcn"
+                          />
+                          <AvatarFallback>CN</AvatarFallback>
+                        </Avatar>
+                      )}
                   </div>
                   <Button
                     onClick={() => {
@@ -3121,7 +3342,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
               onClick={handleSubmit}
               className=" !w-fit bg-primary-500 hover:bg-primary-500 font-bold p-4 "
             >
-              {isPending ? "Creating..." : "Create Planner"}
+              {isPending ? "Updating..." : "Update Planner"}
             </Button>
           </div>
         </form>
@@ -3200,7 +3421,9 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                             onUserSelect={(user) =>
                               console.log("Selected user:", user)
                             }
+                            onTripmateAdded={refreshPlannerData}
                             placeholder="Enter user email to search"
+                            plannerId={planner?._id || planner?.id} // Add plannerId
                             // className="border-none no-focus shadow-none"
                           />
                         </div>
@@ -3259,15 +3482,31 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
           data={{
             title: "Add expense",
             content: (
-              <div>
+              <div className="space-y-4">
                 <div className="flex gap-2">
                   <div className="flex-1">
                     <Label className="font-bold">Cost</Label>
-                    <Input placeholder="Cost" className="h-[40px]" />
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      className="h-[40px]"
+                      value={expenseFormData.value || ""}
+                      onChange={(e) =>
+                        handleExpenseFormChange(
+                          "value",
+                          parseFloat(e.target.value) || 0
+                        )
+                      }
+                    />
                   </div>
-                  <div className="w-fit">
+                  <div className="w-fit min-w-[120px]">
                     <Label className="font-bold">Currency</Label>
-                    <Select defaultValue="VND">
+                    <Select
+                      value={expenseFormData.type}
+                      onValueChange={(value) =>
+                        handleExpenseFormChange("type", value)
+                      }
+                    >
                       <SelectTrigger
                         className={`h-[40px] border-none paragraph-regular background-form-input light-border-2 text-dark300_light700 no-focus rounded-1.5 border`}
                       >
@@ -3281,43 +3520,109 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                     </Select>
                   </div>
                 </div>
-                {/* <div>
-                  <Label className="font-bold">Category</Label>
-                  <Input placeholder="Cost" className="h-[40px]" />
-                </div> */}
+
                 <div>
                   <Label className="font-bold">Description</Label>
-                  <Textarea placeholder="Description" className="h-[40px]" />
+                  <Textarea
+                    placeholder="Enter expense description..."
+                    className="min-h-[80px]"
+                    value={expenseFormData.description}
+                    onChange={(e) =>
+                      handleExpenseFormChange("description", e.target.value)
+                    }
+                  />
                 </div>
+
                 <div>
                   <Label className="font-bold">Paid by</Label>
-                  <Select key="Paidby" defaultValue="1">
+                  <Select
+                    value={expenseFormData.paidBy}
+                    onValueChange={(value) =>
+                      handleExpenseFormChange("paidBy", value)
+                    }
+                  >
                     <SelectTrigger
                       className={`h-[40px] border-none paragraph-regular background-form-input light-border-2 text-dark300_light700 no-focus rounded-1.5 border`}
                     >
-                      <SelectValue placeholder="Currency" />
+                      <SelectValue placeholder="Select who paid" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="1">
-                        <div>{`You ( Đặng Hoàng Minh Trí )`}</div>
+                      <SelectItem value="You">
+                        <div>You (Current User)</div>
                       </SelectItem>
-                      <SelectItem value="2">Hưng Trần</SelectItem>
+                      {(form.getValues("tripmates") || []).map(
+                        (tripmate: any, index: number) => (
+                          <SelectItem key={index} value={tripmate.name}>
+                            {tripmate.name}
+                          </SelectItem>
+                        )
+                      )}
                     </SelectContent>
                   </Select>
                 </div>
+
                 <div>
-                  <Label className="font-bold">Split</Label>
-                  <Input placeholder="Cost" className="h-[40px]" />
+                  <Label className="font-bold">Split Between</Label>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {expenseFormData.splitBetween.map((person, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-2 p-2 bg-gray-50 rounded"
+                      >
+                        <span className="flex-1 font-medium">
+                          {person.name}
+                        </span>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={person.amount || ""}
+                          onChange={(e) =>
+                            updateSplitAmount(
+                              index,
+                              parseFloat(e.target.value) || 0
+                            )
+                          }
+                          className="w-24 h-8"
+                          placeholder="0"
+                        />
+                        <span className="text-sm text-gray-600">
+                          {expenseFormData.type}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="text-sm text-gray-600 mt-1">
+                    Total:{" "}
+                    {expenseFormData.splitBetween.reduce(
+                      (sum, person) => sum + (person.amount || 0),
+                      0
+                    )}{" "}
+                    {expenseFormData.type}
+                  </div>
                 </div>
-                <div className="mt-4 flex items-end justify-end">
-                  <Button>
-                    <Save />
-                    Save
+
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowExpenses(false);
+                      resetExpenseForm();
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleSaveExpense}
+                    className="bg-primary-500 hover:bg-primary-600"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Expense
                   </Button>
                 </div>
               </div>
             ),
-            showCloseButton: false,
+            showCloseButton: true,
           }}
           setOpen={setShowExpenses}
         />

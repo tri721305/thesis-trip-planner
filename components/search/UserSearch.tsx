@@ -3,25 +3,32 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Input } from "../ui/input";
 import { getUserByEmail } from "@/lib/actions/user.action";
+import { addTripmate } from "@/lib/actions/planner.action";
 import { FaUser, FaEnvelope } from "react-icons/fa";
 import TruncateText from "../typography/TruncateText";
 import { ReloadIcon } from "@radix-ui/react-icons";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface UserSearchProps {
   onUserSelect?: (user: any) => void;
+  onTripmateAdded?: () => void; // Add callback for when tripmate is successfully added
   placeholder?: string;
   maxResults?: number;
+  plannerId?: string; // Add plannerId prop
 }
 
 const UserSearch = ({
   onUserSelect,
+  onTripmateAdded,
   placeholder = "Search users by email address",
   maxResults = 5,
+  plannerId,
 }: UserSearchProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isAddingTripmate, setIsAddingTripmate] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [result, setResult] = useState<any[]>([]);
@@ -31,6 +38,7 @@ const UserSearch = ({
 
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { toast } = useToast();
 
   // Handle user selection
   const handleUserSelect = (user: any) => {
@@ -49,9 +57,9 @@ const UserSearch = ({
 
     console.log("handleUserSelect", userData);
 
-    // Set selected user and update input with username or name
+    // Set selected user and clear search input
     setSelectedUser(userData);
-    setSearch(userData.username || userData.name || userData.email);
+    setSearch(""); // Clear search input after selection
 
     // Call parent callback if provided
     if (onUserSelect) {
@@ -95,6 +103,68 @@ const UserSearch = ({
     setSelectedUser(null);
     setSearch("");
     setIsOpen(false);
+  };
+
+  // Handle adding tripmate to planner
+  const handleAddTripmate = async () => {
+    if (!selectedUser || !plannerId) {
+      console.error("Missing selectedUser or plannerId");
+      return;
+    }
+
+    setIsAddingTripmate(true);
+
+    try {
+      const tripmate = {
+        name: selectedUser.name,
+        email: selectedUser.email,
+        image: selectedUser.image || "",
+        userId: selectedUser.id,
+      };
+
+      console.log("Adding tripmate to planner:", {
+        plannerId,
+        tripmate,
+      });
+
+      const result = await addTripmate({
+        plannerId,
+        tripmate,
+      });
+
+      if (result.success) {
+        console.log("Tripmate added successfully:", result.data);
+        // Clear selected user after successful addition
+        setSelectedUser(null);
+        setSearch("");
+        // Show success toast
+        toast({
+          title: "Success!",
+          description: "Tripmate added successfully to your planner.",
+          variant: "default",
+        });
+        // Call the callback to refresh planner data
+        if (onTripmateAdded) {
+          onTripmateAdded();
+        }
+      } else {
+        console.error("Failed to add tripmate:", result.error);
+        toast({
+          title: "Error",
+          description: `Failed to add tripmate: ${result.error?.message || "Unknown error"}`,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error adding tripmate:", error);
+      toast({
+        title: "Error",
+        description: "Error adding tripmate. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingTripmate(false);
+    }
   };
 
   useEffect(() => {
@@ -254,6 +324,7 @@ const UserSearch = ({
               ×
             </button>
           </div>
+
           <Textarea
             defaultValue={
               "Check out my trip plan on Traveler! We can collaborate in real time, have all our travel reservations in one place, and so much more. Let’s plan the best trip ever!"
@@ -262,12 +333,18 @@ const UserSearch = ({
           />
           <div className="w-full flex justify-end items-end">
             <Button
-              onClick={() => {
-                console.log("Update tripmate ");
-              }}
-              className="bg-primary-500 text-white hover:bg-[#fe9a4d]"
+              onClick={handleAddTripmate}
+              disabled={isAddingTripmate || !plannerId}
+              className="bg-primary-500 text-white hover:bg-[#fe9a4d] disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Send Email
+              {isAddingTripmate ? (
+                <>
+                  <ReloadIcon className="mr-2 h-4 w-4 animate-spin" />
+                  Adding...
+                </>
+              ) : (
+                "Send Email"
+              )}
             </Button>
           </div>
         </div>

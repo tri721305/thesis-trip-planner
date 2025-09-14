@@ -34,6 +34,7 @@ export default function TestUserSearchPage() {
           <UserSearch
             onUserSelect={handleUserSelect}
             placeholder="Search users by email..."
+            plannerId="60b5d8f5e4b0f40015b5d8f5"
           />
         </div>
 
