@@ -301,27 +301,28 @@ const Map: React.FC<MapProps> = ({ destination, className, routeData }) => {
                 type="geojson"
                 data={routeGeoJSON}
               >
+                {/* Route outline first (underneath) */}
                 <Layer
-                  id={`route-line-${routeIndex}`}
+                  id={`route-outline-${routeIndex}`}
                   type="line"
                   paint={{
-                    "line-color": route.color || "#2563eb", // Blue color
-                    "line-width": 4,
-                    "line-opacity": 0.8,
+                    "line-color": "#ffffff",
+                    "line-width": 8, // Wider outline
+                    "line-opacity": 0.9,
                   }}
                   layout={{
                     "line-join": "round",
                     "line-cap": "round",
                   }}
                 />
-                {/* Route line with outline for better visibility */}
+                {/* Main route line on top */}
                 <Layer
-                  id={`route-outline-${routeIndex}`}
+                  id={`route-line-${routeIndex}`}
                   type="line"
                   paint={{
-                    "line-color": "#ffffff",
-                    "line-width": 6,
-                    "line-opacity": 0.6,
+                    "line-color": route.color || "#1e40af", // Even darker blue
+                    "line-width": 6, // Thicker line
+                    "line-opacity": 1.0, // Full opacity
                   }}
                   layout={{
                     "line-join": "round",

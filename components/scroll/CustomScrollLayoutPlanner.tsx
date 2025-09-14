@@ -43,16 +43,16 @@ const CustomScrollLayoutPlanner = (planner: any) => {
       color?: string;
     }> = [];
 
-    // Generate different colors for each day
+    // Generate very dark and vibrant colors for each day - maximum visibility
     const dayColors = [
-      "#2563eb", // Blue
-      "#dc2626", // Red
-      "#16a34a", // Green
-      "#ca8a04", // Yellow
-      "#9333ea", // Purple
-      "#c2410c", // Orange
-      "#0891b2", // Cyan
-      "#be123c", // Rose
+      "#1e40af", // Very dark blue
+      "#991b1b", // Very dark red
+      "#14532d", // Very dark green
+      "#92400e", // Very dark amber/brown
+      "#6b21a8", // Very dark purple
+      "#c2410c", // Dark orange (kept as is - already quite dark)
+      "#0c4a6e", // Very dark sky blue
+      "#881337", // Very dark pink
     ];
 
     Object.entries(routingData).forEach(([dayKey, dayData], dayIndex) => {
