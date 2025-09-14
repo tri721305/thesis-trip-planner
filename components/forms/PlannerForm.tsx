@@ -60,6 +60,7 @@ import {
   Pencil,
   Trash,
   Save,
+  ChartBar,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -74,7 +75,7 @@ import { MdChecklist, MdFlight } from "react-icons/md";
 import { BiMoney, BiRestaurant, BiSolidHotel } from "react-icons/bi";
 import { GoKebabHorizontal } from "react-icons/go";
 import Collaps from "../Collaps";
-import { FaMapMarker, FaPen, FaTrash } from "react-icons/fa";
+import { FaMapMarker, FaPen, FaTrash, FaUserPlus } from "react-icons/fa";
 import InputWithIcon from "../input/InputIcon";
 import DebouncedNoteInput from "../input/DebouncedNoteInput";
 import DebouncedTextarea from "../input/DebouncedTextarea";
@@ -98,6 +99,7 @@ import { getPlaceById } from "@/lib/actions/place.action";
 import { useToast } from "@/hooks/use-toast";
 import { Toast } from "../ui/toast";
 import UserSearch from "../search/UserSearch";
+import { formatCurrency } from "@/lib/currency";
 type PlannerFormData = z.infer<typeof PlannerSchema>;
 
 const PlannerForm = ({ planner }: { planner?: any }) => {
@@ -1223,7 +1225,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                       key={`place-${idx}`}
                       className="flex gap-3 items-center  rounded-lg item-hover-btn"
                     >
-                      <div className="bg-gray-50 flex gap-3 items-start rounded-lg p-3  flex-1">
+                      <div className="background-light800_darkgradient flex gap-3 items-start rounded-lg p-3  flex-1">
                         <section>
                           <div className="relative">
                             <FaMapMarker size={28} className="text-pink-500" />
@@ -1338,7 +1340,14 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                                 handleOpenExpenseDialog(index, idx);
                               }}
                             >
-                              <BiMoney /> Add Cost
+                              <BiMoney />{" "}
+                              {item.cost?.value && item.cost.value > 0
+                                ? formatCurrency(
+                                    item.cost.value,
+                                    item.cost.type?.toLowerCase() || "vnd",
+                                    { showSymbol: true, compact: false }
+                                  )
+                                : "Add Cost"}
                             </Button>
                           </div>
                         </section>
@@ -1374,24 +1383,24 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
 
                 if (placesInDay.length >= 2) {
                   return (
-                    <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                    <div className=" p-3 mr-[58px]  rounded-lg border border-none background-light800_darkgradient">
                       <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-semibold text-blue-800 dark:text-blue-200 flex items-center gap-2">
+                        <h4 className="font-semibold  dark:text-blue-200 flex items-center gap-2">
                           <Route className="h-4 w-4" />
                           Route Information
                         </h4>
                         <div className="flex gap-2">
                           <Button
-                            variant="outline"
+                            // variant="primary"
                             size="sm"
                             onClick={() => calculateDayRoutes(index)}
                             disabled={dayRouting?.isCalculating}
-                            className="text-blue-600 border-blue-300 hover:bg-blue-100"
+                            className="h-[36px] text-[14px] font-bold"
                           >
                             {dayRouting?.isCalculating ? (
                               <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
                             ) : (
-                              "Tính Routes"
+                              "Calculate Routes"
                             )}
                           </Button>
                           {/* NEW: Debug button to log routing data */}
@@ -2699,9 +2708,8 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                 <h1 className="text-[36px] font-bold">Itinerary</h1>
                 <div className="flex gap-2">
                   <Button
-                    variant="outline"
                     onClick={recalculateAllRoutes}
-                    className="text-blue-600 border-blue-300 hover:bg-blue-100"
+                    className="h-[36px] font-bold"
                     disabled={Object.values(localRoutingData).some(
                       (day) => day.isCalculating
                     )}
@@ -3345,6 +3353,35 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
               {isPending ? "Updating..." : "Update Planner"}
             </Button>
           </div>
+          <div className="px-8 pb-8 flex flex-col gap-4">
+            <h1 className="text-[36px] font-bold">Budgeting</h1>
+            <div className="p-4 px-12 flex justify-between items-center rounded-lg background-light800_darkgradient">
+              <div>
+                <div className="text-[30px] font-bold mb-2">
+                  {formatCurrency(1000000, "vnd", {
+                    showSymbol: true,
+                    compact: false,
+                  })}
+                </div>
+                <div>
+                  <Button className="h-[36px]">Set Budget</Button>
+                  <Button className="h-[36px] ml-2">Group Balances </Button>
+                </div>
+              </div>
+              <div className="flex flex-col gap-4 pr-8">
+                <div className="flex items-center gap-2 text-[14px] font-semibold">
+                  <ChartBar size={14} /> View breakdown
+                </div>
+                <div className="flex items-center gap-2 text-[14px] font-semibold">
+                  <FaUserPlus size={14} /> Add Tripmate
+                </div>
+                <div className="flex items-center gap-2 text-[14px] font-semibold">
+                  <Settings size={14} /> Settings
+                </div>
+              </div>
+            </div>
+            <h2 className="text-[24px] font-semibold">Expenses</h2>
+          </div>
         </form>
       </Form>
       {showDialog && (
@@ -3622,7 +3659,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                 </div>
               </div>
             ),
-            showCloseButton: true,
+            showCloseButton: false,
           }}
           setOpen={setShowExpenses}
         />
