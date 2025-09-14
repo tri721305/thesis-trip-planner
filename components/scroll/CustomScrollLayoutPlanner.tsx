@@ -5,13 +5,16 @@ import GuideContent from "../GuideContent";
 import SidebarDetailPlanner from "../sidebar/SidebarDetailPlanner";
 import PlannerForm from "../forms/PlannerForm";
 import Map from "../Map";
-import { getPlaceById } from "@/lib/actions/place.action";
+import { usePlannerStore } from "@/store/plannerStore";
 
 const CustomScrollLayoutPlanner = (planner: any) => {
   const leftContentRef = useRef<HTMLDivElement>(null);
   const hiddenScrollRef = useRef<HTMLDivElement>(null);
   const leftContainerRef = useRef<HTMLDivElement>(null);
   const [scrollHeight, setScrollHeight] = useState(0);
+
+  // Get routing data from Zustand store
+  const { routingData } = usePlannerStore();
 
   // Extract destination data for the map
   const mapDestination = React.useMemo(() => {
@@ -26,6 +29,56 @@ const CustomScrollLayoutPlanner = (planner: any) => {
     }
     return null;
   }, [planner.planner?.destination]);
+
+  // NEW: Convert routing data to format expected by Map component
+  const mapRouteData = React.useMemo(() => {
+    if (!routingData || Object.keys(routingData).length === 0) {
+      return [];
+    }
+
+    const routeLines: Array<{
+      geometry: any;
+      fromPlace: string;
+      toPlace: string;
+      color?: string;
+    }> = [];
+
+    // Generate different colors for each day
+    const dayColors = [
+      "#2563eb", // Blue
+      "#dc2626", // Red
+      "#16a34a", // Green
+      "#ca8a04", // Yellow
+      "#9333ea", // Purple
+      "#c2410c", // Orange
+      "#0891b2", // Cyan
+      "#be123c", // Rose
+    ];
+
+    Object.entries(routingData).forEach(([dayKey, dayData], dayIndex) => {
+      if (dayData.routes && dayData.routes.length > 0) {
+        const dayColor = dayColors[dayIndex % dayColors.length];
+
+        dayData.routes.forEach((route) => {
+          if (route.geometry && route.geometry.coordinates) {
+            routeLines.push({
+              geometry: route.geometry,
+              fromPlace: route.fromPlace,
+              toPlace: route.toPlace,
+              color: dayColor,
+            });
+          }
+        });
+      }
+    });
+
+    console.log("🗺️ Map route data prepared:", {
+      totalRoutes: routeLines.length,
+      routeLines: routeLines.map((r) => `${r.fromPlace} → ${r.toPlace}`),
+    });
+
+    return routeLines;
+  }, [routingData]);
 
   console.log("🗺️ Map will use store data from PlannerForm");
   console.log("Planner Custom Form", planner);
@@ -100,7 +153,10 @@ const CustomScrollLayoutPlanner = (planner: any) => {
 
       {/* Map container - cố định */}
       <div className="w-1/2 h-[calc(100vh-80px)] bg-gradient-to-br from-blue-50 to-cyan-50 relative">
-        <Map destination={mapDestination || undefined} />
+        <Map
+          destination={mapDestination || undefined}
+          routeData={mapRouteData}
+        />
       </div>
 
       {/* Thanh scroll ẩn ở bên phải */}

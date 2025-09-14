@@ -66,9 +66,7 @@ const AnimatedSlider: React.FC = () => {
 
   const swapCards = useCallback(
     async (newDirection: "left" | "right") => {
-      console.log(`🔄 Button clicked: ${newDirection}`); // Debug log
       if (isAnimating) {
-        console.log("⚠️ Animation in progress, ignoring click");
         return;
       }
 
@@ -78,16 +76,13 @@ const AnimatedSlider: React.FC = () => {
       // Immediately change index without delay
       if (newDirection === "right") {
         setCurrentIndex(getSlideIndex(1));
-        console.log(`➡️ Moving to next: ${getSlideIndex(1)}`);
       } else {
         setCurrentIndex(getSlideIndex(-1));
-        console.log(`⬅️ Moving to previous: ${getSlideIndex(-1)}`);
       }
 
       // Wait for animation to complete - consistent timing
       setTimeout(() => {
         setIsAnimating(false);
-        console.log("✅ Animation complete");
       }, 800); // Match the animation duration exactly
     },
     [currentIndex, isAnimating]
@@ -111,7 +106,6 @@ const AnimatedSlider: React.FC = () => {
 
     // Add timeout fallback to prevent infinite loading
     const timeoutId = setTimeout(() => {
-      console.log("⚠️ Image loading timeout - forcing completion");
       setLoadProgress(1);
       setIsLoading(false);
     }, 10000); // 10 second timeout
@@ -121,13 +115,8 @@ const AnimatedSlider: React.FC = () => {
       const progress = loadedImages / totalImages;
       setLoadProgress(progress);
 
-      console.log(
-        `📸 Image ${loadedImages}/${totalImages} loaded (${Math.round(progress * 100)}%)`
-      );
-
       if (loadedImages === totalImages) {
         clearTimeout(timeoutId);
-        console.log("✅ All images loaded successfully");
         setTimeout(() => {
           setIsLoading(false);
         }, 800);
@@ -138,7 +127,6 @@ const AnimatedSlider: React.FC = () => {
       const img = new Image();
 
       img.onload = () => {
-        console.log(`✅ Image ${index + 1} loaded:`, imageSrc);
         handleImageComplete();
       };
 
@@ -151,8 +139,6 @@ const AnimatedSlider: React.FC = () => {
       // Add crossOrigin for external images
       img.crossOrigin = "anonymous";
       img.src = imageSrc;
-
-      console.log(`🔄 Loading image ${index + 1}:`, imageSrc);
     });
 
     // If no images, complete immediately
@@ -163,31 +149,13 @@ const AnimatedSlider: React.FC = () => {
   };
 
   useEffect(() => {
-    console.log("🚀 AnimatedSlider mounted - Starting image loading...");
-
     if (!ENABLE_LOADING) {
-      console.log("⚡ Loading disabled - skipping to content");
       setIsLoading(false);
       return;
     }
 
     waitForImages();
   }, []);
-
-  // Debug loading state changes
-  useEffect(() => {
-    console.log("📊 Loading state changed:", { isLoading, loadProgress });
-  }, [isLoading, loadProgress]);
-
-  // Debug direction changes
-  useEffect(() => {
-    console.log("🧭 Direction changed:", direction);
-  }, [direction]);
-
-  // Debug currentIndex changes
-  useEffect(() => {
-    console.log("📍 CurrentIndex changed:", currentIndex);
-  }, [currentIndex]);
 
   // Animation variants for slide-in/slide-out effect
   const cardVariants = {
@@ -550,7 +518,6 @@ const AnimatedSlider: React.FC = () => {
               <p>Progress: {Math.round(loadProgress * 100)}%</p>
               <button
                 onClick={() => {
-                  console.log("🏃‍♂️ Skip loading forced");
                   setIsLoading(false);
                 }}
                 style={{

@@ -45,8 +45,6 @@ const HotelSearchPage = () => {
       // },
       query: "Ngan Ha Apartment 2",
     });
-
-    console.log("listWanderlog", listWanderlog);
   };
   useEffect(() => {
     const funcGetHotels = async () => {
@@ -55,7 +53,6 @@ const HotelSearchPage = () => {
         pageSize: 10,
       });
 
-      console.log("success", success, data);
       if (success) {
         setHotelList(data);
       }
@@ -64,7 +61,6 @@ const HotelSearchPage = () => {
     funcGetHotels();
   }, []);
 
-  console.log("hotelList", hotelList);
   return (
     <div className="flex h-[calc(100vh-80px)]">
       <section
@@ -94,7 +90,6 @@ const HotelSearchPage = () => {
               <CalendarDatePicker
                 date={selectedDateRange}
                 onDateSelect={(e) => {
-                  console.log("Date PIcker VALUE", e);
                   setSelectedDateRange(e);
                 }}
                 typeShow="reduce"
@@ -171,7 +166,6 @@ const HotelSearchPage = () => {
               step={50000}
               className="w-[20%]"
               onValueChange={(value) => {
-                console.log("Slider value", value);
                 setRangePrice(value);
               }}
             />
@@ -194,7 +188,6 @@ const HotelSearchPage = () => {
         <Separator className="my-2" />
         <div>
           {hotelList?.hotels?.map((hotel, index) => {
-            console.log("hotel", hotel);
             const listImgs = hotel?.lodging?.images?.map(
               (img: any) => img?.url
             );

@@ -28,8 +28,6 @@ const Availability = ({ data }: { data: any }) => {
     handleGetHotelOffer();
   }, []);
 
-  console.log("offers", offers);
-
   return (
     <div className="flex flex-col gap-4">
       <div className="flex gap-2">
@@ -40,9 +38,7 @@ const Availability = ({ data }: { data: any }) => {
               from: new Date(),
               to: new Date(),
             }}
-            onDateSelect={(e) => {
-              console.log(e);
-            }}
+            onDateSelect={(e) => {}}
             className="h-[56px]"
           />
         </div>

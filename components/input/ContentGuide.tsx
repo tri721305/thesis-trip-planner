@@ -86,7 +86,6 @@ const ContentGuide = () => {
   useEffect(() => {
     // Clean up refs that are no longer needed
     const currentIndices = new Set(fields.map((_, index) => index));
-    console.log("currentIndices", currentIndices, "sectionRefs", sectionRefs);
     const refsToRemove: number[] = [];
 
     sectionRefs.current.forEach((_, index) => {
@@ -108,7 +107,6 @@ const ContentGuide = () => {
   // Create a callback to update sections
   const updateSections = useCallback(() => {
     const currentData = getValues("data") || [];
-    console.log("Updating sections with current data:", currentData);
 
     const sections = currentData.map((item, index) => ({
       type: item?.type || "list",
@@ -117,15 +115,12 @@ const ContentGuide = () => {
       index,
     }));
 
-    console.log("New sections:", sections);
     setSections(sections);
   }, [getValues, setSections]);
 
   // Subscribe to ALL form changes
   useEffect(() => {
     const subscription = watch((value, { name, type }) => {
-      console.log("Form field changed:", { name, type, value });
-
       // Update sections on any data field change
       if (name?.startsWith("data.")) {
         updateSections();
@@ -138,7 +133,6 @@ const ContentGuide = () => {
     return () => subscription.unsubscribe();
   }, [watch, updateSections]);
 
-  // console.log("Items Watcvh", itemsWatch);
   const handleAddList = (type: "route" | "list") => {
     if (type == "route") {
       const listRoute = fields?.filter((item) => item?.type == "route");

@@ -136,7 +136,6 @@ const HotelSearch = () => {
 
   // Handle hotel selection
   const handleHotelSelect = (hotel: any) => {
-    console.log("Selected hotel:", hotel);
     const hotelData = {
       name: hotel?.lodging?.name || "",
       address: hotel?.lodging?.address || "",
@@ -156,8 +155,6 @@ const HotelSearch = () => {
     addHotelToLodging(hotelData);
     setIsOpen(false);
     setSearch("");
-
-    console.log("Hotel selected:", hotelData);
   };
 
   useEffect(() => {
@@ -183,14 +180,12 @@ const HotelSearch = () => {
     setResult([]);
     setIsLoading(true);
     const delayDebounceFn = setTimeout(async () => {
-      console.log("run Debounce", search);
-
       if (search) {
         const hotels: any = await getHotels({
           page: 1,
           pageSize: 3,
           query: search,
-          filter: "",
+          // filter: "",
         });
         if (hotels?.success) {
           setResult(hotels?.data?.hotels);

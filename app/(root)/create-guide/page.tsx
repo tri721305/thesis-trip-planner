@@ -116,14 +116,12 @@ const page = () => {
 
   const handleSimpleTest = async () => {
     try {
-      console.log("Testing simple validation...");
       const simpleData = {
         title: mockUpData.title,
         note: mockUpData.note,
       };
 
       const result = await testValidation(simpleData);
-      console.log("Simple test result:", result);
       setTestResult(result);
     } catch (error) {
       console.error("Error in simple test:", error);

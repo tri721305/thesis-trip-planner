@@ -1,4 +1,5 @@
 "use client";
+import { useDebounce } from "@/hooks/useDebounceCallback";
 import { PlannerSchema } from "@/lib/validation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
@@ -75,6 +76,8 @@ import { GoKebabHorizontal } from "react-icons/go";
 import Collaps from "../Collaps";
 import { FaMapMarker, FaPen, FaTrash } from "react-icons/fa";
 import InputWithIcon from "../input/InputIcon";
+import DebouncedNoteInput from "../input/DebouncedNoteInput";
+import DebouncedTextarea from "../input/DebouncedTextarea";
 import InputCollapseHotelMultiple from "../input/InputCollapseHotelMultiple";
 import InputHotelPlanner from "../input/InputHotelPlanner";
 import HotelSearch from "../search/HotelSearch";
@@ -90,6 +93,7 @@ import {
   updatePlanner,
   updatePlannerMainImage,
 } from "@/lib/actions/planner.action";
+import { getPlaceById } from "@/lib/actions/place.action";
 import { useToast } from "@/hooks/use-toast";
 import { Toast } from "../ui/toast";
 type PlannerFormData = z.infer<typeof PlannerSchema>;
@@ -100,7 +104,8 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
   const [isPending, startTransition] = useTransition();
 
   // Zustand store for planner data
-  const { setPlannerData, updatePlannerDetails } = usePlannerStore();
+  const { setPlannerData, updatePlannerDetails, updateDayRouting } =
+    usePlannerStore();
   const [showDialog, setShowDialog] = useState(false);
   const [manageTripmates, setManageTripmates] = useState(false);
   const [showAddHotel, setShowAddHotel] = useState(false);
@@ -126,6 +131,610 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
   const [noteInputValues, setNoteInputValues] = useState<{
     [key: string]: string; // key format: "detailIndex-itemIndex"
   }>({});
+
+  // NEW: State for routing information from OpenStreetMap API
+  const [localRoutingData, setLocalRoutingData] = useState<{
+    [dayKey: string]: {
+      routes: Array<{
+        fromPlace: string;
+        toPlace: string;
+        distance: number; // in meters
+        duration: number; // in seconds
+        geometry: any; // GeoJSON coordinates
+        waypoints?: Array<{ lat: number; lon: number }>;
+        // NEW: Detailed route information from OpenStreetMap
+        legs?: Array<{
+          summary: string;
+          weight: number;
+          duration: number;
+          distance: number;
+          steps: Array<{
+            intersections: Array<{
+              out?: number;
+              in?: number;
+              entry: boolean[];
+              bearings: number[];
+              location: [number, number]; // [longitude, latitude]
+            }>;
+            driving_side: string;
+            geometry: string; // encoded polyline
+            maneuver: {
+              bearing_after: number;
+              bearing_before: number;
+              location: [number, number];
+              modifier: string;
+              type: string; // depart, turn, arrive, etc.
+            };
+            name: string; // street name
+            ref?: string; // road reference
+            mode: string; // driving, walking, etc.
+            weight: number;
+            duration: number;
+            distance: number;
+          }>;
+        }>;
+        routeCode?: string; // "Ok" or error code
+        detailedWaypoints?: Array<{
+          hint: string;
+          location: [number, number];
+          name: string;
+          distance: number;
+        }>;
+      }>;
+      totalDistance: number;
+      totalDuration: number;
+      isCalculating: boolean;
+      lastUpdated: Date | null;
+      error?: string;
+    };
+  }>({});
+
+  // NEW: Enhanced function to call OpenStreetMap routing API with retry logic
+  const calculateRoute = async (
+    coordinates: Array<{ lat: number; lon: number }>,
+    retryCount = 0
+  ): Promise<{
+    distance: number;
+    duration: number;
+    geometry: any;
+    waypoints?: Array<{ lat: number; lon: number }>;
+    legs?: Array<any>;
+    routeCode?: string;
+    detailedWaypoints?: Array<any>;
+  } | null> => {
+    if (coordinates.length < 2) return null;
+
+    // Validate coordinates
+    for (const coord of coordinates) {
+      if (
+        typeof coord.lat !== "number" ||
+        typeof coord.lon !== "number" ||
+        coord.lat < -90 ||
+        coord.lat > 90 ||
+        coord.lon < -180 ||
+        coord.lon > 180 ||
+        isNaN(coord.lat) ||
+        isNaN(coord.lon)
+      ) {
+        console.error("❌ Invalid coordinates:", coord);
+        return null;
+      }
+    }
+
+    try {
+      // Format coordinates for OpenStreetMap API: longitude,latitude;longitude,latitude
+      const coordsString = coordinates
+        .map((coord) => `${coord.lon.toFixed(6)},${coord.lat.toFixed(6)}`)
+        .join(";");
+
+      const response = await fetch(
+        `https://routing.openstreetmap.de/routed-car/route/v1/driving/${coordsString}?overview=full&geometries=geojson&continue_straight=false&steps=true`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "User-Agent":
+              "TravelPlannerApp/1.0 (Contact: admin@travelplanner.com)",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        if (response.status === 429 && retryCount < 2) {
+          // Rate limited, retry after delay
+          console.warn("⚠️ Rate limited, retrying in 2 seconds...");
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          return calculateRoute(coordinates, retryCount + 1);
+        }
+        throw new Error(
+          `Routing API error: ${response.status} ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+
+      if (data.routes && data.routes.length > 0) {
+        const route = data.routes[0];
+        return {
+          distance: Math.round(route.distance || 0), // in meters
+          duration: Math.round(route.duration || 0), // in seconds
+          geometry: route.geometry, // GeoJSON coordinates
+          waypoints: data.waypoints?.map((wp: any) => ({
+            lat: wp.location[1],
+            lon: wp.location[0],
+          })),
+          // NEW: Add detailed route information
+          legs: route.legs || [],
+          routeCode: data.code || "Ok",
+          detailedWaypoints: data.waypoints || [],
+        };
+      } else {
+        throw new Error("No routes found in API response");
+      }
+    } catch (error) {
+      if (retryCount < 2) {
+        console.warn(
+          `⚠️ Routing attempt ${retryCount + 1} failed, retrying...`,
+          error
+        );
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        return calculateRoute(coordinates, retryCount + 1);
+      }
+
+      console.error("❌ OpenStreetMap routing error after retries:", error);
+      return null;
+    }
+  };
+
+  // NEW: Enhanced function to calculate routes between consecutive places within each day
+  const calculateDayRoutes = async (detailIndex: number) => {
+    const detail = form.getValues(`details.${detailIndex}`);
+    if (!detail?.data || !Array.isArray(detail.data)) return;
+
+    const dayKey = `day-${detailIndex}`;
+
+    // Set calculating state
+    // Set calculating state and update store
+    const currentRoutingData = localRoutingData[dayKey];
+    const dayRoutingData = {
+      routes: currentRoutingData?.routes || [],
+      totalDistance: currentRoutingData?.totalDistance || 0,
+      totalDuration: currentRoutingData?.totalDuration || 0,
+      isCalculating: true,
+      lastUpdated: currentRoutingData?.lastUpdated || null,
+      error: undefined,
+    };
+
+    setLocalRoutingData((prev) => ({
+      ...prev,
+      [dayKey]: dayRoutingData,
+    }));
+
+    // NEW: Update Zustand store with calculating state
+    updateDayRouting(dayKey, dayRoutingData);
+
+    try {
+      // Extract places with coordinates from the day's data
+      const places = detail.data.filter((item: any) => item.type === "place");
+      const placesWithCoords: Array<{
+        name: string;
+        coordinates: { lat: number; lon: number };
+      }> = [];
+
+      // Get coordinates for each place
+      for (const place of places) {
+        // Type guard to ensure we're working with place items
+        if (place.type !== "place") continue;
+
+        let coordinates: { lat: number; lon: number } | null = null;
+
+        if (
+          place.location?.coordinates &&
+          Array.isArray(place.location.coordinates) &&
+          place.location.coordinates.length === 2
+        ) {
+          const [lon, lat] = place.location.coordinates;
+          if (typeof lon === "number" && typeof lat === "number") {
+            coordinates = { lat, lon };
+          }
+        } else if ((place as any).id || (place as any).attractionId) {
+          // Fetch coordinates using getPlaceById
+          const lookupId = (place as any).id || (place as any).attractionId;
+          try {
+            const result = await getPlaceById(lookupId);
+            if (result.success && result.data?.place?.location?.coordinates) {
+              const [lon, lat] = result.data.place.location.coordinates;
+              if (typeof lon === "number" && typeof lat === "number") {
+                coordinates = { lat, lon };
+              }
+            }
+          } catch (error) {
+            console.warn(
+              `⚠️ Failed to fetch coordinates for place ID ${lookupId}:`,
+              error
+            );
+          }
+        }
+
+        if (coordinates) {
+          placesWithCoords.push({
+            name: place.name || "Unknown Place",
+            coordinates,
+          });
+        } else {
+          console.warn(
+            `⚠️ No coordinates found for place: ${place.name || "Unknown"}`
+          );
+        }
+      }
+
+      if (placesWithCoords.length < 2) {
+        const errorMessage =
+          placesWithCoords.length === 0
+            ? "No places with valid coordinates found"
+            : "Need at least 2 places with coordinates to calculate routes";
+
+        // Update routing data state and store
+        const dayRoutingData = {
+          routes: [],
+          totalDistance: 0,
+          totalDuration: 0,
+          isCalculating: false,
+          lastUpdated: new Date(),
+          error: errorMessage,
+        };
+
+        setLocalRoutingData((prev) => ({
+          ...prev,
+          [dayKey]: dayRoutingData,
+        }));
+
+        // NEW: Update Zustand store with routing data
+        updateDayRouting(dayKey, dayRoutingData);
+        return;
+      }
+
+      // Calculate routes between consecutive places
+      const routes: Array<{
+        fromPlace: string;
+        toPlace: string;
+        distance: number;
+        duration: number;
+        geometry: any;
+        waypoints?: Array<{ lat: number; lon: number }>;
+        legs?: Array<any>;
+        routeCode?: string;
+        detailedWaypoints?: Array<any>;
+      }> = [];
+      let totalDistance = 0;
+      let totalDuration = 0;
+      let successfulRoutes = 0;
+
+      for (let i = 0; i < placesWithCoords.length - 1; i++) {
+        const fromPlace = placesWithCoords[i];
+        const toPlace = placesWithCoords[i + 1];
+
+        console.log(
+          `🗺️ Calculating route ${i + 1}/${placesWithCoords.length - 1}: ${fromPlace.name} → ${toPlace.name}`
+        );
+
+        const routeResult = await calculateRoute([
+          fromPlace.coordinates,
+          toPlace.coordinates,
+        ]);
+
+        if (routeResult) {
+          routes.push({
+            fromPlace: fromPlace.name,
+            toPlace: toPlace.name,
+            distance: routeResult.distance,
+            duration: routeResult.duration,
+            geometry: routeResult.geometry,
+            waypoints: routeResult.waypoints,
+            // NEW: Add detailed route information
+            legs: routeResult.legs,
+            routeCode: routeResult.routeCode,
+            detailedWaypoints: routeResult.detailedWaypoints,
+          });
+
+          totalDistance += routeResult.distance;
+          totalDuration += routeResult.duration;
+          successfulRoutes++;
+
+          // NEW: Log detailed route information for debugging
+          console.log(`✅ Route calculated with detailed steps:`, {
+            fromPlace: fromPlace.name,
+            toPlace: toPlace.name,
+            distance: `${(routeResult.distance / 1000).toFixed(1)}km`,
+            duration: `${Math.round(routeResult.duration / 60)}min`,
+            legs: routeResult.legs?.length || 0,
+            totalSteps:
+              routeResult.legs?.reduce(
+                (total, leg) => total + (leg.steps?.length || 0),
+                0
+              ) || 0,
+            routeCode: routeResult.routeCode,
+          });
+        } else {
+          console.warn(
+            `⚠️ Failed to calculate route: ${fromPlace.name} → ${toPlace.name}`
+          );
+          // Add a placeholder route with unknown distance/duration
+          routes.push({
+            fromPlace: fromPlace.name,
+            toPlace: toPlace.name,
+            distance: 0,
+            duration: 0,
+            geometry: null,
+          });
+        }
+
+        // Add small delay between requests to avoid rate limiting
+        if (i < placesWithCoords.length - 2) {
+          await new Promise((resolve) => setTimeout(resolve, 500));
+        }
+      }
+
+      // Update routing data state
+      const errorMessage =
+        successfulRoutes === 0
+          ? "Failed to calculate any routes. Please check internet connection and try again."
+          : successfulRoutes < routes.length
+            ? `Calculated ${successfulRoutes}/${routes.length} routes successfully`
+            : undefined;
+
+      // Update routing data state and store
+      const dayRoutingData = {
+        routes,
+        totalDistance,
+        totalDuration,
+        isCalculating: false,
+        lastUpdated: new Date(),
+        error: errorMessage,
+      };
+
+      setLocalRoutingData((prev) => ({
+        ...prev,
+        [dayKey]: dayRoutingData,
+      }));
+
+      // NEW: Update Zustand store with routing data
+      updateDayRouting(dayKey, dayRoutingData);
+
+      console.log(`✅ Day ${detailIndex + 1} routing completed:`, {
+        places: placesWithCoords.length,
+        routes: routes.length,
+        successful: successfulRoutes,
+        totalDistance: `${(totalDistance / 1000).toFixed(1)}km`,
+        totalDuration: `${Math.round(totalDuration / 60)}min`,
+      });
+    } catch (error) {
+      console.error(
+        `❌ Error calculating routes for day ${detailIndex + 1}:`,
+        error
+      );
+      // Update routing data state and store
+      const dayRoutingData = {
+        routes: [],
+        totalDistance: 0,
+        totalDuration: 0,
+        isCalculating: false,
+        lastUpdated: new Date(),
+        error:
+          error instanceof Error ? error.message : "Unknown error occurred",
+      };
+
+      setLocalRoutingData((prev) => ({
+        ...prev,
+        [dayKey]: dayRoutingData,
+      }));
+
+      // NEW: Update Zustand store with routing data
+      updateDayRouting(dayKey, dayRoutingData);
+    }
+  };
+
+  // NEW: Function to recalculate all day routes with progress tracking
+  const recalculateAllRoutes = async () => {
+    const details = form.getValues("details") || [];
+    const routeDays = details.filter((detail) => detail.type === "route");
+
+    if (routeDays.length === 0) {
+      console.log("ℹ️ No route-type days found to calculate");
+      return;
+    }
+
+    console.log(
+      `🔄 Starting route calculation for ${routeDays.length} days...`
+    );
+
+    for (let i = 0; i < details.length; i++) {
+      if (details[i].type === "route") {
+        console.log(`🗺️ Calculating routes for day ${i + 1}...`);
+        await calculateDayRoutes(i);
+        // Add delay between days to avoid overwhelming the API
+        if (i < details.length - 1) {
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+      }
+    }
+
+    console.log("✅ All route calculations completed");
+  };
+
+  // NEW: Enhanced helper function to format distance and duration
+  const formatRouteInfo = (distance: number, duration: number) => {
+    if (distance === 0 || duration === 0) {
+      return {
+        distance: "Unknown",
+        duration: "Unknown",
+      };
+    }
+
+    const distanceStr =
+      distance >= 1000
+        ? `${(distance / 1000).toFixed(1)}km`
+        : `${Math.round(distance)}m`;
+
+    const durationStr =
+      duration >= 3600
+        ? `${Math.floor(duration / 3600)}h ${Math.round((duration % 3600) / 60)}min`
+        : `${Math.round(duration / 60)}min`;
+
+    return {
+      distance: distanceStr,
+      duration: durationStr,
+    };
+  };
+
+  // NEW: Helper function to format route steps for display
+  const formatRouteSteps = (legs: any[]) => {
+    if (!legs || legs.length === 0) return [];
+
+    const allSteps: any[] = [];
+
+    legs.forEach((leg: any, legIndex: number) => {
+      if (leg.steps && Array.isArray(leg.steps)) {
+        leg.steps.forEach((step: any, stepIndex: number) => {
+          // Format maneuver instructions
+          let instruction = "";
+          const maneuver = step.maneuver;
+
+          if (maneuver) {
+            switch (maneuver.type) {
+              case "depart":
+                instruction = `Bắt đầu hành trình${step.name ? ` trên ${step.name}` : ""}`;
+                break;
+              case "turn":
+                const direction =
+                  maneuver.modifier === "left"
+                    ? "trái"
+                    : maneuver.modifier === "right"
+                      ? "phải"
+                      : maneuver.modifier === "straight"
+                        ? "thẳng"
+                        : maneuver.modifier;
+                instruction = `Rẽ ${direction}${step.name ? ` vào ${step.name}` : ""}`;
+                break;
+              case "arrive":
+                instruction = `Đến đích${step.name ? ` tại ${step.name}` : ""}`;
+                break;
+              case "continue":
+                instruction = `Tiếp tục${step.name ? ` trên ${step.name}` : ""}`;
+                break;
+              case "merge":
+                instruction = `Nhập làn${step.name ? ` vào ${step.name}` : ""}`;
+                break;
+              case "on_ramp":
+                instruction = `Lên đường cao tốc${step.name ? ` qua ${step.name}` : ""}`;
+                break;
+              case "off_ramp":
+                instruction = `Xuống đường cao tốc${step.name ? ` tại ${step.name}` : ""}`;
+                break;
+              case "roundabout":
+                instruction = `Đi qua bùng binh${step.name ? ` tại ${step.name}` : ""}`;
+                break;
+              default:
+                instruction = `${maneuver.type}${step.name ? ` trên ${step.name}` : ""}`;
+            }
+          }
+
+          allSteps.push({
+            stepIndex: stepIndex,
+            legIndex: legIndex,
+            instruction,
+            streetName: step.name || "",
+            roadRef: step.ref || "",
+            distance: step.distance || 0,
+            duration: step.duration || 0,
+            maneuverType: maneuver?.type || "",
+            maneuverModifier: maneuver?.modifier || "",
+            geometry: step.geometry || "",
+            intersections: step.intersections || [],
+          });
+        });
+      }
+    });
+
+    return allSteps;
+  };
+
+  // NEW: Helper function to get route summary from legs
+  const getRouteSummary = (legs: any[]) => {
+    if (!legs || legs.length === 0) return "Không có thông tin đường đi";
+
+    // Get main roads from route
+    const mainRoads = new Set<string>();
+
+    legs.forEach((leg) => {
+      if (leg.steps) {
+        leg.steps.forEach((step: any) => {
+          if (step.name && step.name.trim() !== "" && step.distance > 100) {
+            mainRoads.add(step.name);
+          }
+        });
+      }
+    });
+
+    const roadList = Array.from(mainRoads).slice(0, 3); // Take first 3 main roads
+    return roadList.length > 0 ? roadList.join(" → ") : "Đường nội thành";
+  };
+
+  // NEW: Helper function to log detailed routing data for debugging
+  const logRoutingData = () => {
+    console.log("🗺️ DETAILED ROUTING DATA:");
+    console.log("========================");
+
+    Object.entries(localRoutingData).forEach(([dayKey, dayData]) => {
+      console.log(`\n📅 ${dayKey.toUpperCase()}:`);
+      console.log(
+        `   Total Distance: ${formatRouteInfo(dayData.totalDistance, dayData.totalDuration).distance}`
+      );
+      console.log(
+        `   Total Duration: ${formatRouteInfo(dayData.totalDistance, dayData.totalDuration).duration}`
+      );
+      console.log(`   Routes: ${dayData.routes.length}`);
+      console.log(
+        `   Status: ${dayData.isCalculating ? "Calculating..." : "Completed"}`
+      );
+      console.log(
+        `   Last Updated: ${dayData.lastUpdated?.toLocaleString() || "Never"}`
+      );
+
+      if (dayData.error) {
+        console.log(`   ⚠️ Error: ${dayData.error}`);
+      }
+
+      dayData.routes.forEach((route, index) => {
+        console.log(
+          `\n   Route ${index + 1}: ${route.fromPlace} → ${route.toPlace}`
+        );
+        console.log(
+          `     Distance: ${formatRouteInfo(route.distance, route.duration).distance}`
+        );
+        console.log(
+          `     Duration: ${formatRouteInfo(route.distance, route.duration).duration}`
+        );
+        console.log(`     Status: ${route.routeCode || "Unknown"}`);
+
+        if (route.legs && route.legs.length > 0) {
+          console.log(`     Main Roads: ${getRouteSummary(route.legs)}`);
+          console.log(`     Steps: ${formatRouteSteps(route.legs).length}`);
+
+          // Log detailed steps
+          const steps = formatRouteSteps(route.legs);
+          steps.forEach((step, stepIdx) => {
+            console.log(
+              `       ${stepIdx + 1}. ${step.instruction} (${formatRouteInfo(step.distance, step.duration).distance})`
+            );
+          });
+        }
+      });
+    });
+
+    console.log("\n========================");
+    console.log("🔍 Raw routing data:", localRoutingData);
+  };
 
   // const session = await auth();
   const form = useForm<PlannerFormData>({
@@ -154,12 +763,102 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     }
   }, [planner, setPlannerData]);
 
-  // Helper function to update store when form changes
+  // Helper function to update store when form changes - MEMOIZED
   const updateStore = React.useCallback(() => {
     const currentFormData = form.getValues();
-
     setPlannerData(currentFormData);
   }, [form, setPlannerData]);
+
+  // Debounced version of updateStore to prevent excessive calls - INCREASED TO 500ms
+  const debouncedUpdateStore = useDebounce(updateStore, 500);
+
+  // MEMOIZED function for updating item data to prevent infinite rerenders
+  const updateItemData = React.useCallback(
+    (detailIndex: number, itemIndex: number, newData: any) => {
+      const currentRouteItems =
+        form.getValues(`details.${detailIndex}.data`) || [];
+      const updatedItems = [...currentRouteItems];
+
+      // Check if the data actually changed to prevent unnecessary updates
+      const currentItem = updatedItems[itemIndex];
+      if (!currentItem) return;
+
+      // Update the appropriate field based on item type
+      const itemType = updatedItems[itemIndex]?.type;
+      let hasChanged = false;
+
+      if (itemType === "note") {
+        const noteItem = currentItem as { type: "note"; content: string };
+        if (noteItem.content !== newData) {
+          updatedItems[itemIndex] = {
+            ...updatedItems[itemIndex],
+            content: newData,
+          };
+          hasChanged = true;
+        }
+      } else if (itemType === "checklist") {
+        const checklistItem = currentItem as {
+          type: "checklist";
+          items: string[];
+        };
+        const newItems = Array.isArray(newData) ? newData : [newData];
+        if (JSON.stringify(checklistItem.items) !== JSON.stringify(newItems)) {
+          updatedItems[itemIndex] = {
+            ...updatedItems[itemIndex],
+            items: newItems,
+          };
+          hasChanged = true;
+        }
+      } else if (itemType === "place") {
+        // For place type, always update as it can have complex nested data
+        updatedItems[itemIndex] = {
+          ...updatedItems[itemIndex],
+          ...newData,
+        };
+        hasChanged = true;
+      }
+
+      // Only update if data actually changed
+      if (hasChanged) {
+        form.setValue(`details.${detailIndex}.data`, updatedItems, {
+          shouldValidate: false,
+          shouldDirty: true,
+          shouldTouch: false,
+        });
+
+        // Debounced store update to prevent excessive calls
+        debouncedUpdateStore();
+      }
+    },
+    [form, debouncedUpdateStore]
+  );
+
+  // MEMOIZED remove item function
+  const removeItem = React.useCallback(
+    (detailIndex: number, itemIndex: number) => {
+      const currentRouteItems =
+        form.getValues(`details.${detailIndex}.data`) || [];
+      const updatedItems = currentRouteItems.filter((_, i) => i !== itemIndex);
+      const removedItem = currentRouteItems[itemIndex];
+
+      form.setValue(`details.${detailIndex}.data`, updatedItems, {
+        shouldValidate: false,
+        shouldDirty: true,
+        shouldTouch: false,
+      });
+
+      // Immediate store update for removals
+      updateStore();
+
+      // If a place was removed, recalculate routes for this day
+      if (removedItem?.type === "place") {
+        setTimeout(() => {
+          calculateDayRoutes(detailIndex);
+        }, 500);
+      }
+    },
+    [form, updateStore]
+  );
 
   // Use specific watchers instead of general watch to reduce re-renders
   // const { watch } = form;
@@ -195,7 +894,6 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
 
   const onSubmit = (data: PlannerFormData) => {
     startTransition(() => {
-      console.log("Form data:", data);
       // TODO: Implement submit logic
     });
   };
@@ -361,50 +1059,8 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
 
   const renderDetailForm = (index: number) => {
     // Use form.getValues() instead of form.watch() to avoid re-renders
-    // const currentRouteItems = form.watch(`details.${index}.data`) || [];
     const getCurrentRouteItems = () =>
       form.getValues(`details.${index}.data`) || [];
-
-    const updateItemData = (itemIndex: number, newData: any) => {
-      const currentRouteItems = getCurrentRouteItems();
-      const updatedItems = [...currentRouteItems];
-
-      // Update the appropriate field based on item type
-      const itemType = updatedItems[itemIndex].type;
-      if (itemType === "note") {
-        updatedItems[itemIndex] = {
-          ...updatedItems[itemIndex],
-          content: newData,
-        };
-      } else if (itemType === "checklist") {
-        updatedItems[itemIndex] = {
-          ...updatedItems[itemIndex],
-          items: Array.isArray(newData) ? newData : [newData],
-        };
-      } else if (itemType === "place") {
-        // Handle place type updates as needed
-        updatedItems[itemIndex] = {
-          ...updatedItems[itemIndex],
-          ...newData,
-        };
-      }
-
-      form.setValue(`details.${index}.data`, updatedItems);
-
-      updateStore();
-    };
-
-    // Helper function to remove item
-    const removeItem = (itemIndex: number) => {
-      const currentRouteItems = getCurrentRouteItems();
-      const removedItem = currentRouteItems[itemIndex];
-
-      const updatedItems = currentRouteItems.filter((_, i) => i !== itemIndex);
-      form.setValue(`details.${index}.data`, updatedItems);
-
-      // Update store immediately after removal
-      updateStore();
-    };
 
     // Get current items for rendering
     const currentRouteItems = getCurrentRouteItems();
@@ -491,16 +1147,16 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                       key={`note-${idx}`}
                       className="flex gap-2 items-center item-hover-btn"
                     >
-                      <InputWithIcon
+                      <DebouncedNoteInput
+                        value={item.content || ""}
+                        onChange={(value) => updateItemData(index, idx, value)}
                         placeholder="Write or paste notes here"
-                        icon={<FaNoteSticky />}
-                        onChange={(value) =>
-                          updateItemData(idx, value.target.value)
-                        }
+                        debounceMs={500}
+                        className="border-none shadow-none no-focus"
                       />
                       <Button
                         onClick={() => {
-                          removeItem(idx);
+                          removeItem(index, idx);
                         }}
                         className=" hover-btn !bg-transparent border-none shadow-none text-light800_dark300  flex items-center justify-center"
                       >
@@ -517,14 +1173,16 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                     >
                       <Checklist
                         className="flex-1"
-                        onChange={(newItems) => updateItemData(idx, newItems)}
-                        onRemove={() => removeItem(idx)}
-                        key={idx}
+                        onChange={(newItems) =>
+                          updateItemData(index, idx, newItems)
+                        }
+                        onRemove={() => removeItem(index, idx)}
+                        key={`checklist-${index}-${idx}`}
                         items={item.items as string[]}
                       />
                       <Button
                         onClick={() => {
-                          removeItem(idx);
+                          removeItem(index, idx);
                         }}
                         className=" hover-btn !bg-transparent border-none shadow-none text-light800_dark300  flex items-center justify-center"
                       >
@@ -673,7 +1331,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                       </div>
                       <Button
                         onClick={() => {
-                          removeItem(idx);
+                          removeItem(index, idx);
                         }}
                         className=" hover-btn !bg-transparent border-none shadow-none text-light800_dark300  flex items-center justify-center"
                       >
@@ -683,6 +1341,214 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                   );
                 }
               })}
+
+              {/* NEW: Routing Information Display */}
+              {(() => {
+                const dayKey = `day-${index}`;
+                const dayRouting = localRoutingData[dayKey];
+                const placesInDay = currentRouteItems.filter(
+                  (item: any) => item.type === "place"
+                );
+
+                if (placesInDay.length >= 2) {
+                  return (
+                    <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <div className="flex items-center justify-between mb-3">
+                        <h4 className="font-semibold text-blue-800 dark:text-blue-200 flex items-center gap-2">
+                          <Route className="h-4 w-4" />
+                          Route Information
+                        </h4>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => calculateDayRoutes(index)}
+                            disabled={dayRouting?.isCalculating}
+                            className="text-blue-600 border-blue-300 hover:bg-blue-100"
+                          >
+                            {dayRouting?.isCalculating ? (
+                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
+                            ) : (
+                              "Tính Routes"
+                            )}
+                          </Button>
+                          {/* NEW: Debug button to log routing data */}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={logRoutingData}
+                            className="text-gray-600 hover:text-gray-800"
+                            title="Xem chi tiết routing data trong console"
+                          >
+                            🔍
+                          </Button>
+                        </div>
+                      </div>
+
+                      {dayRouting?.error && (
+                        <div className="mb-3 p-2 bg-red-100 dark:bg-red-900/30 border border-red-300 dark:border-red-700 rounded text-red-700 dark:text-red-300 text-sm">
+                          ⚠️ {dayRouting.error}
+                        </div>
+                      )}
+
+                      {dayRouting?.routes && dayRouting.routes.length > 0 && (
+                        <div className="space-y-2">
+                          <div className="grid grid-cols-2 gap-4 mb-3 p-2 bg-blue-100 dark:bg-blue-800/30 rounded">
+                            <div className="text-sm">
+                              <span className="font-medium">
+                                Total Distance:
+                              </span>
+                              <span className="ml-2 text-blue-700 dark:text-blue-300">
+                                {
+                                  formatRouteInfo(
+                                    dayRouting.totalDistance,
+                                    dayRouting.totalDuration
+                                  ).distance
+                                }
+                              </span>
+                            </div>
+                            <div className="text-sm">
+                              <span className="font-medium">
+                                Total Duration:
+                              </span>
+                              <span className="ml-2 text-blue-700 dark:text-blue-300">
+                                {
+                                  formatRouteInfo(
+                                    dayRouting.totalDistance,
+                                    dayRouting.totalDuration
+                                  ).duration
+                                }
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="space-y-1">
+                            {dayRouting.routes.map((route, routeIdx) => (
+                              <div
+                                key={routeIdx}
+                                className="text-xs bg-white dark:bg-gray-800 p-3 rounded border"
+                              >
+                                <div className="flex items-center justify-between mb-2">
+                                  <span className="font-medium text-gray-800 dark:text-gray-200">
+                                    {route.fromPlace} → {route.toPlace}
+                                  </span>
+                                  <div className="flex gap-3 text-gray-600 dark:text-gray-400">
+                                    <span>
+                                      {
+                                        formatRouteInfo(
+                                          route.distance,
+                                          route.duration
+                                        ).distance
+                                      }
+                                    </span>
+                                    <span>
+                                      {
+                                        formatRouteInfo(
+                                          route.distance,
+                                          route.duration
+                                        ).duration
+                                      }
+                                    </span>
+                                  </div>
+                                </div>
+
+                                {/* NEW: Route summary from main roads */}
+                                {route.legs && route.legs.length > 0 && (
+                                  <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">
+                                    <span className="font-medium">
+                                      Đường đi:{" "}
+                                    </span>
+                                    {getRouteSummary(route.legs)}
+                                  </div>
+                                )}
+
+                                {/* NEW: Detailed route steps - collapsible */}
+                                {route.legs && route.legs.length > 0 && (
+                                  <details className="mt-2">
+                                    <summary className="cursor-pointer text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200">
+                                      Xem chi tiết hướng dẫn đường đi (
+                                      {formatRouteSteps(route.legs).length}{" "}
+                                      bước)
+                                    </summary>
+                                    <div className="mt-2 space-y-1 pl-2 border-l-2 border-blue-200 dark:border-blue-700">
+                                      {formatRouteSteps(route.legs).map(
+                                        (step, stepIdx) => (
+                                          <div
+                                            key={stepIdx}
+                                            className="text-xs text-gray-700 dark:text-gray-300"
+                                          >
+                                            <div className="flex items-start gap-2">
+                                              <span className="text-blue-600 dark:text-blue-400 font-mono text-xs mt-0.5">
+                                                {stepIdx + 1}.
+                                              </span>
+                                              <div className="flex-1">
+                                                <div className="font-medium">
+                                                  {step.instruction}
+                                                </div>
+                                                {step.distance > 0 && (
+                                                  <div className="text-gray-500 dark:text-gray-400 mt-0.5">
+                                                    {
+                                                      formatRouteInfo(
+                                                        step.distance,
+                                                        step.duration
+                                                      ).distance
+                                                    }{" "}
+                                                    -{" "}
+                                                    {
+                                                      formatRouteInfo(
+                                                        step.distance,
+                                                        step.duration
+                                                      ).duration
+                                                    }
+                                                  </div>
+                                                )}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        )
+                                      )}
+                                    </div>
+                                  </details>
+                                )}
+
+                                {/* NEW: Route status indicator */}
+                                {route.routeCode && (
+                                  <div className="flex items-center gap-1 mt-2">
+                                    <span
+                                      className={`w-2 h-2 rounded-full ${route.routeCode === "Ok" ? "bg-green-500" : "bg-red-500"}`}
+                                    ></span>
+                                    <span className="text-xs text-gray-500">
+                                      Status: {route.routeCode}
+                                    </span>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+
+                          {dayRouting.lastUpdated && (
+                            <div className="text-xs text-gray-500 mt-2">
+                              Last updated:{" "}
+                              {new Date(
+                                dayRouting.lastUpdated
+                              ).toLocaleTimeString()}
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {!dayRouting && (
+                        <div className="text-sm text-gray-600 dark:text-gray-400">
+                          Click "Calculate Routes" to get distance and duration
+                          between places in this day.
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
               <div className="flex items-center gap-2">
                 <PlaceSearch
                   onPlaceSelect={(place) => {
@@ -774,15 +1640,6 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     };
   }, []);
 
-  // useEffect(() => {
-  //   if (planner && isInitialLoad) {
-  //     // Generate initial route details without causing scroll/focus issues
-  //     setTimeout(() => {
-  //       generateRouteDetailsForDateRange(planner.startDate, planner.endDate);
-  //       setIsInitialLoad(false);
-  //     }, 100); // Small delay to ensure component is fully mounted
-  //   }
-  // }, [planner, isInitialLoad]);
   const renderHotelForm = (index: number) => {
     const searchValue = hotelSearchValues[index] || "";
 
@@ -1033,6 +1890,11 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     // Update store immediately after adding place
     updateStore();
 
+    // Automatically calculate routes for this day after adding a place
+    setTimeout(() => {
+      calculateDayRoutes(index);
+    }, 1000); // Delay to allow form to update
+
     // // Verify the form value was set correctly
     // setTimeout(() => {
     //   const verifyData = form.getValues(`details.${index}.data`);
@@ -1257,29 +2119,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     }
   };
 
-  // // Debug: Monitor form data changes for location preservation
-  // const watchedDetails = form.watch("details");
-  // React.useEffect(() => {
-  //   if (watchedDetails) {
-  //     console.log(
-  //       "🔍 Form details changed:",
-  //       watchedDetails.map((detail: any, detailIndex: number) => ({
-  //         name: detail.name,
-  //         type: detail.type,
-  //         dataItems: detail.data?.length || 0,
-  //         places:
-  //           detail.data
-  //             ?.filter((item: any) => item.type === "place")
-  //             .map((place: any) => ({
-  //               name: place.name,
-  //               hasLocation: !!place.location,
-  //               coordinates: place.location?.coordinates,
-  //             })) || [],
-  //       }))
-  //     );
-  //   }
-  // }, [watchedDetails]);
-
+  console.log("dataForm", form.getValues(), "planner", planner);
   return (
     <div className="container mx-auto  max-w-4xl">
       <Form {...form}>
@@ -1479,10 +2319,12 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <Textarea
+                            <DebouncedTextarea
                               placeholder="Describe your travel plan..."
-                              {...field}
+                              value={field.value || ""}
+                              onChange={field.onChange}
                               rows={3}
+                              debounceMs={500}
                               className="py-4 border-none paragraph-regular background-light800_darkgradient light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border"
                             />
                           </FormControl>
@@ -1512,10 +2354,12 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                       render={({ field }) => (
                         <FormItem>
                           <FormControl>
-                            <Textarea
+                            <DebouncedTextarea
                               placeholder="General Tips..."
-                              {...field}
+                              value={field.value || ""}
+                              onChange={field.onChange}
                               rows={3}
+                              debounceMs={500}
                               className="py-4 border-none paragraph-regular background-light800_darkgradient light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border"
                             />
                           </FormControl>
@@ -1629,8 +2473,25 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
             <Separator className="my-[24px]" />
 
             <div id="details-section">
-              <div className="mb-[24px]">
+              <div className="mb-[24px] flex items-center justify-between">
                 <h1 className="text-[36px] font-bold">Itinerary</h1>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={recalculateAllRoutes}
+                    className="text-blue-600 border-blue-300 hover:bg-blue-100"
+                    disabled={Object.values(localRoutingData).some(
+                      (day) => day.isCalculating
+                    )}
+                  >
+                    <Route className="h-4 w-4 mr-2" />
+                    {Object.values(localRoutingData).some(
+                      (day) => day.isCalculating
+                    )
+                      ? "Calculating..."
+                      : "Calculate All Routes"}
+                  </Button>
+                </div>
               </div>
               <div className="flex flex-col ">
                 {detailFields.map((field, index) => (

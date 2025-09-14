@@ -1,0 +1,38 @@
+/* Custom Swiper styles for TripPlan component */
+:global(.swiper-pagination-bullet) {
+  background: #000 !important;
+  opacity: 0.3 !important;
+}
+
+:global(.swiper-pagination-bullet-active) {
+  background: #007aff !important;
+  opacity: 1 !important;
+}
+
+:global(.swiper-slide) {
+  height: auto !important;
+  display: flex !important;
+  align-items: stretch !important;
+}
+
+/* Ensure slides have equal width */
+:global(.swiper-container) {
+  width: 100% !important;
+}
+
+:global(.swiper-wrapper) {
+  align-items: stretch !important;
+}
+
+.swiperContainer {
+  width: 100%;
+  height: 500px;
+}
+
+.slideContent {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

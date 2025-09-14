@@ -55,7 +55,6 @@ const InputCollapseHotel = () => {
   });
   const { watch } = form;
   const valueWatch = watch();
-  console.log("valueWatch", valueWatch);
   // useEffect(() => {
   //   function handleClickOutside(event: MouseEvent) {
   //     if (divRef.current && !divRef.current.contains(event.target as Node)) {
@@ -194,7 +193,6 @@ const InputCollapseHotel = () => {
                         {...field}
                         className=" !min-h-[36px] border-none paragraph-regular background-light800_dark300 light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border"
                         onChange={(e: any) => {
-                          console.log("Cost changed:", e.target.value);
                           field.onChange({
                             type: "vnd",
                             number: e.target.value,

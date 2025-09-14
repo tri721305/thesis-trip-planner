@@ -1,5 +1,6 @@
-import React from "react";
+import React, { memo } from "react";
 import { Input } from "../ui/input";
+
 interface InputIconProps {
   icon?: React.ReactNode;
   placeholder?: string;
@@ -10,7 +11,7 @@ interface InputIconProps {
   [key: string]: any; // Cho phép thêm bất kỳ props nào khác
 }
 
-const InputWithIcon = ({ icon, ...props }: InputIconProps) => {
+const InputWithIcon = memo(({ icon, ...props }: InputIconProps) => {
   return (
     <div className="relative w-full ">
       <div
@@ -26,6 +27,8 @@ const InputWithIcon = ({ icon, ...props }: InputIconProps) => {
       </div>
     </div>
   );
-};
+});
+
+InputWithIcon.displayName = "InputWithIcon";
 
 export default InputWithIcon;

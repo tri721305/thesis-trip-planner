@@ -65,7 +65,6 @@ const Page = async ({ searchParams }: SearchParams) => {
 
     return matchesQuery && matchesFilter;
   });
-  console.log("query", query, "filter", filter);
   return (
     <div className="px-8">
       {filteredQuestions.map((plan) => plan.name)}

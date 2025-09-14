@@ -69,7 +69,6 @@ const CreatePlan = () => {
       selectedDateRange.from,
       selectedDateRange.to
     );
-    console.log("detailsGenerate", detailsGenerate);
 
     let dataSubmit: any = {
       title: tripName,
@@ -88,7 +87,6 @@ const CreatePlan = () => {
       type: type,
       details: detailsGenerate,
     };
-    console.log("data", dataSubmit, location);
 
     try {
       const result = await createPlanner(dataSubmit);
@@ -98,7 +96,6 @@ const CreatePlan = () => {
           title: "Success",
           description: "Planner created successfully",
         });
-        console.log("data", result);
         if (result.data) router.push(ROUTES.PLANNER(result.data._id));
       } else {
         toast({
@@ -112,7 +109,6 @@ const CreatePlan = () => {
       setLoading(false);
     }
   };
-  // console.log("showAdd", selectedDateRange);
 
   return (
     <div className="w-full h-[calc(100vh-80px)] flex items-center justify-center gap-4">
@@ -126,7 +122,6 @@ const CreatePlan = () => {
           </Label>
           <ProvinceWardSearch
             onPlaceSelect={(place) => {
-              console.log("selected Place", place);
               setLocation(place);
             }}
           />
@@ -148,7 +143,6 @@ const CreatePlan = () => {
           <CalendarDatePicker
             date={selectedDateRange}
             onDateSelect={(e) => {
-              console.log("Date PIcker VALUE", e);
               setSelectedDateRange(e);
             }}
             className="h-[56px] !bg-[#f3f4f5] text-black w-full"

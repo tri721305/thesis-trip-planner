@@ -45,6 +45,7 @@ const config: Config = {
         inter: ["var(--font-inter)"],
         olibrick: ["var(--font-olibrick)"],
         "space-grotesk": ["var(--font-space-grotesk)"],
+        montserrat: ["var(--font-montserrat)"],
       },
       borderRadius: {
         "2": "8px",

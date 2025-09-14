@@ -1,6 +1,6 @@
 "use client";
 import React, { useRef, useEffect, useState } from "react";
-import MapGL, { Marker } from "react-map-gl/maplibre";
+import MapGL, { Marker, Source, Layer } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import data from "@/components/maps/streets.json";
 import { getPlaceById } from "@/lib/actions/place.action";
@@ -12,9 +12,16 @@ interface MapProps {
     name?: string;
   };
   className?: string;
+  // NEW: Route data for visualization
+  routeData?: Array<{
+    geometry: any; // GeoJSON LineString
+    fromPlace: string;
+    toPlace: string;
+    color?: string;
+  }>;
 }
 
-const Map: React.FC<MapProps> = ({ destination, className }) => {
+const Map: React.FC<MapProps> = ({ destination, className, routeData }) => {
   const mapRef = useRef<any>(null);
   const MAPTILER_API_KEY = process.env.NEXT_PUBLIC_MAPTILER_API_KEY;
 
@@ -234,12 +241,6 @@ const Map: React.FC<MapProps> = ({ destination, className }) => {
             // Create a more unique key that includes coordinates
             const uniqueKey = `marker-${place.name}-${coords[0]}-${coords[1]}-${orderNumber}`;
 
-            console.log(`🎯 Rendering marker ${orderNumber}:`, {
-              name: place.name,
-              key: uniqueKey,
-              coordinates: coords,
-            });
-
             return (
               <Marker
                 key={uniqueKey}
@@ -276,6 +277,58 @@ const Map: React.FC<MapProps> = ({ destination, className }) => {
                   </div>
                 </div>
               </Marker>
+            );
+          })}
+
+        {/* NEW: Route Lines Visualization */}
+        {routeData &&
+          routeData.map((route, routeIndex) => {
+            if (!route.geometry || !route.geometry.coordinates) return null;
+
+            const routeGeoJSON = {
+              type: "Feature" as const,
+              properties: {
+                fromPlace: route.fromPlace,
+                toPlace: route.toPlace,
+              },
+              geometry: route.geometry,
+            };
+
+            return (
+              <Source
+                key={`route-${routeIndex}`}
+                id={`route-${routeIndex}`}
+                type="geojson"
+                data={routeGeoJSON}
+              >
+                <Layer
+                  id={`route-line-${routeIndex}`}
+                  type="line"
+                  paint={{
+                    "line-color": route.color || "#2563eb", // Blue color
+                    "line-width": 4,
+                    "line-opacity": 0.8,
+                  }}
+                  layout={{
+                    "line-join": "round",
+                    "line-cap": "round",
+                  }}
+                />
+                {/* Route line with outline for better visibility */}
+                <Layer
+                  id={`route-outline-${routeIndex}`}
+                  type="line"
+                  paint={{
+                    "line-color": "#ffffff",
+                    "line-width": 6,
+                    "line-opacity": 0.6,
+                  }}
+                  layout={{
+                    "line-join": "round",
+                    "line-cap": "round",
+                  }}
+                />
+              </Source>
             );
           })}
       </MapGL>

@@ -19,7 +19,6 @@ const HotelDetail = async ({ params, searchParams }: RouteParams) => {
     hotelId: id,
   });
 
-  console.log("Data Detail Hotel + Offer", data);
   return (
     <div className="h-[calc(100vh-80px)] overflow-auto flex flex-col gap-[60px] px-24 py-4">
       <section className="flex items-center justify-between">

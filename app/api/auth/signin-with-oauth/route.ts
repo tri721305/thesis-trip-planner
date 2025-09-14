@@ -36,7 +36,6 @@ export async function POST(request: Request) {
       trim: true,
     });
 
-    console.log("Slugify", slugifiedUsername, validatedData);
     let existingUser = await User.findOne({ email }).session(session);
 
     if (!existingUser) {

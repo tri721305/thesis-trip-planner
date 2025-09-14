@@ -76,7 +76,6 @@ const InputCollapseHotelMultiple = () => {
     const selectedHotelParam = searchParams.get("selectedHotel");
     const actionParam = searchParams.get("action");
 
-    console.log("actionParam", actionParam, selectedHotelParam);
     if (selectedHotelParam && actionParam === "addLodging") {
       try {
         const hotelData = JSON.parse(selectedHotelParam);
@@ -104,8 +103,6 @@ const InputCollapseHotelMultiple = () => {
         params.delete("selectedHotel");
         params.delete("action");
         router.push(`?${params.toString()}`, { scroll: false });
-
-        console.log("Hotel added from search:", hotelData);
       } catch (error) {
         console.error("Error parsing hotel data:", error);
       }
@@ -183,8 +180,6 @@ const InputCollapseHotelMultiple = () => {
     );
   };
 
-  console.log("hotelWatch", hotelsWatch);
-
   const renderHotelForm = (index: number) => {
     return (
       <div className="p-4 space-y-4">
@@ -243,7 +238,6 @@ const InputCollapseHotelMultiple = () => {
                   <CalendarDatePicker
                     date={selectedDateRange}
                     onDateSelect={(e) => {
-                      console.log("Date PIcker VALUE", e);
                       setSelectedDateRange(e);
 
                       // Set form values for checkin and checkout
@@ -363,7 +357,6 @@ const InputCollapseHotelMultiple = () => {
     );
   };
 
-  console.log("hotels", hotelsWatch, "selectedDateRange", selectedDateRange);
   return (
     <Collapsible
       open={isOpen}

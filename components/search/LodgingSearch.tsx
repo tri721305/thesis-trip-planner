@@ -59,7 +59,7 @@ const LodgingSearch = ({ onSelectHotel, value, onSearchChange, size }: any) => {
           page: 1,
           pageSize: 3,
           query: search,
-          filter: "",
+          // filter: "",
         });
         if (hotels?.success) {
           setResult(hotels?.data?.hotels);
@@ -71,7 +71,6 @@ const LodgingSearch = ({ onSelectHotel, value, onSearchChange, size }: any) => {
     return () => clearTimeout(delayDebounceFn);
   }, [search]);
 
-  console.log("search Data", search);
   return (
     <div className="relative w-full  max-lg:hidden" ref={searchContainerRef}>
       <Input

@@ -51,13 +51,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   ],
   callbacks: {
     async session({ session, token }) {
-      console.log("Session Callback");
       session.user.id = token.sub as string;
       return session;
     },
     async jwt({ token, account }) {
-      console.log("JWT Callback");
-
       if (account) {
         const { data: existingAccount, success } =
           (await api.accounts.getByProvider(
@@ -78,8 +75,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       return token;
     },
     async signIn({ user, profile, account }) {
-      console.log("Signin Callback");
-
       // Check SignIn
       if (account?.type === "credentials") return true;
       if (!account || !user) return false;

@@ -4,6 +4,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { gsap } from "gsap";
 import styles from "./GSAPSlider.module.css";
 import { Button } from "../ui/button";
+import { FaLongArrowAltLeft, FaLongArrowAltRight } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 interface SlideData {
   id: number;
@@ -14,6 +16,8 @@ interface SlideData {
 }
 
 const GSAPSlider: React.FC = () => {
+  const router = useRouter();
+
   const [isLoading, setIsLoading] = useState(true);
   const [loadProgress, setLoadProgress] = useState(0);
 
@@ -44,7 +48,7 @@ const GSAPSlider: React.FC = () => {
     {
       id: 3,
       image: "https://picsum.photos/800/600?random=3",
-      name: "Đà Nẵng City",
+      name: "Đà Nẵng",
       location: "Việt Nam",
       description: "Let your dreams come true",
     },
@@ -431,9 +435,28 @@ const GSAPSlider: React.FC = () => {
             Whether you're chasing elk through rugged terrain or settingup camp
           </p>
           <p>uderr the stars -- we're got your back with gear that performs</p>
-          <Button className="!bg-primary-500 !mt-8 font-bold text-[1rem] text-white h-[40px] !p-[12px]">
-            Explore the world{" "}
+          <Button
+            onClick={() => {
+              router.push("/create-planner");
+            }}
+            className="!bg-primary-500 !mt-8 font-bold text-[1rem] text-white h-[40px] !p-[12px]"
+          >
+            Start Planning
           </Button>
+          <div className="w-full flex justify-end items-end gap-2">
+            <div
+              onClick={() => swapCards("left")}
+              className="cursor-pointer w-[40px] h-[40px] flex-center rounded-full bg-primary-500 text-white hover:bg-[#ff790059]"
+            >
+              <FaLongArrowAltLeft size={20} className="text-white" />
+            </div>
+            <div
+              onClick={() => swapCards("right")}
+              className="cursor-pointer w-[40px] h-[40px] flex-center rounded-full bg-primary-500 text-white hover:bg-[#ff790059]"
+            >
+              <FaLongArrowAltRight />
+            </div>
+          </div>
         </div>
       </div>
       <div className="flex-1 relative" style={{ zIndex: 2 }}>
@@ -459,7 +482,10 @@ const GSAPSlider: React.FC = () => {
             </div>
           </button>
 
-          <div ref={cardsContainerRef} className={styles.cards__wrapper}>
+          <div
+            ref={cardsContainerRef}
+            className={`${styles.cards__wrapper} -left-[40px]`}
+          >
             <div
               className={`${styles.card}  ${styles.currentCard} !text-primary-500`}
             >
