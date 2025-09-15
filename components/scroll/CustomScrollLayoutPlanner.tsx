@@ -80,9 +80,6 @@ const CustomScrollLayoutPlanner = (planner: any) => {
     return routeLines;
   }, [routingData]);
 
-  console.log("🗺️ Map will use store data from PlannerForm");
-  console.log("Planner Custom Form", planner);
-
   useEffect(() => {
     const updateScrollDimensions = () => {
       if (leftContentRef.current) {

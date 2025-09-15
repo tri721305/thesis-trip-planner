@@ -235,7 +235,7 @@ const RangeTimePicker: React.FC<RangeTimePickerProps> = ({
                   <Button
                     variant={activeInput === "start" ? "default" : "outline"}
                     className={cn(
-                      "w-full justify-start text-left font-normal",
+                      "w-full justify-start bg-white hover:bg-gray-50 text-left font-normal",
                       !selectedStartTime && "text-muted-foreground"
                     )}
                     onClick={() => {

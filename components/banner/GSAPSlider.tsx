@@ -33,7 +33,7 @@ const GSAPSlider: React.FC = () => {
   const slides: SlideData[] = [
     {
       id: 1,
-      image: "https://picsum.photos/800/600?random=1",
+      image: "/images/caobang.jpg",
       name: "Đà Lạt",
       location: "Việt Nam",
       description: "The mountains are calling",
@@ -47,7 +47,7 @@ const GSAPSlider: React.FC = () => {
     },
     {
       id: 3,
-      image: "https://picsum.photos/800/600?random=3",
+      image: "/images/danang.jpg",
       name: "Đà Nẵng",
       location: "Việt Nam",
       description: "Let your dreams come true",

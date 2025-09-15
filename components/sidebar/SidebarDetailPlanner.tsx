@@ -370,12 +370,12 @@ const SidebarDetailPlanner = ({
                     {section.type === "detail" && (
                       <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
                         <span>
-                          {section.detailType === "route" ? "📍" : "📋"}
+                          {section.detailType === "route" ? "" : "📋"}
                         </span>
                         <span>
                           {section.hasData
                             ? `${section.itemCount} item${section.itemCount !== 1 ? "s" : ""}`
-                            : "Empty"}
+                            : ""}
                         </span>
                       </div>
                     )}
@@ -396,7 +396,7 @@ const SidebarDetailPlanner = ({
                       ? `${section.detailType} • ${
                           section.hasData
                             ? `${section.itemCount} item${section.itemCount !== 1 ? "s" : ""}`
-                            : "Empty"
+                            : ""
                         }`
                       : `${section.type} section`}
                   </div>

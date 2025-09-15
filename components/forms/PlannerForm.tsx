@@ -10,6 +10,7 @@ import React, {
   useTransition,
   useCallback,
 } from "react";
+import { RiArrowDownSFill } from "react-icons/ri";
 import { useForm, useFieldArray, FormProvider } from "react-hook-form";
 import { z } from "zod";
 import { usePlannerStore } from "@/store/plannerStore";
@@ -36,6 +37,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
   SelectTrigger,
   SelectValue,
@@ -100,7 +102,10 @@ import { useToast } from "@/hooks/use-toast";
 import { Toast } from "../ui/toast";
 import UserSearch from "../search/UserSearch";
 import { formatCurrency } from "@/lib/currency";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 type PlannerFormData = z.infer<typeof PlannerSchema>;
+
+const splitType = ["Don't split", "Everyone", "Invidiuals"];
 
 const PlannerForm = ({ planner }: { planner?: any }) => {
   const router = useRouter();
@@ -153,8 +158,14 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
       name: string;
       amount: number;
       settled: boolean;
+      selected?: boolean; // Add selected field for checkbox functionality
     }>,
   });
+
+  // Add split mode state
+  const [splitMode, setSplitMode] = useState<
+    "everyone" | "individuals" | "dontsplit"
+  >("everyone");
 
   // NEW: State for routing information from OpenStreetMap API
   const [localRoutingData, setLocalRoutingData] = useState<{
@@ -1486,9 +1497,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                                 {/* NEW: Route summary from main roads */}
                                 {route.legs && route.legs.length > 0 && (
                                   <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">
-                                    <span className="font-medium">
-                                      Đường đi:{" "}
-                                    </span>
+                                    <span className="font-medium">Way</span>
                                     {getRouteSummary(route.legs)}
                                   </div>
                                 )}
@@ -1497,9 +1506,9 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                                 {route.legs && route.legs.length > 0 && (
                                   <details className="mt-2">
                                     <summary className="cursor-pointer text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200">
-                                      Xem chi tiết hướng dẫn đường đi (
+                                      Way details (
                                       {formatRouteSteps(route.legs).length}{" "}
-                                      bước)
+                                      step)
                                     </summary>
                                     <div className="mt-2 space-y-1 pl-2 border-l-2 border-blue-200 dark:border-blue-700">
                                       {formatRouteSteps(route.legs).map(
@@ -1967,12 +1976,14 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
           name: "You", // This would be the current user name
           amount: defaultSplitAmount,
           settled: false,
+          selected: true, // Default to selected
         },
         ...tripmates.map((tripmate: any) => ({
           userId: tripmate.userId || "",
           name: tripmate.name,
           amount: defaultSplitAmount,
           settled: false,
+          selected: true, // Default to selected
         })),
       ];
 
@@ -1983,6 +1994,24 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
         paidBy: existingCost.paidBy || "You",
         splitBetween: existingCost.splitBetween || defaultSplitBetween,
       });
+
+      // Initialize split mode based on existing data
+      if (existingCost.splitBetween) {
+        const selectedCount = existingCost.splitBetween.filter(
+          (person: any) => person.selected !== false
+        ).length;
+        const totalCount = existingCost.splitBetween.length;
+
+        if (selectedCount === 0) {
+          setSplitMode("dontsplit");
+        } else if (selectedCount === totalCount) {
+          setSplitMode("everyone");
+        } else {
+          setSplitMode("individuals");
+        }
+      } else {
+        setSplitMode("everyone"); // Default to everyone
+      }
 
       setShowExpenses(true);
     }
@@ -2047,6 +2076,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
       paidBy: "",
       splitBetween: [],
     });
+    setSplitMode("everyone"); // Reset split mode to default
   };
 
   const handleExpenseFormChange = (field: string, value: any) => {
@@ -2055,21 +2085,96 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
       [field]: value,
     }));
 
-    // If value changes, recalculate split amounts
+    // If value changes, recalculate split amounts based on current split mode
     if (field === "value") {
-      const splitCount = expenseFormData.splitBetween.length;
-      if (splitCount > 0) {
-        const splitAmount = value / splitCount;
-        setExpenseFormData((prev) => ({
-          ...prev,
-          value,
-          splitBetween: prev.splitBetween.map((person) => ({
-            ...person,
-            amount: splitAmount,
-          })),
-        }));
-      }
+      recalculateSplitAmounts(value);
     }
+  };
+
+  // Add function to handle split mode changes
+  const handleSplitModeChange = (
+    mode: "everyone" | "individuals" | "dontsplit"
+  ) => {
+    setSplitMode(mode);
+
+    if (mode === "everyone") {
+      // Split equally among all people
+      recalculateSplitAmounts(expenseFormData.value);
+    } else if (mode === "individuals") {
+      // Keep current selection but allow checkbox selection
+      // Don't change amounts, just enable checkbox selection
+    } else if (mode === "dontsplit") {
+      // Only the person who paid pays
+      setExpenseFormData((prev) => ({
+        ...prev,
+        splitBetween: prev.splitBetween.map((person) => ({
+          ...person,
+          amount: person.name === prev.paidBy ? prev.value : 0,
+          selected: person.name === prev.paidBy,
+        })),
+      }));
+    }
+  };
+
+  // Add function to recalculate split amounts
+  const recalculateSplitAmounts = (totalValue: number) => {
+    if (splitMode === "everyone") {
+      const splitCount = expenseFormData.splitBetween.length;
+      const splitAmount = splitCount > 0 ? totalValue / splitCount : 0;
+
+      setExpenseFormData((prev) => ({
+        ...prev,
+        value: totalValue,
+        splitBetween: prev.splitBetween.map((person) => ({
+          ...person,
+          amount: splitAmount,
+          selected: true,
+        })),
+      }));
+    } else if (splitMode === "individuals") {
+      // Only split among selected people
+      const selectedPeople = expenseFormData.splitBetween.filter(
+        (person) => person.selected
+      );
+      const splitCount = selectedPeople.length;
+      const splitAmount = splitCount > 0 ? totalValue / splitCount : 0;
+
+      setExpenseFormData((prev) => ({
+        ...prev,
+        value: totalValue,
+        splitBetween: prev.splitBetween.map((person) => ({
+          ...person,
+          amount: person.selected ? splitAmount : 0,
+        })),
+      }));
+    }
+  };
+
+  // Add function to handle individual checkbox changes
+  const handlePersonSelectionChange = (
+    personIndex: number,
+    selected: boolean
+  ) => {
+    setExpenseFormData((prev) => {
+      const updatedSplitBetween = prev.splitBetween.map((person, index) =>
+        index === personIndex ? { ...person, selected } : person
+      );
+
+      // Recalculate amounts for selected people
+      const selectedPeople = updatedSplitBetween.filter(
+        (person) => person.selected
+      );
+      const splitCount = selectedPeople.length;
+      const splitAmount = splitCount > 0 ? prev.value / splitCount : 0;
+
+      return {
+        ...prev,
+        splitBetween: updatedSplitBetween.map((person) => ({
+          ...person,
+          amount: person.selected ? splitAmount : 0,
+        })),
+      };
+    });
   };
 
   const updateSplitAmount = (personIndex: number, amount: number) => {
@@ -2327,7 +2432,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     }
   };
 
-  console.log("dataForm", form.getValues(), "planner", planner);
+  console.log("Form Data", form.getValues());
   return (
     <div className="container mx-auto  max-w-4xl">
       <Form {...form}>
@@ -2455,7 +2560,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                     )}
 
                     {/* Show placeholder if no tripmates */}
-                    {(!currentPlannerData?.tripmates ||
+                    {/* {(!currentPlannerData?.tripmates ||
                       currentPlannerData.tripmates.length === 0) &&
                       (!planner?.tripmates ||
                         planner.tripmates.length === 0) && (
@@ -2466,7 +2571,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                           />
                           <AvatarFallback>CN</AvatarFallback>
                         </Avatar>
-                      )}
+                      )} */}
                   </div>
                   <Button
                     onClick={() => {
@@ -3381,6 +3486,247 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
               </div>
             </div>
             <h2 className="text-[24px] font-semibold">Expenses</h2>
+            <div className="">
+              {(() => {
+                const lodgingData = form.getValues("lodging") || [];
+                const detailsData = form.getValues("details") || [];
+
+                // Extract lodging costs
+                const lodgingCosts = lodgingData
+                  .filter(
+                    (lodging) => lodging.cost?.value && lodging.cost.value > 0
+                  )
+                  .map((lodging) => ({
+                    ...lodging.cost,
+                    name: lodging.name || "Lodging",
+                    category: "Lodging",
+                  }));
+
+                // Extract place costs
+                const placeCosts = detailsData.flatMap((day: any) =>
+                  (day.data || [])
+                    .filter(
+                      (item: any) =>
+                        item.type === "place" &&
+                        item.cost?.value &&
+                        item.cost.value > 0
+                    )
+                    .map((place: any) => ({
+                      ...place.cost,
+                      name: place.name || "Place Visit",
+                      category: "Activities",
+                    }))
+                );
+
+                const allExpenses = [...lodgingCosts, ...placeCosts];
+
+                if (allExpenses.length === 0) {
+                  return (
+                    <div className="text-center py-8 text-gray-500">
+                      <BiMoney className="mx-auto text-4xl mb-4" />
+                      <p className="text-lg">No expenses added yet</p>
+                      <p className="text-sm">
+                        Add costs to lodging and places to see expense breakdown
+                        here
+                      </p>
+                    </div>
+                  );
+                }
+
+                // Calculate totals by currency
+                const totalsByCurrency = allExpenses.reduce(
+                  (acc, expense) => {
+                    const currency = expense.type?.toLowerCase() || "vnd";
+                    acc[currency] = (acc[currency] || 0) + expense.value;
+                    return acc;
+                  },
+                  {} as Record<string, number>
+                );
+
+                // Group expenses by category
+                const expensesByCategory = allExpenses.reduce(
+                  (acc, expense) => {
+                    const category = expense.category;
+                    if (!acc[category]) acc[category] = [];
+                    acc[category].push(expense);
+                    return acc;
+                  },
+                  {} as Record<string, any[]>
+                );
+
+                return (
+                  <div className="space-y-6">
+                    {/* Total Summary */}
+                    <div className="background-light800_darkgradient p-4 rounded-lg border-none">
+                      <h3 className="text-lg font-semibold mb-3 flex items-center">
+                        <BiMoney className="mr-2" />
+                        Total Expenses
+                      </h3>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        {Object.entries(totalsByCurrency).map(
+                          ([currency, total]) => (
+                            <div
+                              key={currency}
+                              className="text-center p-3 bg-blue-100 rounded"
+                            >
+                              <div className="text-2xl font-bold text-blue-600">
+                                {formatCurrency(total, currency, {
+                                  showSymbol: true,
+                                  compact: false,
+                                })}
+                              </div>
+                              <div className="text-sm text-gray-600 uppercase">
+                                {currency}
+                              </div>
+                            </div>
+                          )
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Expenses by Category */}
+                    {Object.entries(expensesByCategory).map(
+                      ([category, expenses]) => (
+                        <div
+                          key={category}
+                          className="background-light800_darkgradient p-4 rounded-lg border-none"
+                        >
+                          <h4 className="text-md font-semibold mb-3 text-gray-800">
+                            {category}
+                          </h4>
+                          <div className="space-y-2">
+                            {expenses.map((expense, index) => (
+                              <div
+                                key={index}
+                                className="flex items-center justify-between p-3 bg-gray-50 rounded"
+                              >
+                                <div className="flex-1">
+                                  <div className="font-medium">
+                                    {expense.name}
+                                  </div>
+                                  {expense.description && (
+                                    <div className="text-sm text-gray-600">
+                                      {expense.description}
+                                    </div>
+                                  )}
+                                  {expense.paidBy && (
+                                    <div className="text-xs text-blue-600">
+                                      Paid by: {expense.paidBy}
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="text-right">
+                                  <div className="font-semibold">
+                                    {formatCurrency(
+                                      expense.value,
+                                      expense.type?.toLowerCase() || "vnd",
+                                      { showSymbol: true, compact: false }
+                                    )}
+                                  </div>
+                                  {expense.splitBetween &&
+                                    expense.splitBetween.length > 0 && (
+                                      <div className="text-xs text-gray-500">
+                                        Split between{" "}
+                                        {
+                                          expense.splitBetween?.filter(
+                                            (value: any) => value?.amount > 0
+                                          )?.length
+                                        }{" "}
+                                        people
+                                      </div>
+                                    )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+
+                          {/* Category Total */}
+                          <div className="mt-3 pt-3 border-t">
+                            <div className="flex justify-between items-center font-semibold">
+                              <span>{category} Total:</span>
+                              <div className="space-y-1">
+                                {Object.entries(
+                                  expenses.reduce(
+                                    (acc, expense) => {
+                                      const currency =
+                                        expense.type?.toLowerCase() || "vnd";
+                                      acc[currency] =
+                                        (acc[currency] || 0) + expense.value;
+                                      return acc;
+                                    },
+                                    {} as Record<string, number>
+                                  )
+                                ).map(([currency, total]) => (
+                                  <div key={currency} className="text-right">
+                                    {formatCurrency(total, currency, {
+                                      showSymbol: true,
+                                      compact: false,
+                                    })}
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    )}
+
+                    {/* Detailed Breakdown */}
+                    <div className="background-light800_darkgradient p-4 rounded-lg border-none">
+                      <h4 className="text-md font-semibold mb-3 text-gray-800">
+                        All Expenses
+                      </h4>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b">
+                              <th className="text-left py-2">Item</th>
+                              <th className="text-left py-2">Category</th>
+                              <th className="text-left py-2">Amount</th>
+                              <th className="text-left py-2">Paid By</th>
+                              <th className="text-left py-2">Split</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {allExpenses.map((expense, index) => (
+                              <tr key={index} className="border-b">
+                                <td className="py-2">
+                                  <div className="font-medium">
+                                    {expense.name}
+                                  </div>
+                                  {expense.description && (
+                                    <div className="text-xs text-gray-500">
+                                      {expense.description}
+                                    </div>
+                                  )}
+                                </td>
+                                <td className="py-2">{expense.category}</td>
+                                <td className="py-2 font-medium">
+                                  {formatCurrency(
+                                    expense.value,
+                                    expense.type?.toLowerCase() || "vnd",
+                                    { showSymbol: true, compact: false }
+                                  )}
+                                </td>
+                                <td className="py-2">
+                                  {expense.paidBy || "-"}
+                                </td>
+                                <td className="py-2">
+                                  {expense.splitBetween &&
+                                  expense.splitBetween.length > 0
+                                    ? `${expense.splitBetween?.filter((value: any) => value?.amount > 0)?.length} people`
+                                    : "-"}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
           </div>
         </form>
       </Form>
@@ -3600,42 +3946,151 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
 
                 <div>
                   <Label className="font-bold">Split Between</Label>
+
+                  <div className="mb-4">
+                    <Select
+                      value={splitMode}
+                      onValueChange={handleSplitModeChange}
+                    >
+                      <SelectTrigger
+                        className={`h-[40px] border-none paragraph-regular background-form-input light-border-2 text-dark300_light700 no-focus rounded-1.5 border`}
+                      >
+                        <SelectValue placeholder="Split between ..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectItem value="everyone">Everyone</SelectItem>
+                          <SelectItem value="individuals">
+                            Individuals
+                          </SelectItem>
+                          <SelectItem value="dontsplit">Don't Split</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Split explanation */}
+                  <div className="mb-3 text-sm text-gray-600">
+                    {splitMode === "everyone" &&
+                      "Split equally among all tripmates"}
+                    {splitMode === "individuals" &&
+                      "Select specific people to split with"}
+                    {splitMode === "dontsplit" &&
+                      "Only the person who paid will cover this expense"}
+                  </div>
+
+                  {/* People list with checkboxes for individuals mode */}
                   <div className="space-y-2 max-h-40 overflow-y-auto">
                     {expenseFormData.splitBetween.map((person, index) => (
                       <div
                         key={index}
-                        className="flex items-center gap-2 p-2 bg-gray-50 rounded"
+                        className={`flex items-center gap-2 p-3 rounded-lg border transition-colors ${
+                          splitMode === "individuals"
+                            ? person.selected
+                              ? "bg-blue-50 border-blue-200"
+                              : "bg-gray-50 border-gray-200"
+                            : "bg-gray-50 border-gray-200"
+                        }`}
                       >
-                        <span className="flex-1 font-medium">
-                          {person.name}
-                        </span>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={person.amount || ""}
-                          onChange={(e) =>
-                            updateSplitAmount(
-                              index,
-                              parseFloat(e.target.value) || 0
-                            )
-                          }
-                          className="w-24 h-8"
-                          placeholder="0"
-                        />
-                        <span className="text-sm text-gray-600">
-                          {expenseFormData.type}
-                        </span>
+                        {/* Checkbox for individuals mode */}
+                        {splitMode === "individuals" && (
+                          <input
+                            type="checkbox"
+                            checked={person.selected || false}
+                            onChange={(e) =>
+                              handlePersonSelectionChange(
+                                index,
+                                e.target.checked
+                              )
+                            }
+                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                        )}
+
+                        {/* Person name */}
+                        <div className="flex-1">
+                          <span className="font-medium">{person.name}</span>
+                          {person.name === expenseFormData.paidBy && (
+                            <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                              Paid
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Amount input */}
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={person.amount || ""}
+                            onChange={(e) =>
+                              updateSplitAmount(
+                                index,
+                                parseFloat(e.target.value) || 0
+                              )
+                            }
+                            className="w-24 h-8"
+                            placeholder="0"
+                            disabled={
+                              splitMode === "dontsplit" &&
+                              person.name !== expenseFormData.paidBy
+                            }
+                            readOnly={
+                              splitMode === "everyone" ||
+                              (splitMode === "individuals" && !person.selected)
+                            }
+                          />
+                          <span className="text-sm text-gray-600 min-w-[35px]">
+                            {expenseFormData.type}
+                          </span>
+                        </div>
                       </div>
                     ))}
                   </div>
-                  <div className="text-sm text-gray-600 mt-1">
-                    Total:{" "}
-                    {expenseFormData.splitBetween.reduce(
-                      (sum, person) => sum + (person.amount || 0),
-                      0
-                    )}{" "}
-                    {expenseFormData.type}
+
+                  {/* Total calculation */}
+                  <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="font-medium">Total Split:</span>
+                      <span className="font-bold">
+                        {expenseFormData.splitBetween
+                          .reduce(
+                            (sum, person) => sum + (person.amount || 0),
+                            0
+                          )
+                          .toFixed(2)}{" "}
+                        {expenseFormData.type}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm mt-1">
+                      <span>Expense Amount:</span>
+                      <span>
+                        {expenseFormData.value.toFixed(2)}{" "}
+                        {expenseFormData.type}
+                      </span>
+                    </div>
+                    {Math.abs(
+                      expenseFormData.value -
+                        expenseFormData.splitBetween.reduce(
+                          (sum, person) => sum + (person.amount || 0),
+                          0
+                        )
+                    ) > 0.01 && (
+                      <div className="flex justify-between items-center text-sm mt-1 text-red-600">
+                        <span>Difference:</span>
+                        <span>
+                          {(
+                            expenseFormData.value -
+                            expenseFormData.splitBetween.reduce(
+                              (sum, person) => sum + (person.amount || 0),
+                              0
+                            )
+                          ).toFixed(2)}{" "}
+                          {expenseFormData.type}
+                        </span>
+                      </div>
+                    )}
                   </div>
                 </div>
 

@@ -192,6 +192,7 @@ const Map: React.FC<MapProps> = ({ destination, className, routeData }) => {
         mapStyle={data as any}
         interactive={true}
         attributionControl={false}
+        projection={"globe"}
       >
         {/* Destination marker */}
         {destination?.coordinates && (
