@@ -102,7 +102,8 @@ import { useToast } from "@/hooks/use-toast";
 import { Toast } from "../ui/toast";
 import UserSearch from "../search/UserSearch";
 import { formatCurrency } from "@/lib/currency";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import LocationCard from "../cards/LocationCard";
+
 type PlannerFormData = z.infer<typeof PlannerSchema>;
 
 const splitType = ["Don't split", "Everyone", "Invidiuals"];
@@ -2316,7 +2317,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
 
   const handleSubmit = async () => {
     const formData = form.getValues();
-
+    console.log("formData submit", formData);
     // Format and validate data before sending
     const formatDataForServer = (data: any) => {
       const formatted = { ...data };
@@ -2344,25 +2345,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
       return formatted;
     };
 
-    // // Debug: Check if location data exists in form data
-    // if (formData.details) {
-    //   formData.details.forEach((detail: any, detailIndex: number) => {
-    //     if (detail.data) {
-    //       detail.data.forEach((item: any, itemIndex: number) => {
-    //         if (item.type === "place") {
-    //           console.log(`Place ${detailIndex}-${itemIndex}:`, {
-    //             name: item.name,
-    //             hasLocation: !!item.location,
-    //             location: item.location,
-    //             coordinates: item.location?.coordinates,
-    //           });
-    //         }
-    //       });
-    //     }
-    //   });
-    // }
-
-    // Workaround: Ensure location data is preserved for place items
+    // // Workaround: Ensure location data is preserved for place items
     const processedFormData = {
       ...formData,
       details: formData.details?.map((detail: any) => ({
@@ -2397,6 +2380,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
         endDate: endDate,
       };
 
+      console.log("dataTest", dataTest);
       const updatePlannerData: any = await updatePlanner(dataTest);
 
       if (updatePlannerData && updatePlannerData.success) {
@@ -3730,6 +3714,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
           </div>
         </form>
       </Form>
+      <LocationCard />
       {showDialog && (
         <ReusableDialog
           data={{
