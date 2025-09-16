@@ -2380,9 +2380,9 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
         endDate: endDate,
       };
 
-      console.log("dataTest", dataTest);
       const updatePlannerData: any = await updatePlanner(dataTest);
 
+      console.log("DataSubmit", dataTest, "DataResponse", updatePlannerData);
       if (updatePlannerData && updatePlannerData.success) {
         toast({
           title: "Update Planner Successfully!",

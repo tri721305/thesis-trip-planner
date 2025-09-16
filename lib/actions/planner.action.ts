@@ -185,6 +185,30 @@ export async function updatePlanner(
   const { plannerId, ...updateData } = validationResult.params!;
   const userId = validationResult?.session?.user?.id;
 
+  // 🔍 DEBUG: Check if cost data survives validation
+  console.log(
+    "🔍 Raw params from validation:",
+    JSON.stringify(validationResult.params, null, 2)
+  );
+  if (updateData.details) {
+    updateData.details.forEach((detail: any, detailIndex: number) => {
+      if (detail.data) {
+        detail.data.forEach((item: any, itemIndex: number) => {
+          if (item.type === "place" && item.cost) {
+            console.log(
+              `💰 POST-VALIDATION Cost data [${detailIndex}-${itemIndex}]:`,
+              {
+                name: item.name,
+                costValue: item.cost?.value,
+                fullCost: JSON.stringify(item.cost, null, 2),
+              }
+            );
+          }
+        });
+      }
+    });
+  }
+
   console.log("updateData", updateData);
 
   try {
@@ -294,6 +318,31 @@ export async function updatePlanner(
       if (updateData.lodging) updateObject.lodging = updateData.lodging;
       if (updateData.details) updateObject.details = updateData.details;
 
+      console.log("udpateObject", updateObject.details[0].data);
+
+      // 🔍 DEBUG: Log cost data before update
+      if (updateObject.details) {
+        updateObject.details.forEach((detail: any, detailIndex: number) => {
+          if (detail.data) {
+            detail.data.forEach((item: any, itemIndex: number) => {
+              if (item.type === "place" && item.cost) {
+                console.log(
+                  `💰 BEFORE UPDATE - Cost data [${detailIndex}-${itemIndex}]:`,
+                  {
+                    name: item.name,
+                    costValue: item.cost?.value,
+                    costType: item.cost?.type,
+                    costDescription: item.cost?.description,
+                    splitBetweenCount: item.cost?.splitBetween?.length,
+                    fullCostObject: JSON.stringify(item.cost, null, 2),
+                  }
+                );
+              }
+            });
+          }
+        });
+      }
+
       // Update the planner
       const updatedPlanner = await TravelPlan.findByIdAndUpdate(
         plannerId,
@@ -310,6 +359,33 @@ export async function updatePlanner(
       }
 
       console.log("Planner updated:", updatedPlanner._id);
+
+      // 🔍 DEBUG: Log cost data after update to verify persistence
+      if (updatedPlanner.details) {
+        updatedPlanner.details.forEach((detail: any, detailIndex: number) => {
+          if (detail.data) {
+            detail.data.forEach((item: any, itemIndex: number) => {
+              if (item.type === "place") {
+                console.log(
+                  `💰 AFTER UPDATE - Place item [${detailIndex}-${itemIndex}]:`,
+                  {
+                    name: item.name,
+                    hasCost: !!item.cost,
+                    costValue: item.cost?.value,
+                    costType: item.cost?.type,
+                    costDescription: item.cost?.description,
+                    splitBetweenCount: item.cost?.splitBetween?.length,
+                    fullCostObject: item.cost
+                      ? JSON.stringify(item.cost, null, 2)
+                      : "NO COST DATA",
+                  }
+                );
+              }
+            });
+          }
+        });
+      }
+
       console.log(
         "Updated details:",
         JSON.stringify(updatedPlanner.details, null, 2)
