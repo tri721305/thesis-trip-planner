@@ -168,6 +168,14 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     "everyone" | "individuals" | "dontsplit"
   >("everyone");
 
+  // State for debounced cost input to reduce re-renders
+  const [costInputValue, setCostInputValue] = useState<string>("");
+
+  // Debounced callback for cost input
+  const debouncedCostUpdate = useDebounce((value: number) => {
+    handleExpenseFormChange("value", value);
+  }, 300); // 300ms debounce delay
+
   // NEW: State for routing information from OpenStreetMap API
   const [localRoutingData, setLocalRoutingData] = useState<{
     [dayKey: string]: {
@@ -1681,6 +1689,11 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     };
   }, []);
 
+  // Sync cost input value with expense form data
+  useEffect(() => {
+    setCostInputValue(expenseFormData.value.toString());
+  }, [expenseFormData.value]);
+
   const renderHotelForm = (index: number) => {
     const searchValue = hotelSearchValues[index] || "";
 
@@ -1950,6 +1963,124 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     // }, 100);
   };
 
+  // Helper function to get all available people for expense splitting
+  const getAllAvailablePeople = () => {
+    const tripmates = form.getValues("tripmates") || [];
+    return [
+      {
+        userId: "current-user", // This would be the current user ID
+        name: "You", // This would be the current user name
+      },
+      ...tripmates.map((tripmate: any) => ({
+        userId: tripmate.userId || "",
+        name: tripmate.name,
+      })),
+    ];
+  };
+
+  // Helper function to sync existing splitBetween with current tripmates
+  const syncSplitBetweenWithTripmates = (existingSplitBetween: any[]) => {
+    const allAvailablePeople = getAllAvailablePeople();
+    const synced = [];
+
+    // Add all available people
+    for (const person of allAvailablePeople) {
+      // Find existing data for this person
+      const existingPerson = existingSplitBetween.find(
+        (split) => split.name === person.name || split.userId === person.userId
+      );
+
+      synced.push({
+        userId: person.userId,
+        name: person.name,
+        amount: existingPerson?.amount || 0,
+        settled: existingPerson?.settled || false,
+        selected:
+          existingPerson?.selected !== undefined
+            ? existingPerson.selected
+            : true,
+      });
+    }
+
+    return synced;
+  };
+
+  // Function to auto-sync all existing expenses when tripmates change
+  const syncAllExpensesWithTripmates = () => {
+    // Get current form data
+    const currentData = form.getValues();
+    let hasChanges = false;
+
+    // Sync lodging expenses
+    if (currentData.lodging) {
+      const updatedLodging = currentData.lodging.map((lodging: any) => {
+        if (
+          lodging.cost?.splitBetween &&
+          lodging.cost.splitBetween.length > 0
+        ) {
+          const syncedSplitBetween = syncSplitBetweenWithTripmates(
+            lodging.cost.splitBetween
+          );
+          hasChanges = true;
+          return {
+            ...lodging,
+            cost: {
+              ...lodging.cost,
+              splitBetween: syncedSplitBetween,
+            },
+          };
+        }
+        return lodging;
+      });
+
+      if (hasChanges) {
+        form.setValue("lodging", updatedLodging, { shouldDirty: true });
+      }
+    }
+
+    // Sync place expenses
+    if (currentData.details) {
+      const updatedDetails = currentData.details.map((detail: any) => ({
+        ...detail,
+        data:
+          detail.data?.map((item: any) => {
+            if (
+              item.type === "place" &&
+              item.cost?.splitBetween &&
+              item.cost.splitBetween.length > 0
+            ) {
+              const syncedSplitBetween = syncSplitBetweenWithTripmates(
+                item.cost.splitBetween
+              );
+              hasChanges = true;
+              return {
+                ...item,
+                cost: {
+                  ...item.cost,
+                  splitBetween: syncedSplitBetween,
+                },
+              };
+            }
+            return item;
+          }) || [],
+      }));
+
+      if (hasChanges) {
+        form.setValue("details", updatedDetails, { shouldDirty: true });
+      }
+    }
+
+    if (hasChanges) {
+      updateStore();
+      toast({
+        title: "Expenses synced",
+        description:
+          "All existing expenses have been updated with current tripmates.",
+        variant: "default",
+      });
+    }
+  };
+
   // Expense management functions
   const handleOpenExpenseDialog = (detailIndex: number, itemIndex: number) => {
     // Get current place data
@@ -1964,44 +2095,42 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
       // Pre-populate form with existing cost data if available
       const existingCost = currentPlace.cost || ({} as any);
 
-      // Get available tripmates for splitting
-      const tripmates = form.getValues("tripmates") || [];
+      // Get all available people for splitting
+      const allAvailablePeople = getAllAvailablePeople();
       const totalValue = existingCost.value || 0;
-      const splitCount = tripmates.length + 1; // +1 for the user
+      const splitCount = allAvailablePeople.length;
       const defaultSplitAmount = splitCount > 0 ? totalValue / splitCount : 0;
 
-      // Create split between array including user and tripmates
-      const defaultSplitBetween = [
-        {
-          userId: "current-user", // This would be the current user ID
-          name: "You", // This would be the current user name
+      // Create synchronized split between array
+      let splitBetween;
+      if (existingCost.splitBetween && existingCost.splitBetween.length > 0) {
+        // Sync existing data with current tripmates
+        splitBetween = syncSplitBetweenWithTripmates(existingCost.splitBetween);
+      } else {
+        // Create new default split for all available people
+        splitBetween = allAvailablePeople.map((person) => ({
+          userId: person.userId,
+          name: person.name,
           amount: defaultSplitAmount,
           settled: false,
           selected: true, // Default to selected
-        },
-        ...tripmates.map((tripmate: any) => ({
-          userId: tripmate.userId || "",
-          name: tripmate.name,
-          amount: defaultSplitAmount,
-          settled: false,
-          selected: true, // Default to selected
-        })),
-      ];
+        }));
+      }
 
       setExpenseFormData({
         value: existingCost.value || 0,
         type: existingCost.type || "VND",
         description: existingCost.description || "",
         paidBy: existingCost.paidBy || "You",
-        splitBetween: existingCost.splitBetween || defaultSplitBetween,
+        splitBetween: splitBetween,
       });
 
       // Initialize split mode based on existing data
-      if (existingCost.splitBetween) {
-        const selectedCount = existingCost.splitBetween.filter(
+      if (existingCost.splitBetween && existingCost.splitBetween.length > 0) {
+        const selectedCount = splitBetween.filter(
           (person: any) => person.selected !== false
         ).length;
-        const totalCount = existingCost.splitBetween.length;
+        const totalCount = splitBetween.length;
 
         if (selectedCount === 0) {
           setSplitMode("dontsplit");
@@ -2301,6 +2430,11 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
 
         // Update store as well
         setPlannerData(refreshedPlanner.data);
+
+        // Auto-sync all existing expenses with new tripmates
+        setTimeout(() => {
+          syncAllExpensesWithTripmates();
+        }, 100); // Small delay to ensure form state is updated
 
         toast({
           title: "Updated!",
@@ -3858,13 +3992,15 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                       type="number"
                       placeholder="0"
                       className="h-[40px]"
-                      value={expenseFormData.value || ""}
-                      onChange={(e) =>
-                        handleExpenseFormChange(
-                          "value",
-                          parseFloat(e.target.value) || 0
-                        )
-                      }
+                      value={costInputValue}
+                      onChange={(e) => {
+                        const inputValue = e.target.value;
+                        setCostInputValue(inputValue);
+
+                        // Debounce the actual form update
+                        const numericValue = parseFloat(inputValue) || 0;
+                        debouncedCostUpdate(numericValue);
+                      }}
                     />
                   </div>
                   <div className="w-fit min-w-[120px]">

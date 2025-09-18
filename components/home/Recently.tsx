@@ -17,7 +17,7 @@ import GuideCard from "../cards/GuideCard";
 
 const Recently = () => {
   return (
-    <div className="">
+    <div className="px-20 py-10">
       <section className="text-dark200-light800  font-extrabold flex justify-between gap-6 text-[2.5em]">
         <p>Recently viewed and upcoming</p>
         <Button className="primary-gradient rounded-[30px] py-6">

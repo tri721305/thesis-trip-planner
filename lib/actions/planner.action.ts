@@ -156,6 +156,141 @@ export async function getPlannerById(params: {
   }
 }
 
+/**
+ * Get all planners by user ID
+ * @param params - User ID and optional filters
+ * @returns Array of planner data or error
+ */
+export async function getPlannerByUserId(params: {
+  userId?: string; // Optional, if not provided, use current user from session
+  state?: "planning" | "ongoing" | "completed" | "cancelled"; // Optional filter by state
+  limit?: number; // Optional limit, default 20
+  offset?: number; // Optional offset for pagination, default 0
+  sortBy?: "createdAt" | "startDate" | "title"; // Optional sort field, default "createdAt"
+  sortOrder?: "asc" | "desc"; // Optional sort order, default "desc"
+}): Promise<
+  ActionResponse<{
+    planners: TravelPlan[];
+    total: number;
+    hasMore: boolean;
+  }>
+> {
+  const validationResult = await action({
+    params,
+    authorize: true, // Require authentication
+  });
+
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  const {
+    userId: providedUserId,
+    state,
+    limit = 20,
+    offset = 0,
+    sortBy = "createdAt",
+    sortOrder = "desc",
+  } = validationResult.params!;
+
+  // Use provided userId or current user's ID from session
+  const targetUserId = providedUserId || validationResult?.session?.user?.id;
+
+  if (!targetUserId) {
+    return {
+      success: false,
+      error: {
+        message: "User ID is required",
+      },
+    };
+  }
+
+  try {
+    if (!Types.ObjectId.isValid(targetUserId)) {
+      return {
+        success: false,
+        error: {
+          message: "Invalid user ID",
+        },
+      };
+    }
+
+    // Build query filter
+    const filter: any = {
+      $or: [
+        { author: new Types.ObjectId(targetUserId) }, // User is the author
+        { "tripmates.userId": targetUserId }, // User is a tripmate
+      ],
+    };
+
+    // Add state filter if provided
+    if (state) {
+      filter.state = state;
+    }
+
+    // Build sort object
+    const sortObj: any = {};
+    sortObj[sortBy] = sortOrder === "asc" ? 1 : -1;
+
+    // Get total count for pagination
+    const total = await TravelPlan.countDocuments(filter);
+
+    // Get planners with pagination and sorting
+    const planners = await TravelPlan.find(filter)
+      .sort(sortObj)
+      .skip(offset)
+      .limit(limit)
+      .populate("author", "name email image") // Populate author info
+      .lean(); // Use lean for better performance
+
+    // Calculate if there are more results
+    const hasMore = offset + limit < total;
+
+    console.log(`Found ${planners.length} planners for user ${targetUserId}`);
+
+    return {
+      success: true,
+      data: {
+        planners: JSON.parse(JSON.stringify(planners)),
+        total,
+        hasMore,
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching planners by user ID:", error);
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+/**
+ * Get recent planners for dashboard (simplified version of getPlannerByUserId)
+ * @param params - Optional limit for recent planners
+ * @returns Array of recent planner data or error
+ */
+export async function getRecentPlanners(params: {
+  limit?: number; // Optional limit, default 5
+}): Promise<ActionResponse<TravelPlan[]>> {
+  const { limit = 5 } = params;
+
+  const result = await getPlannerByUserId({
+    limit,
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  });
+
+  if (!result.success || !result.data) {
+    return {
+      success: false,
+      error: result.error || { message: "Failed to fetch recent planners" },
+    };
+  }
+
+  return {
+    success: true,
+    data: result.data.planners,
+  };
+}
+
 export async function updatePlanner(
   params: UpdatePlannerParams
 ): Promise<ActionResponse<TravelPlan>> {
@@ -574,6 +709,92 @@ export async function addTripmate(params: {
       { $push: { tripmates: tripmate } },
       { new: true, runValidators: false }
     );
+
+    // Auto-sync existing expenses with new tripmate
+    if (updatedPlanner) {
+      let hasExpenseChanges = false;
+
+      // Helper function to get all available people (current user + tripmates)
+      const getAllAvailablePeople = (existingTripmates: any[]) => [
+        { name: "You", userId: "current-user" },
+        ...existingTripmates.map((tm: any) => ({
+          name: tm.name,
+          userId: tm.userId || "",
+        })),
+      ];
+
+      // Helper function to sync splitBetween array with current tripmates
+      const syncSplitBetween = (
+        existingSplitBetween: any[],
+        allPeople: any[]
+      ) => {
+        const synced = [];
+        for (const person of allPeople) {
+          const existing = existingSplitBetween.find(
+            (split) =>
+              split.name === person.name || split.userId === person.userId
+          );
+          synced.push({
+            userId: person.userId,
+            name: person.name,
+            amount: existing?.amount || 0,
+            settled: existing?.settled || false,
+            selected:
+              existing?.selected !== undefined ? existing.selected : true,
+          });
+        }
+        return synced;
+      };
+
+      const allAvailablePeople = getAllAvailablePeople(
+        updatedPlanner.tripmates
+      );
+
+      // Sync lodging expenses
+      if (updatedPlanner.lodging) {
+        updatedPlanner.lodging = updatedPlanner.lodging.map((lodging: any) => {
+          if (
+            lodging.cost?.splitBetween &&
+            lodging.cost.splitBetween.length > 0
+          ) {
+            lodging.cost.splitBetween = syncSplitBetween(
+              lodging.cost.splitBetween,
+              allAvailablePeople
+            );
+            hasExpenseChanges = true;
+          }
+          return lodging;
+        });
+      }
+
+      // Sync place expenses
+      if (updatedPlanner.details) {
+        updatedPlanner.details = updatedPlanner.details.map((detail: any) => ({
+          ...detail,
+          data:
+            detail.data?.map((item: any) => {
+              if (
+                item.type === "place" &&
+                item.cost?.splitBetween &&
+                item.cost.splitBetween.length > 0
+              ) {
+                item.cost.splitBetween = syncSplitBetween(
+                  item.cost.splitBetween,
+                  allAvailablePeople
+                );
+                hasExpenseChanges = true;
+              }
+              return item;
+            }) || [],
+        }));
+      }
+
+      // Save changes if any expenses were updated
+      if (hasExpenseChanges) {
+        await updatedPlanner.save();
+        console.log("✅ Auto-synced existing expenses with new tripmate");
+      }
+    }
 
     return {
       success: true,

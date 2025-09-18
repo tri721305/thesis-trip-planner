@@ -6,17 +6,30 @@ import Destination from "@/components/home/Destination";
 import Features from "@/components/home/Features";
 import Footer from "@/components/home/Footer";
 import HeaderHomePage from "@/components/home/HeaderHomePage";
+import MyGuideAndPlan from "@/components/home/MyGuideAndPlan";
+
+import Recently from "@/components/home/Recently";
+import SearchHotelBar from "@/components/home/SearchHotelBar";
 import Title from "@/components/home/Title";
 import TripPlan from "@/components/home/TripPlan";
+import SearchBar from "@/components/search/SearchBar";
 
 const Page = async () => {
-  // const session = await auth();
+  const session = await auth();
 
+  console.log("session Page layout", session);
+  if (session?.user) {
+    return (
+      <div className="">
+        <Recently />
+        <SearchHotelBar />
+        <MyGuideAndPlan />
+      </div>
+    );
+  }
   return (
     <div className="">
-      {/* <HeaderHomePage /> */}
       <GSAPSlider />
-      {/* <Title /> */}
       <About />
       <Features />
       <TripPlan />
