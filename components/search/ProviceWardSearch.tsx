@@ -32,8 +32,6 @@ const ProvinceWardSearch = ({
 
   // Handle place selection
   const handlePlaceSelect = (place: any) => {
-    console.log("Selected place:", place);
-
     // Create the display name that matches what's shown in the list
     const displayName = `${place.loai || ""} ${place.tenhc || ""}`.trim();
     const fallbackName =
@@ -41,7 +39,6 @@ const ProvinceWardSearch = ({
 
     // Use the display name or fallback
     const selectedName = displayName || fallbackName;
-    console.log("Setting search to:", selectedName);
 
     // Set search value - this will update the input
     setSearch(selectedName);
@@ -99,15 +96,12 @@ const ProvinceWardSearch = ({
     setIsLoading(true);
 
     const delayDebounceFn = setTimeout(async () => {
-      console.log("Searching places for:", search);
-
       try {
         const places: any = await getAdministrativeUnit({
           page: 1,
           pageSize: maxResults,
           query: search,
         });
-        console.log("Search results:", places);
 
         if (places?.success && places?.data?.length > 0) {
           setResult(places.data);
@@ -188,7 +182,6 @@ const ProvinceWardSearch = ({
       </div>
     );
   };
-  console.log("search", search);
   return (
     <div className="relative w-full " ref={searchContainerRef}>
       <Input
@@ -198,7 +191,6 @@ const ProvinceWardSearch = ({
         className="bg-[#f3f4f5] text-black  h-[56px] border-none outline-none no-focus pr-10 w-full"
         onChange={(e) => {
           const newValue = e.target.value;
-          console.log("Input changed to:", newValue);
           setSearch(newValue);
           setJustSelected(false); // Reset flag when user types manually
           setIsTyping(true); // User is actively typing

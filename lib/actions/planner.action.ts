@@ -151,7 +151,6 @@ export async function getPlannerById(params: {
       data: JSON.parse(JSON.stringify(planner)),
     };
   } catch (error) {
-    console.error("Error fetching planner:", error);
     return handleError(error) as ErrorResponse;
   }
 }

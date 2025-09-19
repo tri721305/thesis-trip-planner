@@ -4,7 +4,8 @@ import ProvinceWardSearch from "@/components/search/ProviceWardSearch";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Earth, Lock, Plus, Search } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useDebounce } from "@/hooks/useDebounce";
 import {
   Select,
   SelectContent,
@@ -19,6 +20,7 @@ import { toast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import ROUTES from "@/constants/route";
 import moment from "moment";
+import { createGuide } from "@/lib/actions/guide.action";
 interface LocationType {
   displayName?: string;
   [key: string]: any;
@@ -28,9 +30,60 @@ const CreateGuide = () => {
 
   const [location, setLocation] = useState<LocationType | undefined>(undefined);
   const [loading, setLoading] = useState(false);
+  const [tripName, setTripName] = useState<string>("");
+  const [tripNameInput, setTripNameInput] = useState<string>("");
 
-  const handleCreatePlanner = async () => {
-    console.log("Submit");
+  // Debounce trip name input with 300ms delay
+  const debouncedTripName = useDebounce(tripNameInput, 300);
+
+  // Sync debounced value with tripName state
+  useEffect(() => {
+    setTripName(debouncedTripName);
+  }, [debouncedTripName]);
+
+  const handleCreateGuide = async () => {
+    setLoading(true);
+
+    let dataSubmit: any = {
+      title: tripName,
+      destination: {
+        name: location?.displayName,
+        coordinates: [location?.kinhdo, location?.vido],
+        type:
+          location?.loai == "phường" || location?.loai == "xã"
+            ? "ward"
+            : "province",
+        provinceId: location?.matinh?.toString(),
+        wardId: location?.ma?.toString(),
+      },
+    };
+    console.log("Submit", dataSubmit);
+
+    try {
+      const result = await createGuide(dataSubmit);
+
+      if (result.success) {
+        toast({
+          title: "Success",
+          description: "Guide created successfully",
+        });
+        if (result.data) router.push(ROUTES.GUIDE(result.data._id));
+      } else {
+        toast({
+          title: `Error ${result.status}`,
+          description: result.error?.message || "Something went wrong",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create guide",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -52,11 +105,21 @@ const CreateGuide = () => {
             }}
           />
         </div>
-
+        <div className="mb-2">
+          <Label className="font-bold" htmlFor="location">
+            Trip Name
+          </Label>
+          <Input
+            className="h-[56px] !bg-[#f3f4f5] text-black  border-none outline-none no-focus"
+            placeholder="Trip name"
+            value={tripNameInput}
+            onChange={(e) => setTripNameInput(e.target.value)}
+          />
+        </div>
         <div className="flex-center flex-col gap-4 m-8">
           <Button
-            disabled={!location}
-            onClick={handleCreatePlanner}
+            disabled={!(location && tripName)}
+            onClick={handleCreateGuide}
             className={`w-[140px] font-bold rounded-[30px] h-[56px] text-[16px] bg-primary-500 text-white hover:bg-orange-400 ${loading && "opacity-50 "}`}
           >
             Start writing

@@ -12,7 +12,7 @@ const ROUTES = {
   CREATE_PLANNER: "/create-planner",
   PROFILE: (id: string) => `/profile/${id}`,
   QUESTION: (id: string) => `/questions/${id}`,
-  GUIDE: (id: string) => `/guide/${id}`,
+  GUIDE: (id: string) => `/guides/${id}`,
   TAG: (id: string) => `/tags/${id}`,
   SIGN_IN_WITH_OAUTH: `signin-with-oauth`,
 };
