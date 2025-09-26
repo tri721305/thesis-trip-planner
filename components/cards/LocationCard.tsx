@@ -104,7 +104,7 @@ const LocationCard = ({
   console.log("dataPlace", placeData)
   return (
     <Card className="w-full !z-1200 !bg-white absolute -right-[105%] max-h-[300px] overflow-auto bottom-4 max-w-4xl mx-auto shadow-lg border-0"
-    style={{ zIndex: 1200 ,
+    style={{ zIndex: 40 ,
       overflow: "auto"
     }}
     >

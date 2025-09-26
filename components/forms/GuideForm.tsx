@@ -94,10 +94,10 @@ import ImageGallery from "../images/ImageGallery";
 import RangeTimePicker from "../timepicker/RangeTimePicker";
 import { auth } from "@/auth";
 import {
-  updatePlanner,
-  updatePlannerMainImage,
-  getPlannerById,
-} from "@/lib/actions/planner.action";
+  updateGuide,
+  getGuideById,
+  updateGuideMainImage,
+} from "@/lib/actions/guide.action";
 import { getPlaceById } from "@/lib/actions/place.action";
 import { useToast } from "@/hooks/use-toast";
 import { Toast } from "../ui/toast";
@@ -115,8 +115,10 @@ const GuideForm = ({ planner }: { planner?: any }) => {
   const [isPending, startTransition] = useTransition();
 
   // Zustand store for planner data
-  const { setPlannerData, updatePlannerDetails } = // removed updateDayRouting for Guide Form
-    usePlannerStore();
+  const {
+    setPlannerData,
+    updatePlannerDetails,
+  } = usePlannerStore(); // removed updateDayRouting for Guide Form
   const [showDialog, setShowDialog] = useState(false);
   const [manageTripmates, setManageTripmates] = useState(false);
   const [showAddHotel, setShowAddHotel] = useState(false);
@@ -1228,13 +1230,13 @@ const GuideForm = ({ planner }: { planner?: any }) => {
   // Handle keyboard shortcuts for location card overlay
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (showLocationCard && event.key === 'Escape') {
+      if (showLocationCard && event.key === "Escape") {
         setShowLocationCard(false);
       }
     };
 
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [showLocationCard]);
 
   const renderHotelForm = (index: number) => {
@@ -1465,8 +1467,6 @@ const GuideForm = ({ planner }: { planner?: any }) => {
     // Show LocationCard overlay with place ID
     setSelectedPlaceId(place.id || place._id);
     setShowLocationCard(true);
-    
-   
 
     // Direct selection from component - add to route immediately (original behavior)
     const currentItems = form.getValues(`details.${index}.data`) || [];
@@ -1892,8 +1892,8 @@ const GuideForm = ({ planner }: { planner?: any }) => {
         setIsUploadingImage(true);
 
         // Gọi function upload ảnh
-        const result: any = await updatePlannerMainImage({
-          plannerId: planner._id,
+        const result: any = await updateGuideMainImage({
+          guideId: planner._id,
           imageFile: file,
         });
 
@@ -1956,7 +1956,7 @@ const GuideForm = ({ planner }: { planner?: any }) => {
 
     try {
       const plannerId = planner._id || planner.id;
-      const refreshedPlanner = await getPlannerById({ plannerId });
+      const refreshedPlanner = await getGuideById({ guideId: plannerId });
 
       if (refreshedPlanner.success && refreshedPlanner.data) {
         console.log("✅ Planner data refreshed:", refreshedPlanner.data);
@@ -1988,105 +1988,104 @@ const GuideForm = ({ planner }: { planner?: any }) => {
 
   const handleSubmit = async () => {
     const formData = form.getValues();
-    const palce = await getPlaceById("6874b21525c3ba4668e68f49")
-    console.log("Place by ID", palce);
     console.log("formData submit", formData);
+
     // Format and validate data before sending
-    // const formatDataForServer = (data: any) => {
-    //   const formatted = { ...data };
+    const formatDataForServer = (data: any) => {
+      const formatted = { ...data };
 
-    //   // Format dates to ISO strings if they're Date objects
-    //   if (formatted.startDate) {
-    //     formatted.startDate =
-    //       formatted.startDate instanceof Date
-    //         ? formatted.startDate.toISOString()
-    //         : formatted.startDate;
-    //   }
+      // Format dates to ISO strings if they're Date objects
+      if (formatted.startDate) {
+        formatted.startDate =
+          formatted.startDate instanceof Date
+            ? formatted.startDate.toISOString()
+            : formatted.startDate;
+      }
 
-    //   if (formatted.endDate) {
-    //     formatted.endDate =
-    //       formatted.endDate instanceof Date
-    //         ? formatted.endDate.toISOString()
-    //         : formatted.endDate;
-    //   }
+      if (formatted.endDate) {
+        formatted.endDate =
+          formatted.endDate instanceof Date
+            ? formatted.endDate.toISOString()
+            : formatted.endDate;
+      }
 
-    //   // Ensure required fields are present
-    //   if (!formatted.title || formatted.title.trim() === "") {
-    //     throw new Error("Title is required");
-    //   }
+      // Ensure required fields are present
+      if (!formatted.title || formatted.title.trim() === "") {
+        throw new Error("Title is required");
+      }
 
-    //   return formatted;
-    // };
+      return formatted;
+    };
 
-    // // // Workaround: Ensure location data is preserved for place items
-    // const processedFormData = {
-    //   ...formData,
-    //   details: formData.details?.map((detail: any) => ({
-    //     ...detail,
-    //     data: detail.data?.map((item: any) => {
-    //       if (item.type === "place" && !item.location && item.id) {
-    //         console.log(
-    //           "⚠️ Place missing location data, will be fetched by ID:",
-    //           item.name
-    //         );
-    //       }
-    //       return item;
-    //     }),
-    //   })),
-    // };
+    // Workaround: Ensure location data is preserved for place items
+    const processedFormData = {
+      ...formData,
+      details: formData.details?.map((detail: any) => ({
+        ...detail,
+        data: detail.data?.map((item: any) => {
+          if (item.type === "place" && !item.location && item.id) {
+            console.log(
+              "⚠️ Place missing location data, will be fetched by ID:",
+              item.name
+            );
+          }
+          return item;
+        }),
+      })),
+    };
 
-    // try {
-    //   // Format data for server
-    //   const formattedData = formatDataForServer(processedFormData);
+    try {
+      // Format data for server
+      const formattedData = formatDataForServer(processedFormData);
 
-    //   // Create Date objects with proper start/end times
-    //   const startDate = new Date(formattedData.startDate);
-    //   startDate.setHours(0, 0, 0, 0); // Set to beginning of day (00:00:00)
+      // Create Date objects with proper start/end times
+      const startDate = new Date(formattedData.startDate);
+      startDate.setHours(0, 0, 0, 0); // Set to beginning of day (00:00:00)
 
-    //   const endDate = new Date(formattedData.endDate);
-    //   endDate.setHours(23, 59, 59, 999); // Set to end of day (23:59:59.999)
+      const endDate = new Date(formattedData.endDate);
+      endDate.setHours(23, 59, 59, 999); // Set to end of day (23:59:59.999)
 
-    //   const dataTest: any = {
-    //     ...formattedData,
-    //     plannerId: planner._id,
-    //     startDate: startDate,
-    //     endDate: endDate,
-    //   };
+      const dataToSubmit: any = {
+        ...formattedData,
+        guideId: planner._id,
+        startDate: startDate,
+        endDate: endDate,
+      };
 
-    //   const updatePlannerData: any = await updatePlanner(dataTest);
+      const updateGuideData: any = await updateGuide(dataToSubmit);
 
-    //   console.log("DataSubmit", dataTest, "DataResponse", updatePlannerData);
-    //   if (updatePlannerData && updatePlannerData.success) {
-    //     toast({
-    //       title: "Update Planner Successfully!",
-    //       description: "Your planner has been updated successfully.",
-    //       variant: "success",
-    //     });
-    //   } else {
-    //     console.error("Update failed:", updatePlannerData);
+      console.log("DataSubmit", dataToSubmit, "DataResponse", updateGuideData);
+      if (updateGuideData && updateGuideData.success) {
+        toast({
+          title: "Update Guide Successfully!",
+          description: "Your guide has been updated successfully.",
+          variant: "success",
+        });
+      } else {
+        console.error("Update failed:", updateGuideData);
 
-    //     // Show detailed error message
-    //     const errorMessage =
-    //       updatePlannerData?.error?.message ||
-    //       updatePlannerData?.message ||
-    //       "Unknown error occurred";
+        // Show detailed error message
+        const errorMessage =
+          updateGuideData?.error?.message ||
+          updateGuideData?.message ||
+          "Unknown error occurred";
 
-    //     toast({
-    //       title: "Update Failed!",
-    //       description: errorMessage,
-    //       variant: "destructive",
-    //     });
-    //   }
-    // } catch (error) {
-    //   console.error("Error updating planner:", error);
-    //   const errorMessage =
-    //     error instanceof Error ? error.message : "An unexpected error occurred";
-    //   toast({
-    //     title: "Error!",
-    //     description: errorMessage,
-    //     variant: "destructive",
-    //   });
-    // }
+        toast({
+          title: "Update Failed!",
+          description: errorMessage,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error updating guide:", error);
+      const errorMessage =
+        error instanceof Error ? error.message : "An unexpected error occurred";
+      toast({
+        title: "Error!",
+        description: errorMessage,
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -2465,7 +2464,7 @@ const GuideForm = ({ planner }: { planner?: any }) => {
             </div>
             <Separator className="my-[24px]" />
 
-            <div id="details-section">
+            <div id="details-section cursor-pointer">
               <div className="mb-[24px] flex items-center justify-between">
                 <h1 className="text-[36px] font-bold">Itinerary</h1>
                 {/* Route calculation disabled for Guide */}
@@ -3166,13 +3165,13 @@ const GuideForm = ({ planner }: { planner?: any }) => {
           </div> */}
         </form>
       </Form>
-      
+
       {/* LocationCard Overlay - Show when user selects a place */}
       {showLocationCard && selectedPlaceId && (
         // <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-50">
         //   <div className="relative w-full h-full">
         //     {/* LocationCard positioned absolutely over Maps area */}
-        //     <div 
+        //     <div
         //       className="absolute top-20 right-4 md:right-8 max-w-xs md:max-w-4xl pointer-events-auto animate-in slide-in-from-right-full duration-300"
         //     >
         //       <div className="relative bg-white rounded-lg shadow-xl">
@@ -3185,15 +3184,13 @@ const GuideForm = ({ planner }: { planner?: any }) => {
         //         >
         //           <X className="h-4 w-4" />
         //         </Button>
-                
-                <LocationCard placeId={selectedPlaceId} />
+
+        <LocationCard placeId={selectedPlaceId} />
         //       </div>
         //     </div>
         //   </div>
         // </div>
       )}
-   
-     
     </div>
   );
 };
