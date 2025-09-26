@@ -63,6 +63,7 @@ import {
   Trash,
   Save,
   ChartBar,
+  X,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -170,6 +171,10 @@ const GuideForm = ({ planner }: { planner?: any }) => {
 
   // State for debounced cost input to reduce re-renders
   const [costInputValue, setCostInputValue] = useState<string>("");
+
+  // State for LocationCard overlay - store selected place ID
+  const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
+  const [showLocationCard, setShowLocationCard] = useState(false);
 
   // Debounced callback for cost input
   const debouncedCostUpdate = useDebounce((value: number) => {
@@ -1220,6 +1225,18 @@ const GuideForm = ({ planner }: { planner?: any }) => {
     setCostInputValue(expenseFormData.value.toString());
   }, [expenseFormData.value]);
 
+  // Handle keyboard shortcuts for location card overlay
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (showLocationCard && event.key === 'Escape') {
+        setShowLocationCard(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showLocationCard]);
+
   const renderHotelForm = (index: number) => {
     const searchValue = hotelSearchValues[index] || "";
 
@@ -1445,7 +1462,13 @@ const GuideForm = ({ planner }: { planner?: any }) => {
   };
 
   const handlePlaceSelect = (place: any, index: any) => {
-    // Direct selection from component
+    // Show LocationCard overlay with place ID
+    setSelectedPlaceId(place.id || place._id);
+    setShowLocationCard(true);
+    
+   
+
+    // Direct selection from component - add to route immediately (original behavior)
     const currentItems = form.getValues(`details.${index}.data`) || [];
     // const newPosition = currentItems.length + 1;
 
@@ -1965,6 +1988,8 @@ const GuideForm = ({ planner }: { planner?: any }) => {
 
   const handleSubmit = async () => {
     const formData = form.getValues();
+    const palce = await getPlaceById("6874b21525c3ba4668e68f49")
+    console.log("Place by ID", palce);
     console.log("formData submit", formData);
     // Format and validate data before sending
     // const formatDataForServer = (data: any) => {
@@ -3141,7 +3166,32 @@ const GuideForm = ({ planner }: { planner?: any }) => {
           </div> */}
         </form>
       </Form>
-      <LocationCard />
+      
+      {/* LocationCard Overlay - Show when user selects a place */}
+      {showLocationCard && selectedPlaceId && (
+        // <div className="fixed top-0 left-0 w-full h-full pointer-events-none z-50">
+        //   <div className="relative w-full h-full">
+        //     {/* LocationCard positioned absolutely over Maps area */}
+        //     <div 
+        //       className="absolute top-20 right-4 md:right-8 max-w-xs md:max-w-4xl pointer-events-auto animate-in slide-in-from-right-full duration-300"
+        //     >
+        //       <div className="relative bg-white rounded-lg shadow-xl">
+        //         {/* Close button */}
+        //         <Button
+        //           variant="ghost"
+        //           size="icon"
+        //           onClick={() => setShowLocationCard(false)}
+        //           className="absolute -top-2 -right-2 z-10 bg-white/90 hover:bg-white shadow-lg rounded-full w-8 h-8"
+        //         >
+        //           <X className="h-4 w-4" />
+        //         </Button>
+                
+                <LocationCard placeId={selectedPlaceId} />
+        //       </div>
+        //     </div>
+        //   </div>
+        // </div>
+      )}
    
      
     </div>
