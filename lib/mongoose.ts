@@ -2,6 +2,7 @@ import mongoose, { Mongoose } from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI as string;
 
+console.log("MONGODB_URI:", MONGODB_URI);
 // Only check for MONGODB_URI on server side
 if (typeof window === "undefined" && !MONGODB_URI) {
   throw new Error("MONGODB_URI is not defined in environment variables");

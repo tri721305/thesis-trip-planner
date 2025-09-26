@@ -50,7 +50,7 @@ import {
   Calendar,
   Users,
   Hotel,
-  Route,
+  // Route, // Disabled for Guide Form - used to show routing info
   CalendarIcon,
   UserPlus,
   Share,
@@ -114,7 +114,7 @@ const GuideForm = ({ planner }: { planner?: any }) => {
   const [isPending, startTransition] = useTransition();
 
   // Zustand store for planner data
-  const { setPlannerData, updatePlannerDetails, updateDayRouting } =
+  const { setPlannerData, updatePlannerDetails } = // removed updateDayRouting for Guide Form
     usePlannerStore();
   const [showDialog, setShowDialog] = useState(false);
   const [manageTripmates, setManageTripmates] = useState(false);
@@ -176,6 +176,8 @@ const GuideForm = ({ planner }: { planner?: any }) => {
     handleExpenseFormChange("value", value);
   }, 300); // 300ms debounce delay
 
+  // ROUTING STATE - DISABLED FOR GUIDE FORM
+  /*
   // NEW: State for routing information from OpenStreetMap API
   const [localRoutingData, setLocalRoutingData] = useState<{
     [dayKey: string]: {
@@ -232,7 +234,10 @@ const GuideForm = ({ planner }: { planner?: any }) => {
       error?: string;
     };
   }>({});
+  */
 
+  // ROUTING FUNCTIONS - DISABLED FOR GUIDE FORM
+  /* 
   // NEW: Enhanced function to call OpenStreetMap routing API with retry logic
   const calculateRoute = async (
     coordinates: Array<{ lat: number; lon: number }>,
@@ -246,539 +251,49 @@ const GuideForm = ({ planner }: { planner?: any }) => {
     routeCode?: string;
     detailedWaypoints?: Array<any>;
   } | null> => {
-    if (coordinates.length < 2) return null;
-
-    // Validate coordinates
-    for (const coord of coordinates) {
-      if (
-        typeof coord.lat !== "number" ||
-        typeof coord.lon !== "number" ||
-        coord.lat < -90 ||
-        coord.lat > 90 ||
-        coord.lon < -180 ||
-        coord.lon > 180 ||
-        isNaN(coord.lat) ||
-        isNaN(coord.lon)
-      ) {
-        console.error("❌ Invalid coordinates:", coord);
-        return null;
-      }
-    }
-
-    try {
-      // Format coordinates for OpenStreetMap API: longitude,latitude;longitude,latitude
-      const coordsString = coordinates
-        .map((coord) => `${coord.lon.toFixed(6)},${coord.lat.toFixed(6)}`)
-        .join(";");
-
-      const response = await fetch(
-        `https://routing.openstreetmap.de/routed-car/route/v1/driving/${coordsString}?overview=full&geometries=geojson&continue_straight=false&steps=true`,
-        {
-          method: "GET",
-          headers: {
-            Accept: "application/json",
-            "User-Agent":
-              "TravelPlannerApp/1.0 (Contact: admin@travelplanner.com)",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        if (response.status === 429 && retryCount < 2) {
-          // Rate limited, retry after delay
-          console.warn("⚠️ Rate limited, retrying in 2 seconds...");
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-          return calculateRoute(coordinates, retryCount + 1);
-        }
-        throw new Error(
-          `Routing API error: ${response.status} ${response.statusText}`
-        );
-      }
-
-      const data = await response.json();
-
-      if (data.routes && data.routes.length > 0) {
-        const route = data.routes[0];
-        return {
-          distance: Math.round(route.distance || 0), // in meters
-          duration: Math.round(route.duration || 0), // in seconds
-          geometry: route.geometry, // GeoJSON coordinates
-          waypoints: data.waypoints?.map((wp: any) => ({
-            lat: wp.location[1],
-            lon: wp.location[0],
-          })),
-          // NEW: Add detailed route information
-          legs: route.legs || [],
-          routeCode: data.code || "Ok",
-          detailedWaypoints: data.waypoints || [],
-        };
-      } else {
-        throw new Error("No routes found in API response");
-      }
-    } catch (error) {
-      if (retryCount < 2) {
-        console.warn(
-          `⚠️ Routing attempt ${retryCount + 1} failed, retrying...`,
-          error
-        );
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        return calculateRoute(coordinates, retryCount + 1);
-      }
-
-      console.error("❌ OpenStreetMap routing error after retries:", error);
-      return null;
-    }
+    // Route calculation disabled for Guide Form
+    return null;
   };
 
   // NEW: Enhanced function to calculate routes between consecutive places within each day
   const calculateDayRoutes = async (detailIndex: number) => {
-    const detail = form.getValues(`details.${detailIndex}`);
-    if (!detail?.data || !Array.isArray(detail.data)) return;
-
-    const dayKey = `day-${detailIndex}`;
-
-    // Set calculating state
-    // Set calculating state and update store
-    const currentRoutingData = localRoutingData[dayKey];
-    const dayRoutingData = {
-      routes: currentRoutingData?.routes || [],
-      totalDistance: currentRoutingData?.totalDistance || 0,
-      totalDuration: currentRoutingData?.totalDuration || 0,
-      isCalculating: true,
-      lastUpdated: currentRoutingData?.lastUpdated || null,
-      error: undefined,
-    };
-
-    setLocalRoutingData((prev) => ({
-      ...prev,
-      [dayKey]: dayRoutingData,
-    }));
-
-    // NEW: Update Zustand store with calculating state
-    updateDayRouting(dayKey, dayRoutingData);
-
-    try {
-      // Extract places with coordinates from the day's data
-      const places = detail.data.filter((item: any) => item.type === "place");
-      const placesWithCoords: Array<{
-        name: string;
-        coordinates: { lat: number; lon: number };
-      }> = [];
-
-      // Get coordinates for each place
-      for (const place of places) {
-        // Type guard to ensure we're working with place items
-        if (place.type !== "place") continue;
-
-        let coordinates: { lat: number; lon: number } | null = null;
-
-        if (
-          place.location?.coordinates &&
-          Array.isArray(place.location.coordinates) &&
-          place.location.coordinates.length === 2
-        ) {
-          const [lon, lat] = place.location.coordinates;
-          if (typeof lon === "number" && typeof lat === "number") {
-            coordinates = { lat, lon };
-          }
-        } else if ((place as any).id || (place as any).attractionId) {
-          // Fetch coordinates using getPlaceById
-          const lookupId = (place as any).id || (place as any).attractionId;
-          try {
-            const result = await getPlaceById(lookupId);
-            if (result.success && result.data?.place?.location?.coordinates) {
-              const [lon, lat] = result.data.place.location.coordinates;
-              if (typeof lon === "number" && typeof lat === "number") {
-                coordinates = { lat, lon };
-              }
-            }
-          } catch (error) {
-            console.warn(
-              `⚠️ Failed to fetch coordinates for place ID ${lookupId}:`,
-              error
-            );
-          }
-        }
-
-        if (coordinates) {
-          placesWithCoords.push({
-            name: place.name || "Unknown Place",
-            coordinates,
-          });
-        } else {
-          console.warn(
-            `⚠️ No coordinates found for place: ${place.name || "Unknown"}`
-          );
-        }
-      }
-
-      if (placesWithCoords.length < 2) {
-        const errorMessage =
-          placesWithCoords.length === 0
-            ? "No places with valid coordinates found"
-            : "Need at least 2 places with coordinates to calculate routes";
-
-        // Update routing data state and store
-        const dayRoutingData = {
-          routes: [],
-          totalDistance: 0,
-          totalDuration: 0,
-          isCalculating: false,
-          lastUpdated: new Date(),
-          error: errorMessage,
-        };
-
-        setLocalRoutingData((prev) => ({
-          ...prev,
-          [dayKey]: dayRoutingData,
-        }));
-
-        // NEW: Update Zustand store with routing data
-        updateDayRouting(dayKey, dayRoutingData);
-        return;
-      }
-
-      // Calculate routes between consecutive places
-      const routes: Array<{
-        fromPlace: string;
-        toPlace: string;
-        distance: number;
-        duration: number;
-        geometry: any;
-        waypoints?: Array<{ lat: number; lon: number }>;
-        legs?: Array<any>;
-        routeCode?: string;
-        detailedWaypoints?: Array<any>;
-      }> = [];
-      let totalDistance = 0;
-      let totalDuration = 0;
-      let successfulRoutes = 0;
-
-      for (let i = 0; i < placesWithCoords.length - 1; i++) {
-        const fromPlace = placesWithCoords[i];
-        const toPlace = placesWithCoords[i + 1];
-
-        console.log(
-          `🗺️ Calculating route ${i + 1}/${placesWithCoords.length - 1}: ${fromPlace.name} → ${toPlace.name}`
-        );
-
-        const routeResult = await calculateRoute([
-          fromPlace.coordinates,
-          toPlace.coordinates,
-        ]);
-
-        if (routeResult) {
-          routes.push({
-            fromPlace: fromPlace.name,
-            toPlace: toPlace.name,
-            distance: routeResult.distance,
-            duration: routeResult.duration,
-            geometry: routeResult.geometry,
-            waypoints: routeResult.waypoints,
-            // NEW: Add detailed route information
-            legs: routeResult.legs,
-            routeCode: routeResult.routeCode,
-            detailedWaypoints: routeResult.detailedWaypoints,
-          });
-
-          totalDistance += routeResult.distance;
-          totalDuration += routeResult.duration;
-          successfulRoutes++;
-
-          // NEW: Log detailed route information for debugging
-          console.log(`✅ Route calculated with detailed steps:`, {
-            fromPlace: fromPlace.name,
-            toPlace: toPlace.name,
-            distance: `${(routeResult.distance / 1000).toFixed(1)}km`,
-            duration: `${Math.round(routeResult.duration / 60)}min`,
-            legs: routeResult.legs?.length || 0,
-            totalSteps:
-              routeResult.legs?.reduce(
-                (total, leg) => total + (leg.steps?.length || 0),
-                0
-              ) || 0,
-            routeCode: routeResult.routeCode,
-          });
-        } else {
-          console.warn(
-            `⚠️ Failed to calculate route: ${fromPlace.name} → ${toPlace.name}`
-          );
-          // Add a placeholder route with unknown distance/duration
-          routes.push({
-            fromPlace: fromPlace.name,
-            toPlace: toPlace.name,
-            distance: 0,
-            duration: 0,
-            geometry: null,
-          });
-        }
-
-        // Add small delay between requests to avoid rate limiting
-        if (i < placesWithCoords.length - 2) {
-          await new Promise((resolve) => setTimeout(resolve, 500));
-        }
-      }
-
-      // Update routing data state
-      const errorMessage =
-        successfulRoutes === 0
-          ? "Failed to calculate any routes. Please check internet connection and try again."
-          : successfulRoutes < routes.length
-            ? `Calculated ${successfulRoutes}/${routes.length} routes successfully`
-            : undefined;
-
-      // Update routing data state and store
-      const dayRoutingData = {
-        routes,
-        totalDistance,
-        totalDuration,
-        isCalculating: false,
-        lastUpdated: new Date(),
-        error: errorMessage,
-      };
-
-      setLocalRoutingData((prev) => ({
-        ...prev,
-        [dayKey]: dayRoutingData,
-      }));
-
-      // NEW: Update Zustand store with routing data
-      updateDayRouting(dayKey, dayRoutingData);
-
-      console.log(`✅ Day ${detailIndex + 1} routing completed:`, {
-        places: placesWithCoords.length,
-        routes: routes.length,
-        successful: successfulRoutes,
-        totalDistance: `${(totalDistance / 1000).toFixed(1)}km`,
-        totalDuration: `${Math.round(totalDuration / 60)}min`,
-      });
-    } catch (error) {
-      console.error(
-        `❌ Error calculating routes for day ${detailIndex + 1}:`,
-        error
-      );
-      // Update routing data state and store
-      const dayRoutingData = {
-        routes: [],
-        totalDistance: 0,
-        totalDuration: 0,
-        isCalculating: false,
-        lastUpdated: new Date(),
-        error:
-          error instanceof Error ? error.message : "Unknown error occurred",
-      };
-
-      setLocalRoutingData((prev) => ({
-        ...prev,
-        [dayKey]: dayRoutingData,
-      }));
-
-      // NEW: Update Zustand store with routing data
-      updateDayRouting(dayKey, dayRoutingData);
-    }
+    // Route calculation disabled for Guide Form
+    return;
   };
 
   // NEW: Function to recalculate all day routes with progress tracking
   const recalculateAllRoutes = async () => {
-    const details = form.getValues("details") || [];
-    const routeDays = details.filter((detail) => detail.type === "route");
-
-    if (routeDays.length === 0) {
-      console.log("ℹ️ No route-type days found to calculate");
-      return;
-    }
-
-    console.log(
-      `🔄 Starting route calculation for ${routeDays.length} days...`
-    );
-
-    for (let i = 0; i < details.length; i++) {
-      if (details[i].type === "route") {
-        console.log(`🗺️ Calculating routes for day ${i + 1}...`);
-        await calculateDayRoutes(i);
-        // Add delay between days to avoid overwhelming the API
-        if (i < details.length - 1) {
-          await new Promise((resolve) => setTimeout(resolve, 1000));
-        }
-      }
-    }
-
-    console.log("✅ All route calculations completed");
+    // Route calculation disabled for Guide Form
+    return;
   };
 
   // NEW: Enhanced helper function to format distance and duration
   const formatRouteInfo = (distance: number, duration: number) => {
-    if (distance === 0 || duration === 0) {
-      return {
-        distance: "Unknown",
-        duration: "Unknown",
-      };
-    }
-
-    const distanceStr =
-      distance >= 1000
-        ? `${(distance / 1000).toFixed(1)}km`
-        : `${Math.round(distance)}m`;
-
-    const durationStr =
-      duration >= 3600
-        ? `${Math.floor(duration / 3600)}h ${Math.round((duration % 3600) / 60)}min`
-        : `${Math.round(duration / 60)}min`;
-
+    // Route calculation disabled for Guide Form
     return {
-      distance: distanceStr,
-      duration: durationStr,
+      distance: "Unknown",
+      duration: "Unknown",
     };
   };
 
   // NEW: Helper function to format route steps for display
   const formatRouteSteps = (legs: any[]) => {
-    if (!legs || legs.length === 0) return [];
-
-    const allSteps: any[] = [];
-
-    legs.forEach((leg: any, legIndex: number) => {
-      if (leg.steps && Array.isArray(leg.steps)) {
-        leg.steps.forEach((step: any, stepIndex: number) => {
-          // Format maneuver instructions
-          let instruction = "";
-          const maneuver = step.maneuver;
-
-          if (maneuver) {
-            switch (maneuver.type) {
-              case "depart":
-                instruction = `Bắt đầu hành trình${step.name ? ` trên ${step.name}` : ""}`;
-                break;
-              case "turn":
-                const direction =
-                  maneuver.modifier === "left"
-                    ? "trái"
-                    : maneuver.modifier === "right"
-                      ? "phải"
-                      : maneuver.modifier === "straight"
-                        ? "thẳng"
-                        : maneuver.modifier;
-                instruction = `Rẽ ${direction}${step.name ? ` vào ${step.name}` : ""}`;
-                break;
-              case "arrive":
-                instruction = `Đến đích${step.name ? ` tại ${step.name}` : ""}`;
-                break;
-              case "continue":
-                instruction = `Tiếp tục${step.name ? ` trên ${step.name}` : ""}`;
-                break;
-              case "merge":
-                instruction = `Nhập làn${step.name ? ` vào ${step.name}` : ""}`;
-                break;
-              case "on_ramp":
-                instruction = `Lên đường cao tốc${step.name ? ` qua ${step.name}` : ""}`;
-                break;
-              case "off_ramp":
-                instruction = `Xuống đường cao tốc${step.name ? ` tại ${step.name}` : ""}`;
-                break;
-              case "roundabout":
-                instruction = `Đi qua bùng binh${step.name ? ` tại ${step.name}` : ""}`;
-                break;
-              default:
-                instruction = `${maneuver.type}${step.name ? ` trên ${step.name}` : ""}`;
-            }
-          }
-
-          allSteps.push({
-            stepIndex: stepIndex,
-            legIndex: legIndex,
-            instruction,
-            streetName: step.name || "",
-            roadRef: step.ref || "",
-            distance: step.distance || 0,
-            duration: step.duration || 0,
-            maneuverType: maneuver?.type || "",
-            maneuverModifier: maneuver?.modifier || "",
-            geometry: step.geometry || "",
-            intersections: step.intersections || [],
-          });
-        });
-      }
-    });
-
-    return allSteps;
+    // Route calculation disabled for Guide Form
+    return [];
   };
 
   // NEW: Helper function to get route summary from legs
   const getRouteSummary = (legs: any[]) => {
-    if (!legs || legs.length === 0) return "Không có thông tin đường đi";
-
-    // Get main roads from route
-    const mainRoads = new Set<string>();
-
-    legs.forEach((leg) => {
-      if (leg.steps) {
-        leg.steps.forEach((step: any) => {
-          if (step.name && step.name.trim() !== "" && step.distance > 100) {
-            mainRoads.add(step.name);
-          }
-        });
-      }
-    });
-
-    const roadList = Array.from(mainRoads).slice(0, 3); // Take first 3 main roads
-    return roadList.length > 0 ? roadList.join(" → ") : "Đường nội thành";
+    // Route calculation disabled for Guide Form
+    return "Không có thông tin đường đi";
   };
 
   // NEW: Helper function to log detailed routing data for debugging
   const logRoutingData = () => {
-    console.log("🗺️ DETAILED ROUTING DATA:");
-    console.log("========================");
-
-    Object.entries(localRoutingData).forEach(([dayKey, dayData]) => {
-      console.log(`\n📅 ${dayKey.toUpperCase()}:`);
-      console.log(
-        `   Total Distance: ${formatRouteInfo(dayData.totalDistance, dayData.totalDuration).distance}`
-      );
-      console.log(
-        `   Total Duration: ${formatRouteInfo(dayData.totalDistance, dayData.totalDuration).duration}`
-      );
-      console.log(`   Routes: ${dayData.routes.length}`);
-      console.log(
-        `   Status: ${dayData.isCalculating ? "Calculating..." : "Completed"}`
-      );
-      console.log(
-        `   Last Updated: ${dayData.lastUpdated?.toLocaleString() || "Never"}`
-      );
-
-      if (dayData.error) {
-        console.log(`   ⚠️ Error: ${dayData.error}`);
-      }
-
-      dayData.routes.forEach((route, index) => {
-        console.log(
-          `\n   Route ${index + 1}: ${route.fromPlace} → ${route.toPlace}`
-        );
-        console.log(
-          `     Distance: ${formatRouteInfo(route.distance, route.duration).distance}`
-        );
-        console.log(
-          `     Duration: ${formatRouteInfo(route.distance, route.duration).duration}`
-        );
-        console.log(`     Status: ${route.routeCode || "Unknown"}`);
-
-        if (route.legs && route.legs.length > 0) {
-          console.log(`     Main Roads: ${getRouteSummary(route.legs)}`);
-          console.log(`     Steps: ${formatRouteSteps(route.legs).length}`);
-
-          // Log detailed steps
-          const steps = formatRouteSteps(route.legs);
-          steps.forEach((step, stepIdx) => {
-            console.log(
-              `       ${stepIdx + 1}. ${step.instruction} (${formatRouteInfo(step.distance, step.duration).distance})`
-            );
-          });
-        }
-      });
-    });
-
-    console.log("\n========================");
-    console.log("🔍 Raw routing data:", localRoutingData);
+    // Route calculation disabled for Guide Form
+    console.log("🗺️ Routing disabled for Guide Form");
   };
+  */
 
   // const session = await auth();
   const form = useForm<PlannerFormData>({
@@ -894,12 +409,13 @@ const GuideForm = ({ planner }: { planner?: any }) => {
       // Immediate store update for removals
       updateStore();
 
+      // Route calculation disabled for Guide Form
       // If a place was removed, recalculate routes for this day
-      if (removedItem?.type === "place") {
-        setTimeout(() => {
-          calculateDayRoutes(detailIndex);
-        }, 500);
-      }
+      // if (removedItem?.type === "place") {
+      //   setTimeout(() => {
+      //     calculateDayRoutes(detailIndex);
+      //   }, 500);
+      // }
     },
     [form, updateStore]
   );
@@ -1407,8 +923,8 @@ const GuideForm = ({ planner }: { planner?: any }) => {
                 }
               })}
 
-              {/* NEW: Routing Information Display */}
-              {(() => {
+              {/* Route Information Display - DISABLED FOR GUIDE */}
+              {/* {(() => {
                 const dayKey = `day-${index}`;
                 const dayRouting = localRoutingData[dayKey];
                 const placesInDay = currentRouteItems.filter(
@@ -1437,7 +953,6 @@ const GuideForm = ({ planner }: { planner?: any }) => {
                               "Calculate Routes"
                             )}
                           </Button>
-                          {/* NEW: Debug button to log routing data */}
                           <Button
                             variant="ghost"
                             size="sm"
@@ -1517,7 +1032,6 @@ const GuideForm = ({ planner }: { planner?: any }) => {
                                   </div>
                                 </div>
 
-                                {/* NEW: Route summary from main roads */}
                                 {route.legs && route.legs.length > 0 && (
                                   <div className="text-xs text-gray-600 dark:text-gray-400 mb-2">
                                     <span className="font-medium">Way</span>
@@ -1525,7 +1039,6 @@ const GuideForm = ({ planner }: { planner?: any }) => {
                                   </div>
                                 )}
 
-                                {/* NEW: Detailed route steps - collapsible */}
                                 {route.legs && route.legs.length > 0 && (
                                   <details className="mt-2">
                                     <summary className="cursor-pointer text-xs text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200">
@@ -1574,7 +1087,6 @@ const GuideForm = ({ planner }: { planner?: any }) => {
                                   </details>
                                 )}
 
-                                {/* NEW: Route status indicator */}
                                 {route.routeCode && (
                                   <div className="flex items-center gap-1 mt-2">
                                     <span
@@ -1610,7 +1122,7 @@ const GuideForm = ({ planner }: { planner?: any }) => {
                   );
                 }
                 return null;
-              })()}
+              })()} */}
 
               <div className="flex items-center gap-2">
                 <PlaceSearch
@@ -1958,23 +1470,11 @@ const GuideForm = ({ planner }: { planner?: any }) => {
     // Update store immediately after adding place
     updateStore();
 
+    // Route calculation disabled for Guide Form
     // Automatically calculate routes for this day after adding a place
-    setTimeout(() => {
-      calculateDayRoutes(index);
-    }, 1000); // Delay to allow form to update
-
-    // // Verify the form value was set correctly
     // setTimeout(() => {
-    //   const verifyData = form.getValues(`details.${index}.data`);
-    //   const addedItem = verifyData[verifyData.length - 1];
-    //   if (addedItem.type === "place") {
-    //     console.log("🔍 DEBUG - Verified form data after adding place:", {
-    //       hasLocation: !!addedItem.location,
-    //       location: addedItem.location,
-    //       coordinates: addedItem.location?.coordinates,
-    //     });
-    //   }
-    // }, 100);
+    //   calculateDayRoutes(index);
+    // }, 1000); // Delay to allow form to update
   };
 
   // Helper function to get all available people for expense splitting
@@ -2564,7 +2064,6 @@ const GuideForm = ({ planner }: { planner?: any }) => {
     // }
   };
 
-  console.log("Form Data", form.getValues());
   return (
     <div className="container mx-auto  max-w-4xl">
       <Form {...form}>
@@ -2944,7 +2443,8 @@ const GuideForm = ({ planner }: { planner?: any }) => {
             <div id="details-section">
               <div className="mb-[24px] flex items-center justify-between">
                 <h1 className="text-[36px] font-bold">Itinerary</h1>
-                <div className="flex gap-2">
+                {/* Route calculation disabled for Guide */}
+                {/* <div className="flex gap-2">
                   <Button
                     onClick={recalculateAllRoutes}
                     className="h-[36px] font-bold"
@@ -2959,7 +2459,7 @@ const GuideForm = ({ planner }: { planner?: any }) => {
                       ? "Calculating..."
                       : "Calculate All Routes"}
                   </Button>
-                </div>
+                </div> */}
               </div>
               <div className="flex flex-col ">
                 {detailFields.map((field, index) => (
@@ -3611,7 +3111,7 @@ const GuideForm = ({ planner }: { planner?: any }) => {
               {isPending ? "Updating..." : "Update Guide"}
             </Button>
           </div>
-          <div className="px-8 pb-8 flex flex-col gap-4">
+          {/* <div className="px-8 pb-8 flex flex-col gap-4">
             <h1 className="text-[36px] font-bold">Budgeting</h1>
             <div className="p-4 px-12 flex justify-between items-center rounded-lg background-light800_darkgradient">
               <div>
@@ -3638,401 +3138,12 @@ const GuideForm = ({ planner }: { planner?: any }) => {
                 </div>
               </div>
             </div>
-          </div>
+          </div> */}
         </form>
       </Form>
       <LocationCard />
-      {showDialog && (
-        <ReusableDialog
-          data={{
-            title: "Invite tripmates",
-            content: (
-              <div>
-                <Tabs defaultValue="edit">
-                  <TabsList>
-                    <TabsTrigger value="edit">Can Edit</TabsTrigger>
-                    <TabsTrigger value="view">View Only</TabsTrigger>
-                  </TabsList>
-                  <TabsContent value="edit">
-                    {manageTripmates ? (
-                      <div>
-                        <Button
-                          onClick={() => {
-                            setManageTripmates(false);
-                          }}
-                          size={"icon"}
-                        >
-                          <Undo />
-                        </Button>
-                        Manager Triplate do it later
-                      </div>
-                    ) : (
-                      <div className="flex flex-col gap-2">
-                        <div className="flex gap-2 items-center border border-gray-300 p-2 rounded-md text-[1rem] ">
-                          <Link />
-                          <Input
-                            className="border-none no-focus shadow-none"
-                            value={
-                              typeof window !== "undefined"
-                                ? window.location.href
-                                : ""
-                            }
-                            readOnly
-                          />
-                          <Button
-                            className="bg-primary-500 hover:bg-[#fe9a4d]"
-                            onClick={() => {
-                              const url =
-                                typeof window !== "undefined"
-                                  ? window.location.href
-                                  : "";
-                              navigator.clipboard
-                                .writeText(url)
-                                .then(() => {
-                                  toast({
-                                    title: "Link copied!",
-                                    description:
-                                      "The link has been copied to clipboard.",
-                                    variant: "success",
-                                  });
-                                })
-                                .catch(() => {
-                                  toast({
-                                    title: "Copy failed",
-                                    description:
-                                      "Failed to copy link to clipboard.",
-                                    variant: "destructive",
-                                  });
-                                });
-                            }}
-                          >
-                            Copy link
-                          </Button>
-                        </div>
-                        <div className="flex gap-2 items-start border-1 background-light800_dark300 p-2 rounded-md text-[1rem] ">
-                          <User className="mt-[18px]" />
-                          {/* <Input className="border-none no-focus shadow-none" /> */}
-                          <UserSearch
-                            onUserSelect={(user) =>
-                              console.log("Selected user:", user)
-                            }
-                            onTripmateAdded={refreshPlannerData}
-                            placeholder="Enter user email to search"
-                            plannerId={planner?._id || planner?.id} // Add plannerId
-                            // className="border-none no-focus shadow-none"
-                          />
-                        </div>
-                        <Separator className="my-4" />
-                        <Button
-                          className="w-fit text-dark300_light400"
-                          variant={"ghost"}
-                          onClick={() => {
-                            setManageTripmates(true);
-                          }}
-                        >
-                          <GrUserSettings />
-                          Manage tripmates
-                        </Button>
-                      </div>
-                    )}
-                  </TabsContent>
-                  <TabsContent value="password">
-                    <Card>
-                      <CardHeader>
-                        <CardTitle>Password</CardTitle>
-                        <CardDescription>
-                          Change your password here. After saving, you&apos;ll
-                          be logged out.
-                        </CardDescription>
-                      </CardHeader>
-                      <CardContent className="grid gap-6">
-                        <div className="grid gap-3">
-                          <Label htmlFor="tabs-demo-current">
-                            Current password
-                          </Label>
-                          <Input id="tabs-demo-current" type="password" />
-                        </div>
-                        <div className="grid gap-3">
-                          <Label htmlFor="tabs-demo-new">New password</Label>
-                          <Input id="tabs-demo-new" type="password" />
-                        </div>
-                      </CardContent>
-                      <CardFooter>
-                        <Button>Save password</Button>
-                      </CardFooter>
-                    </Card>
-                  </TabsContent>
-                </Tabs>
-              </div>
-            ),
-            showCloseButton: false,
-          }}
-          open={showDialog}
-          setOpen={setShowDialog}
-        />
-      )}
-      {showExpenses && (
-        <ReusableDialog
-          open={showExpenses}
-          data={{
-            title: "Add expense",
-            content: (
-              <div className="space-y-4">
-                <div className="flex gap-2">
-                  <div className="flex-1">
-                    <Label className="font-bold">Cost</Label>
-                    <Input
-                      type="number"
-                      placeholder="0"
-                      className="h-[40px]"
-                      value={costInputValue}
-                      onChange={(e) => {
-                        const inputValue = e.target.value;
-                        setCostInputValue(inputValue);
-
-                        // Debounce the actual form update
-                        const numericValue = parseFloat(inputValue) || 0;
-                        debouncedCostUpdate(numericValue);
-                      }}
-                    />
-                  </div>
-                  <div className="w-fit min-w-[120px]">
-                    <Label className="font-bold">Currency</Label>
-                    <Select
-                      value={expenseFormData.type}
-                      onValueChange={(value) =>
-                        handleExpenseFormChange("type", value)
-                      }
-                    >
-                      <SelectTrigger
-                        className={`h-[40px] border-none paragraph-regular background-form-input light-border-2 text-dark300_light700 no-focus rounded-1.5 border`}
-                      >
-                        <SelectValue placeholder="Currency" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="VND">VND</SelectItem>
-                        <SelectItem value="USD">USD</SelectItem>
-                        <SelectItem value="EUR">EUR</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div>
-                  <Label className="font-bold">Description</Label>
-                  <Textarea
-                    placeholder="Enter expense description..."
-                    className="min-h-[80px]"
-                    value={expenseFormData.description}
-                    onChange={(e) =>
-                      handleExpenseFormChange("description", e.target.value)
-                    }
-                  />
-                </div>
-
-                <div>
-                  <Label className="font-bold">Paid by</Label>
-                  <Select
-                    value={expenseFormData.paidBy}
-                    onValueChange={(value) =>
-                      handleExpenseFormChange("paidBy", value)
-                    }
-                  >
-                    <SelectTrigger
-                      className={`h-[40px] border-none paragraph-regular background-form-input light-border-2 text-dark300_light700 no-focus rounded-1.5 border`}
-                    >
-                      <SelectValue placeholder="Select who paid" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="You">
-                        <div>You (Current User)</div>
-                      </SelectItem>
-                      {(form.getValues("tripmates") || []).map(
-                        (tripmate: any, index: number) => (
-                          <SelectItem key={index} value={tripmate.name}>
-                            {tripmate.name}
-                          </SelectItem>
-                        )
-                      )}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label className="font-bold">Split Between</Label>
-
-                  <div className="mb-4">
-                    <Select
-                      value={splitMode}
-                      onValueChange={handleSplitModeChange}
-                    >
-                      <SelectTrigger
-                        className={`h-[40px] border-none paragraph-regular background-form-input light-border-2 text-dark300_light700 no-focus rounded-1.5 border`}
-                      >
-                        <SelectValue placeholder="Split between ..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectGroup>
-                          <SelectItem value="everyone">Everyone</SelectItem>
-                          <SelectItem value="individuals">
-                            Individuals
-                          </SelectItem>
-                          <SelectItem value="dontsplit">Don't Split</SelectItem>
-                        </SelectGroup>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Split explanation */}
-                  <div className="mb-3 text-sm text-gray-600">
-                    {splitMode === "everyone" &&
-                      "Split equally among all tripmates"}
-                    {splitMode === "individuals" &&
-                      "Select specific people to split with"}
-                    {splitMode === "dontsplit" &&
-                      "Only the person who paid will cover this expense"}
-                  </div>
-
-                  {/* People list with checkboxes for individuals mode */}
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {expenseFormData.splitBetween.map((person, index) => (
-                      <div
-                        key={index}
-                        className={`flex items-center gap-2 p-3 rounded-lg border transition-colors ${
-                          splitMode === "individuals"
-                            ? person.selected
-                              ? "bg-blue-50 border-blue-200"
-                              : "bg-gray-50 border-gray-200"
-                            : "bg-gray-50 border-gray-200"
-                        }`}
-                      >
-                        {/* Checkbox for individuals mode */}
-                        {splitMode === "individuals" && (
-                          <input
-                            type="checkbox"
-                            checked={person.selected || false}
-                            onChange={(e) =>
-                              handlePersonSelectionChange(
-                                index,
-                                e.target.checked
-                              )
-                            }
-                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                        )}
-
-                        {/* Person name */}
-                        <div className="flex-1">
-                          <span className="font-medium">{person.name}</span>
-                          {person.name === expenseFormData.paidBy && (
-                            <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                              Paid
-                            </span>
-                          )}
-                        </div>
-
-                        {/* Amount input */}
-                        <div className="flex items-center gap-2">
-                          <Input
-                            type="number"
-                            min="0"
-                            step="0.01"
-                            value={person.amount || ""}
-                            onChange={(e) =>
-                              updateSplitAmount(
-                                index,
-                                parseFloat(e.target.value) || 0
-                              )
-                            }
-                            className="w-24 h-8"
-                            placeholder="0"
-                            disabled={
-                              splitMode === "dontsplit" &&
-                              person.name !== expenseFormData.paidBy
-                            }
-                            readOnly={
-                              splitMode === "everyone" ||
-                              (splitMode === "individuals" && !person.selected)
-                            }
-                          />
-                          <span className="text-sm text-gray-600 min-w-[35px]">
-                            {expenseFormData.type}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Total calculation */}
-                  <div className="mt-3 p-3 bg-blue-50 rounded-lg">
-                    <div className="flex justify-between items-center text-sm">
-                      <span className="font-medium">Total Split:</span>
-                      <span className="font-bold">
-                        {expenseFormData.splitBetween
-                          .reduce(
-                            (sum, person) => sum + (person.amount || 0),
-                            0
-                          )
-                          .toFixed(2)}{" "}
-                        {expenseFormData.type}
-                      </span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm mt-1">
-                      <span>Expense Amount:</span>
-                      <span>
-                        {expenseFormData.value.toFixed(2)}{" "}
-                        {expenseFormData.type}
-                      </span>
-                    </div>
-                    {Math.abs(
-                      expenseFormData.value -
-                        expenseFormData.splitBetween.reduce(
-                          (sum, person) => sum + (person.amount || 0),
-                          0
-                        )
-                    ) > 0.01 && (
-                      <div className="flex justify-between items-center text-sm mt-1 text-red-600">
-                        <span>Difference:</span>
-                        <span>
-                          {(
-                            expenseFormData.value -
-                            expenseFormData.splitBetween.reduce(
-                              (sum, person) => sum + (person.amount || 0),
-                              0
-                            )
-                          ).toFixed(2)}{" "}
-                          {expenseFormData.type}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex gap-2 justify-end">
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setShowExpenses(false);
-                      resetExpenseForm();
-                    }}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleSaveExpense}
-                    className="bg-primary-500 hover:bg-primary-600"
-                  >
-                    <Save className="w-4 h-4 mr-2" />
-                    Save Expense
-                  </Button>
-                </div>
-              </div>
-            ),
-            showCloseButton: false,
-          }}
-          setOpen={setShowExpenses}
-        />
-      )}
+   
+     
     </div>
   );
 };
