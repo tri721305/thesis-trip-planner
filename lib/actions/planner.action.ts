@@ -4,6 +4,7 @@ import action from "../handler/action";
 import { handleError } from "../handler/error";
 import mongoose, { Types } from "mongoose";
 import TravelPlan from "@/database/plan.model";
+import User from "@/database/user.model"; // Import User model for populate
 import {
   CreateTravelPlannerSchema,
   UpdateTravelPlannerSchema,
@@ -135,7 +136,11 @@ export async function getPlannerById(params: {
       };
     }
 
-    const planner = await TravelPlan.findById(plannerId);
+    const planner = await TravelPlan.findById(plannerId).populate({
+      path: 'author',
+      model: 'User',
+      select: 'username image name'
+    });
 
     if (!planner) {
       return {
@@ -146,9 +151,51 @@ export async function getPlannerById(params: {
       };
     }
 
+    // Debug logging for populate
+    console.log("🔍 Debug planner populate result:");
+    console.log("- planner.author:", planner.author);
+    console.log("- planner.author type:", typeof planner.author);
+    console.log("- planner.author populated:", planner.populated('author'));
+
+    // Structure the response with authorDetails
+    const plannerData = JSON.parse(JSON.stringify(planner));
+    
+    // More robust check for author data
+    let authorDetails = null;
+    if (planner.author && typeof planner.author === 'object' && planner.author._id) {
+      // Author was populated successfully
+      authorDetails = {
+        username: planner.author.username,
+        image: planner.author.image,
+        name: planner.author.name
+      };
+    } else if (planner.author) {
+      // Author is just an ID, try to fetch separately
+      console.log("Author not populated, fetching separately...");
+      try {
+        const authorUser = await User.findById(planner.author).select('username image name');
+        if (authorUser) {
+          authorDetails = {
+            username: authorUser.username,
+            image: authorUser.image,
+            name: authorUser.name
+          };
+        }
+      } catch (err) {
+        console.error("Error fetching author separately:", err);
+      }
+    }
+
+    console.log("- final authorDetails:", authorDetails);
+
+    const result = {
+      ...plannerData,
+      authorDetails
+    };
+
     return {
       success: true,
-      data: JSON.parse(JSON.stringify(planner)),
+      data: result,
     };
   } catch (error) {
     return handleError(error) as ErrorResponse;

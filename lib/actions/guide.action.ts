@@ -4,6 +4,7 @@ import action from "../handler/action";
 import { handleError } from "../handler/error";
 import mongoose, { Types } from "mongoose";
 import Guide from "@/database/guide.model";
+import User from "@/database/user.model"; // Import User model for populate
 import {
   CreateTravelPlannerSchema,
   UpdateTravelPlannerSchema,
@@ -216,7 +217,11 @@ export async function getGuideById(params: { guideId: string }) {
         },
       };
     }
-    const guide = await Guide.findById(guideId);
+    const guide = await Guide.findById(guideId).populate({
+      path: 'author',
+      model: 'User',
+      select: 'username image name'
+    });
 
     if (!guide) {
       return {
@@ -227,9 +232,51 @@ export async function getGuideById(params: { guideId: string }) {
       };
     }
 
+    // Debug logging for populate
+    console.log("🔍 Debug populate result:");
+    console.log("- guide.author:", guide.author);
+    console.log("- guide.author type:", typeof guide.author);
+    console.log("- guide.author populated:", guide.populated('author'));
+
+    // Structure the response with authorDetails
+    const guideData = JSON.parse(JSON.stringify(guide));
+    
+    // More robust check for author data
+    let authorDetails = null;
+    if (guide.author && typeof guide.author === 'object' && guide.author._id) {
+      // Author was populated successfully
+      authorDetails = {
+        username: guide.author.username,
+        image: guide.author.image,
+        name: guide.author.name
+      };
+    } else if (guide.author) {
+      // Author is just an ID, try to fetch separately
+      console.log("Author not populated, fetching separately...");
+      try {
+        const authorUser = await User.findById(guide.author).select('username image name');
+        if (authorUser) {
+          authorDetails = {
+            username: authorUser.username,
+            image: authorUser.image,
+            name: authorUser.name
+          };
+        }
+      } catch (err) {
+        console.error("Error fetching author separately:", err);
+      }
+    }
+
+    console.log("- final authorDetails:", authorDetails);
+
+    const result = {
+      ...guideData,
+      authorDetails
+    };
+
     return {
       success: true,
-      data: JSON.parse(JSON.stringify(guide)),
+      data: result,
     };
   } catch (error) {
     return handleError(error) as ErrorResponse;

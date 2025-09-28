@@ -321,7 +321,11 @@ const travelPlanSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    author: Types.ObjectId,
+    author: {
+      type: Types.ObjectId,
+      ref: "User",
+      required: true
+    },
     tripmates: [
       {
         name: {
