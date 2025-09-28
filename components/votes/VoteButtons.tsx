@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { createVote, hasVoted } from "@/lib/actions/vote.action";
 import { toast } from "@/hooks/use-toast";
+import { IoMdArrowDown, IoMdArrowUp } from "react-icons/io";
 
 interface VoteButtonsProps {
   targetId: string;
@@ -169,7 +170,8 @@ export default function VoteButtons({
             : "hover:bg-green-50 hover:border-green-300 hover:text-green-600"
         }`}
       >
-        <ChevronUp className="w-4 h-4" />
+        {/* <ChevronUp className="w-4 h-4" /> */}
+        <IoMdArrowUp className="w-4 h-4" />
         <span className="text-sm font-medium">{currentUpvotes}</span>
       </Button>
 
@@ -185,7 +187,8 @@ export default function VoteButtons({
             : "hover:bg-red-50 hover:border-red-300 hover:text-red-600"
         }`}
       >
-        <ChevronDown className="w-4 h-4" />
+        {/* <ChevronDown className="w-4 h-4" /> */}
+        <IoMdArrowDown className="w-4 h-4" />
         <span className="text-sm font-medium">{currentDownvotes}</span>
       </Button>
 

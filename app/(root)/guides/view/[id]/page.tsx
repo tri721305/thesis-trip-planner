@@ -1,15 +1,21 @@
+import CustomScrollLayoutViewGuide from "@/components/scroll/CustomSrollLayoutViewGuide";
 import { getGuideById } from "@/lib/actions/guide.action";
 import React from "react";
 
 const page = async ({ params }: { params: { id: string } }) => {
   const { id } = params;
+  console.log("Id params", id);
 
-  const guide = await getGuideById({ guideId: id });
-  console.log("Guide ID:", id, guide);
+  const guideResult = await getGuideById({ guideId: id });
+
+  console.log("guideResult", guideResult);
+  if (!guideResult.success) {
+    return <div>Error loading planner: {guideResult.error?.message}</div>;
+  }
+
   return (
-    <div className="flex">
-      <div className="flex-1"></div>
-      <div className="flex-1">asdasdzxc asdasd </div>
+    <div>
+      <CustomScrollLayoutViewGuide planner={guideResult.data} />
     </div>
   );
 };
