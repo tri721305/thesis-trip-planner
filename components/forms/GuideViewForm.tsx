@@ -77,7 +77,13 @@ import { MdChecklist, MdFlight } from "react-icons/md";
 import { BiMoney, BiRestaurant, BiSolidHotel } from "react-icons/bi";
 import { GoKebabHorizontal } from "react-icons/go";
 import Collaps from "../Collaps";
-import { FaMapMarker, FaPen, FaTrash, FaUserPlus } from "react-icons/fa";
+import {
+  FaMapMarker,
+  FaPen,
+  FaPlus,
+  FaTrash,
+  FaUserPlus,
+} from "react-icons/fa";
 import InputWithIcon from "../input/InputIcon";
 import DebouncedTextarea from "../input/DebouncedTextarea";
 import InputCollapseHotelMultiple from "../input/InputCollapseHotelMultiple";
@@ -86,7 +92,7 @@ import HotelSearch from "../search/HotelSearch";
 import LodgingSearch from "../search/LodgingSearch";
 import "./style.css";
 import PlaceSearch from "../search/PlaceSearch";
-import { FaEllipsis, FaNoteSticky } from "react-icons/fa6";
+import { FaArrowTurnUp, FaEllipsis, FaNoteSticky } from "react-icons/fa6";
 import Checklist from "../input/Checklist";
 import ImageGallery from "../images/ImageGallery";
 import RangeTimePicker from "../timepicker/RangeTimePicker";
@@ -513,7 +519,7 @@ const GuideViewForm = ({ planner }: { planner?: any }) => {
             </div>
           )}
         </div>
-        <Button
+        {/* <Button
           onClick={() => {
             removeLodging(index);
           }}
@@ -522,7 +528,7 @@ const GuideViewForm = ({ planner }: { planner?: any }) => {
           variant="ghost"
         >
           <Trash />
-        </Button>
+        </Button> */}
       </div>
     );
   };
@@ -2043,11 +2049,24 @@ const GuideViewForm = ({ planner }: { planner?: any }) => {
               />
 
               {/* Vote Buttons for testing */}
-              <div className="px-8 py-4 border-t ">
+              <div className="px-8 flex items-center justify-between py-4 border-t ">
+                <div>
+                  <div className="flex gap-2">
+                    <Avatar>
+                      <AvatarImage src={planner?.authorDetails?.image} />
+                      <AvatarFallback>AVT</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <h2 className="font-bold">
+                        {planner?.authorDetails?.username}
+                      </h2>
+                      <p className="text-[12px]">
+                        {moment(planner?.createdAt).format("DD MMM YYYY")}
+                      </p>
+                    </div>
+                  </div>
+                </div>
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-600">
-                    {/* 🧪 Vote System Test: */}
-                  </span>
                   {planner?._id ? (
                     <VoteButtons
                       targetId={planner._id}
@@ -2068,58 +2087,12 @@ const GuideViewForm = ({ planner }: { planner?: any }) => {
 
           {/* Analysis space */}
           <div className="!mt-[100px] flex flex-col gap-[24px]  px-8">
-            <div className="flex items-center gap-2">
-              <div className="p-4 flex-1 border-none paragraph-regular background-light800_darkgradient light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border">
-                <span className="font-bold">Revervations and attachments</span>
-                <div className="flex mt-4  items-center justify-center h-[40px]">
-                  <div className="px-4 flex w-full flex-col items-center h-full justify-center">
-                    <div className="flex-center cursor-pointer flex-col relative">
-                      <MdFlight size={20} />
-                      <p className="text-[12px]">Flight</p>
-                      <div className="absolute -top-1 -right-[12px] flex-center text-[8px] background-light700_dark300 text-light800_dark300 rounded-full w-4 h-4">
-                        <p>1</p>
-                      </div>
-                    </div>
-                  </div>
-                  <Separator orientation="vertical" />
-                  <div className="px-4 flex w-full flex-col items-center h-full justify-center">
-                    <div className="flex-center cursor-pointer flex-col relative">
-                      <BiSolidHotel size={20} />
-                      <p className="text-[12px]">Lodging</p>
-                      <div className="absolute -top-1 -right-[12px] flex-center text-[8px] background-light700_dark300 text-light800_dark300 rounded-full w-4 h-4">
-                        <p>1</p>
-                      </div>
-                    </div>
-                  </div>
-                  <Separator orientation="vertical" />
-                  <div className="px-4 flex w-full flex-col items-center h-full justify-center">
-                    <BiRestaurant size={20} />
-                    <p className="text-[12px]">Restaurant</p>
-                  </div>
-                  <Separator orientation="vertical" />
-                  <div className="px-4 flex w-full flex-col items-center h-full justify-center">
-                    <Car size={20} />
-                    <p className="text-[12px]">Rental Car</p>
-                  </div>
-                  <Separator orientation="vertical" />
-                  <div className="px-4 flex w-[24px] ml-4 flex-col items-center h-full justify-center">
-                    <GoKebabHorizontal
-                      size={24}
-                      className="font-bold cursor-pointer"
-                    />
-                  </div>
-                </div>
-              </div>
-              {/* <div className="p-4 w-fit border-none paragraph-regular background-light800_darkgradient light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border">
-                <p className="font-bold text-[16px]">Budgeting</p>
-                <h1 className="mt-2 mb-1 text-[#6c757d] text-[24px]">đ 0</h1>
-                <h1 className="text-[14px]  text-[#6c757d] font-bold cursor-pointer">
-                  View details
-                </h1>
-              </div> */}
-            </div>
+            <div className="flex items-center gap-2"></div>
             <div id="note-section">
-              <Collaps
+              <div className="py-4 px-2 border-none paragraph-regular background-light800_darkgradient light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border">
+                {planner?.note}
+              </div>
+              {/* <Collaps
                 keyId={"note"}
                 titleFeature={
                   <p className="pl-[28px] border-none font-bold !text-[24px] shadow-none no-focus ">
@@ -2149,11 +2122,13 @@ const GuideViewForm = ({ planner }: { planner?: any }) => {
                     />
                   </div>
                 }
-              />
+              /> */}
             </div>
             <Separator className="my-[24px]" />
             {/* General Tips */}
-            <div id="generalTips-section">
+            <div id="generalTips-section relative">
+              <div className="h-4 relative z-1 top-[36px] w-full bg-pink-100"></div>
+
               <Collaps
                 keyId="General-tips"
                 titleFeature={
@@ -2163,7 +2138,10 @@ const GuideViewForm = ({ planner }: { planner?: any }) => {
                 }
                 itemExpand={
                   <div>
-                    <FormField
+                    <p className="px-2 py-4 border-none paragraph-regular background-light800_darkgradient light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border">
+                      {planner?.generalTips}
+                    </p>
+                    {/* <FormField
                       control={form.control}
                       name="generalTips"
                       render={({ field }) => (
@@ -2173,7 +2151,7 @@ const GuideViewForm = ({ planner }: { planner?: any }) => {
                               placeholder="General Tips..."
                               value={field.value || ""}
                               onChange={field.onChange}
-                              rows={3}
+                              rows={4}
                               debounceMs={500}
                               className="py-4 border-none paragraph-regular background-light800_darkgradient light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border"
                             />
@@ -2181,15 +2159,16 @@ const GuideViewForm = ({ planner }: { planner?: any }) => {
                           <FormMessage />
                         </FormItem>
                       )}
-                    />
+                    /> */}
                   </div>
                 }
               />
             </div>
             {/* Lodging */}
             <Separator className="my-[24px]" />
+            <div id="lodging-section relative">
+              <div className="h-4 relative z-1 top-[36px] w-full bg-pink-100"></div>
 
-            <div id="lodging-section">
               <Collaps
                 keyId="lodging"
                 titleFeature={
@@ -2199,28 +2178,12 @@ const GuideViewForm = ({ planner }: { planner?: any }) => {
                 }
                 itemExpand={
                   <div className="flex flex-col gap-4">
-                    {/* {showAddHotel ? (
-                      <LodgingSearch
-                        size="large"
-                        onSelectHotel={(hotel: any) => {
-                          addNewLodging(hotel);
-                        }}
-                      />
-                    ) : (
-                      <Button
-                        onClick={() => {
-                          setShowAddHotel(true);
-                        }}
-                      >
-                        Add Hotel
-                      </Button>
-                    )} */}{" "}
-                    <LodgingSearch
+                    {/* <LodgingSearch
                       size="large"
                       onSelectHotel={(hotel: any) => {
                         addNewLodging(hotel);
                       }}
-                    />
+                    /> */}
                     {lodgingFields.map((field, index) => (
                       <Card
                         key={field.id}
@@ -2242,25 +2205,10 @@ const GuideViewForm = ({ planner }: { planner?: any }) => {
                                 )}
                             </div>
                           )}
-                          {/* <div className="flex items-center justify-between absolute right-2 bottom-2">
-                          <div className="flex items-center gap-2">
-                            {form.getValues("lodging")?.length > 1 && index > 0 && (
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="h-6 w-6 text-gray-500"
-                                onClick={() => removeLodging(index)}
-                              >
-                                <FaTrash className="h-3 w-3" />
-                              </Button>
-                            )}
-                          </div>
-                        </div> */}
                         </CardContent>
                       </Card>
                     ))}
-                    <div className="flex gap-4 items-center pl-[18px]">
+                    {/* <div className="flex gap-4 items-center pl-[18px]">
                       <div
                         onClick={() => {
                           setOpenModalHotel(true);
@@ -2280,14 +2228,16 @@ const GuideViewForm = ({ planner }: { planner?: any }) => {
                           Find hotels
                         </span>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                 }
               />
             </div>
             <Separator className="my-[24px]" />
 
-            <div id="details-section cursor-pointer">
+            <div id="details-section cursor-pointer relative">
+              {/* <div className="h-4 relative z-1 top-[36px] w-full bg-pink-100"></div> */}
+
               <div className="mb-[24px] flex items-center justify-between">
                 <h1 className="text-[36px] font-bold">Itinerary</h1>
                 {/* Route calculation disabled for Guide */}
@@ -2390,7 +2340,7 @@ const GuideViewForm = ({ planner }: { planner?: any }) => {
           </div>
 
           {/* Submit Button */}
-          <div className="flex gap-4 w-full p-4 justify-end">
+          {/* <div className="flex gap-4 w-full p-4 justify-end">
             <Button
               type="submit"
               disabled={isPending}
@@ -2399,6 +2349,18 @@ const GuideViewForm = ({ planner }: { planner?: any }) => {
             >
               {isPending ? "Updating..." : "Update Guide"}
             </Button>
+          </div> */}
+          <div className="p-4">
+            <div className="flex gap-2">
+              <Avatar>
+                <AvatarImage src={planner?.authorDetails?.image} />
+                <AvatarFallback>AVT</AvatarFallback>
+              </Avatar>
+              <Input className="h-[40] flex-1" placeholder="Add a comment..." />
+              <Button className="w-[40px] h-[40px]" size={"icon"}>
+                <FaPlus />
+              </Button>
+            </div>
           </div>
         </form>
       </Form>

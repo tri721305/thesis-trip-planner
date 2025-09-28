@@ -26,7 +26,7 @@ const Collaps = ({
       onOpenChange={setIsOpen}
       key={keyId || ""}
     >
-      <div className="flex items-center  gap-4 ">
+      <div className="flex items-center relative z-10  gap-4 ">
         <CollapsibleTrigger asChild={true}>
           <Button variant="ghost" size="icon" className="size-8 font-medium">
             {itemTrigger ? (
