@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Calendar,
@@ -24,6 +24,18 @@ const SidebarDetailPlanner = ({
   const [scrollSyncStatus, setScrollSyncStatus] = useState<
     "synced" | "unsynced" | "unknown"
   >("unknown");
+
+  // Debug: Log when planner prop changes
+  useEffect(() => {
+    console.log("📋 SidebarDetailPlanner - Planner data updated:", {
+      detailsCount: planner?.details?.length || 0,
+      sections: planner?.details?.map((d: any, i: number) => ({
+        type: d.type,
+        name: d.name,
+        itemCount: d.data?.length || 0,
+      })),
+    });
+  }, [planner]);
 
   // Monitor scroll sync status
   useEffect(() => {
@@ -52,51 +64,61 @@ const SidebarDetailPlanner = ({
     };
   }, [leftContentRef, hiddenScrollRef]);
 
-  // Create sections from planner data with detailed structure
-  const plannerSections = [
-    {
-      id: "note",
-      name: "Note",
-      type: "note",
-    },
-    {
-      id: "generalTips",
-      name: "General Tips",
-      type: "generalTips",
-    },
-    {
-      id: "lodging",
-      name: "Hotels and Lodging",
-      type: "lodging",
-    },
-    // Add individual detail sections for each route/list
-    ...(planner?.details || []).map((detail: any, index: number) => {
-      // For route type, generate day number and detailed name
-      const dayNumber = detail.index || index + 1;
-      const shortName =
-        detail.type === "route"
-          ? `Day ${dayNumber}`
-          : detail.name || `List ${index + 1}`;
+  // Create sections from planner data with detailed structure - MEMOIZED for better performance
+  const plannerSections = React.useMemo(() => {
+    const sections = [
+      {
+        id: "note",
+        name: "Note",
+        type: "note",
+      },
+      {
+        id: "generalTips",
+        name: "General Tips",
+        type: "generalTips",
+      },
+      {
+        id: "lodging",
+        name: "Hotels and Lodging",
+        type: "lodging",
+      },
+      // Add individual detail sections for each route/list
+      ...(planner?.details || []).map((detail: any, index: number) => {
+        // For route type, generate day number and detailed name
+        const dayNumber = detail.index || index + 1;
+        const shortName =
+          detail.type === "route"
+            ? `Day ${dayNumber}`
+            : detail.name || `List ${index + 1}`;
 
-      // For detailed name, use the actual name from detail.name (e.g., "Monday, 18th August")
-      const detailedName =
-        detail.type === "route"
-          ? detail.name || shortName // Use detail.name if available, fallback to Day X
-          : detail.name || `List ${index + 1}`;
+        // For detailed name, use the actual name from detail.name (e.g., "Monday, 18th August")
+        const detailedName =
+          detail.type === "route"
+            ? detail.name || shortName // Use detail.name if available, fallback to Day X
+            : detail.name || `List ${index + 1}`;
 
-      return {
-        id: `detail-${index}`,
-        name: shortName,
-        detailedName: detailedName,
-        type: "detail",
-        detailType: detail.type, // route or list
-        index: index,
-        dayNumber: detail.type === "route" ? dayNumber : null,
-        hasData: detail.data && detail.data.length > 0,
-        itemCount: detail.data ? detail.data.length : 0,
-      };
-    }),
-  ];
+        return {
+          id: `detail-${index}`,
+          name: shortName,
+          detailedName: detailedName,
+          type: "detail",
+          detailType: detail.type, // route or list
+          index: index,
+          dayNumber: detail.type === "route" ? dayNumber : null,
+          hasData: detail.data && detail.data.length > 0,
+          itemCount: detail.data ? detail.data.length : 0,
+        };
+      }),
+    ];
+
+    console.log("📋 SidebarDetailPlanner - Sections generated:", {
+      totalSections: sections.length,
+      detailSections: sections.filter((s) => s.type === "detail").length,
+      sections: sections.map((s) => ({ id: s.id, name: s.name, type: s.type })),
+    });
+
+    return sections;
+  }, [planner?.details]);
 
   // Debug function to test scroll
   const debugScroll = () => {

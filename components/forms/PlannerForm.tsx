@@ -3848,7 +3848,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
           </div>
         </form>
       </Form>
-      <LocationCard />
+      {/* <LocationCard /> */}
       {showDialog && (
         <ReusableDialog
           data={{

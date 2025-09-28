@@ -14,22 +14,25 @@ const CustomScrollLayoutGuide = (planner: any) => {
   const leftContainerRef = useRef<HTMLDivElement>(null);
   const [scrollHeight, setScrollHeight] = useState(0);
 
-  // Get routing data from Zustand store
-  const { routingData } = usePlannerStore();
+  // Get real-time planner data and routing data from Zustand store
+  const { plannerData, routingData } = usePlannerStore();
+
+  // Use store data if available, otherwise fallback to props
+  const currentPlannerData = plannerData || planner.planner;
 
   // Extract destination data for the map
   const mapDestination = React.useMemo(() => {
-    if (planner.planner?.destination?.coordinates) {
+    if (currentPlannerData?.destination?.coordinates) {
       return {
-        coordinates: planner.planner.destination.coordinates as [
+        coordinates: currentPlannerData.destination.coordinates as [
           number,
           number,
         ],
-        name: planner.planner.destination.name || "Destination",
+        name: currentPlannerData.destination.name || "Destination",
       };
     }
     return null;
-  }, [planner.planner?.destination]);
+  }, [currentPlannerData?.destination]);
 
   // NEW: Convert routing data to format expected by Map component
   const mapRouteData = React.useMemo(() => {
@@ -130,13 +133,18 @@ const CustomScrollLayoutGuide = (planner: any) => {
     }
   };
 
-  console.log("Guide result", planner);
+  console.log("Guide result", {
+    originalPlanner: planner,
+    currentPlannerData,
+    storeData: plannerData,
+    detailsCount: currentPlannerData?.details?.length || 0,
+  });
 
   return (
     <div className="flex h-[calc(100vh-80px)] overflow-hidden relative">
       <div>
         <SidebarDetailPlanner
-          planner={planner.planner}
+          planner={currentPlannerData}
           leftContentRef={leftContentRef}
           hiddenScrollRef={hiddenScrollRef}
         />

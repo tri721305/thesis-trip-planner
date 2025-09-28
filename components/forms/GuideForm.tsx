@@ -43,6 +43,8 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Separator } from "../ui/separator";
+import { VoteButtons } from "../votes";
+import AuthDebug from "../debug/AuthDebug";
 import {
   Trash2,
   Plus,
@@ -115,10 +117,7 @@ const GuideForm = ({ planner }: { planner?: any }) => {
   const [isPending, startTransition] = useTransition();
 
   // Zustand store for planner data
-  const {
-    setPlannerData,
-    updatePlannerDetails,
-  } = usePlannerStore(); // removed updateDayRouting for Guide Form
+  const { setPlannerData, updatePlannerDetails } = usePlannerStore(); // removed updateDayRouting for Guide Form
   const [showDialog, setShowDialog] = useState(false);
   const [manageTripmates, setManageTripmates] = useState(false);
   const [showAddHotel, setShowAddHotel] = useState(false);
@@ -459,6 +458,17 @@ const GuideForm = ({ planner }: { planner?: any }) => {
     name: "details",
   });
 
+  // Wrapper function for removeDetail to update store
+  const handleRemoveDetail = (index: number) => {
+    removeDetail(index);
+
+    // Immediately update store after removing detail
+    setTimeout(() => {
+      const updatedFormData = form.getValues();
+      setPlannerData(updatedFormData);
+    }, 0);
+  };
+
   const onSubmit = (data: PlannerFormData) => {
     startTransition(() => {
       // TODO: Implement submit logic
@@ -510,6 +520,12 @@ const GuideForm = ({ planner }: { planner?: any }) => {
       index: detailFields.length + 1,
       data: [],
     });
+
+    // Immediately update store after adding detail
+    setTimeout(() => {
+      const updatedFormData = form.getValues();
+      setPlannerData(updatedFormData);
+    }, 0);
   };
 
   const generateRouteDetailsForDateRange = (startDate: Date, endDate: Date) => {
@@ -1238,6 +1254,23 @@ const GuideForm = ({ planner }: { planner?: any }) => {
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [showLocationCard]);
+
+  // Watch for changes in detailFields (routes/lists) and update store immediately for sidebar
+  useEffect(() => {
+    // Update store when details array structure changes (add/remove routes/lists)
+    const currentFormData = form.getValues();
+    setPlannerData(currentFormData);
+
+    console.log("🔄 Details structure changed, updating store for sidebar", {
+      detailsCount: detailFields.length,
+      details: detailFields.map((field, index) => ({
+        id: field.id,
+        type: currentFormData.details?.[index]?.type,
+        name: currentFormData.details?.[index]?.name,
+        itemCount: currentFormData.details?.[index]?.data?.length || 0,
+      })),
+    });
+  }, [detailFields.length, setPlannerData, form]);
 
   const renderHotelForm = (index: number) => {
     const searchValue = hotelSearchValues[index] || "";
@@ -2150,6 +2183,48 @@ const GuideForm = ({ planner }: { planner?: any }) => {
                 )}
               />
 
+              {/* Vote Buttons for testing */}
+              <div className="px-8 py-4 border-t ">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-600">
+                    {/* 🧪 Vote System Test: */}
+                  </span>
+                  {planner?._id ? (
+                    <VoteButtons
+                      targetId={planner._id}
+                      targetType="guide"
+                      upvotes={planner.upvotes || 0}
+                      downvotes={planner.downvotes || 0}
+                      className=""
+                    />
+                  ) : (
+                    <div className="text-xs text-amber-600 bg-amber-100 px-2 py-1 rounded">
+                      ⚠️ Save guide first to test voting
+                    </div>
+                  )}
+                </div>
+                {/* <div className="text-xs text-gray-500 space-y-1">
+                  <div>
+                    Guide ID:{" "}
+                    <code className="bg-gray-100 px-1 rounded">
+                      {planner?._id || "Not saved yet"}
+                    </code>
+                  </div>
+                  <div>
+                    Current votes: ↑{planner?.upvotes || 0} ↓
+                    {planner?.downvotes || 0}
+                  </div>
+                  <div className="text-amber-600">
+                    💡 Test voting by clicking the buttons above when guide is
+                    saved
+                  </div>
+                </div> */}
+                {/* Auth Debug Info */}
+                {/* <div className="mt-2">
+                  <AuthDebug />
+                </div> */}
+              </div>
+
               <div className="px-8 flex items-center justify-between">
                 {/* <FormField
                   control={form.control}
@@ -2287,13 +2362,13 @@ const GuideForm = ({ planner }: { planner?: any }) => {
                   </div>
                 </div>
               </div>
-              <div className="p-4 w-fit border-none paragraph-regular background-light800_darkgradient light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border">
+              {/* <div className="p-4 w-fit border-none paragraph-regular background-light800_darkgradient light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border">
                 <p className="font-bold text-[16px]">Budgeting</p>
                 <h1 className="mt-2 mb-1 text-[#6c757d] text-[24px]">đ 0</h1>
                 <h1 className="text-[14px]  text-[#6c757d] font-bold cursor-pointer">
                   View details
                 </h1>
-              </div>
+              </div> */}
             </div>
             <div id="note-section">
               <Collaps
@@ -2996,7 +3071,7 @@ const GuideForm = ({ planner }: { planner?: any }) => {
                         type="button"
                         variant="destructive"
                         size="sm"
-                        onClick={() => removeDetail(index)}
+                        onClick={() => handleRemoveDetail(index)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

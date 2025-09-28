@@ -8,6 +8,7 @@ import ROUTES from "@/constants/route";
 import { toast } from "@/hooks/use-toast";
 
 import { Button } from "../ui/button";
+import { FaFacebookF } from "react-icons/fa";
 
 const SocialAuthForm = () => {
   const buttonClass =
@@ -34,14 +35,15 @@ const SocialAuthForm = () => {
   return (
     <div className="mt-10 flex flex-wrap gap-2.5">
       <Button className={buttonClass} onClick={() => handleSignIn("github")}>
-        <Image
+        {/* <Image
           src="/icons/github.svg"
           alt="Github Logo"
           width={20}
           height={20}
           className="invert-colors mr-2.5 object-contain"
-        />
-        <span>Log in with GitHub</span>
+        /> */}
+        <FaFacebookF className="text-blue-500" size={20} />
+        <span>Log in with Facebook</span>
       </Button>
 
       <Button className={buttonClass} onClick={() => handleSignIn("google")}>

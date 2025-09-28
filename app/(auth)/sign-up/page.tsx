@@ -12,6 +12,7 @@ const SignUp = () => {
       defaultValues={{
         email: "",
         password: "",
+        // "confirm Password": "",
         name: "",
         username: "",
         // phone: "",

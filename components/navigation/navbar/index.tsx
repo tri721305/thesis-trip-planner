@@ -9,6 +9,7 @@ import MobileNavigation from "./MobileNavigation";
 import NavLinks from "./NavLinks";
 import { auth } from "@/auth";
 import UserAvatar from "@/components/UserAvatar";
+import { Button } from "@/components/ui/button";
 
 const Navbar = async () => {
   const session = await auth();
@@ -32,7 +33,20 @@ const Navbar = async () => {
       </section>
 
       <GlobalSearch />
-
+      {!session?.user?.id && (
+        <div className="flex gap-2 items-center">
+          <Button className="bg-primary-500 text-white shadow-md font-bold">
+            {" "}
+            Sign In
+          </Button>
+          <Button
+            variant={"outline"}
+            className="border border-primary-500 text-primary-500 border-none shadow-md font-bold"
+          >
+            Sign Up
+          </Button>
+        </div>
+      )}
       <div className="flex-between gap-5">
         <Theme />
         {session?.user?.id && (

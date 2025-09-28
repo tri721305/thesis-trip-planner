@@ -49,33 +49,34 @@ VoteSchema.index({ author: 1, actionId: 1, actionType: 1 }, { unique: true });
 VoteSchema.index({ actionId: 1, actionType: 1, voteType: 1 }); // Get vote counts
 VoteSchema.index({ author: 1, voteType: 1 }); // Get user's votes
 
+// TEMPORARILY DISABLED MIDDLEWARE TO AVOID CONFLICTS WITH MANUAL COUNT UPDATES
 // Middleware to update upvote/downvote counts automatically
-VoteSchema.post("save", async function (doc) {
-  if (this.isNew) {
-    // New vote created
-    await updateVoteCounts(doc.actionId, doc.actionType);
-  }
-});
+// VoteSchema.post("save", async function (doc) {
+//   if (this.isNew) {
+//     // New vote created
+//     await updateVoteCounts(doc.actionId, doc.actionType);
+//   }
+// });
 
-VoteSchema.post("findOneAndUpdate", async function (doc) {
-  if (doc) {
-    // Vote updated (changed from upvote to downvote or vice versa)
-    await updateVoteCounts(doc.actionId, doc.actionType);
-  }
-});
+// VoteSchema.post("findOneAndUpdate", async function (doc) {
+//   if (doc) {
+//     // Vote updated (changed from upvote to downvote or vice versa)
+//     await updateVoteCounts(doc.actionId, doc.actionType);
+//   }
+// });
 
-VoteSchema.post("findOneAndDelete", async function (doc) {
-  if (doc) {
-    // Vote deleted
-    await updateVoteCounts(doc.actionId, doc.actionType);
-  }
-});
+// VoteSchema.post("findOneAndDelete", async function (doc) {
+//   if (doc) {
+//     // Vote deleted
+//     await updateVoteCounts(doc.actionId, doc.actionType);
+//   }
+// });
 
-VoteSchema.post("deleteOne", async function (doc) {
-  if (doc) {
-    await updateVoteCounts(doc.actionId, doc.actionType);
-  }
-});
+// VoteSchema.post("deleteOne", async function (doc) {
+//   if (doc) {
+//     await updateVoteCounts(doc.actionId, doc.actionType);
+//   }
+// });
 
 // Helper function to update vote counts
 async function updateVoteCounts(actionId: Types.ObjectId, actionType: string) {

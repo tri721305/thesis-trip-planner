@@ -159,3 +159,21 @@ interface GetHotelDetailByIdParams {
 interface GetHotelOfferByIdParams {
   hotelId: number;
 }
+
+// Vote types
+interface CreateVoteParams {
+  targetId: string;
+  targetType: "guide" | "comment";
+  voteType: "upvote" | "downvote";
+}
+
+interface UpdateVoteCountParams extends CreateVoteParams {
+  change: 1 | -1;
+}
+
+type HasVotedParams = Pick<CreateVoteParams, "targetId" | "targetType">;
+
+interface HasVotedResponse {
+  hasUpvoted: boolean;
+  hasDownvoted: boolean;
+}

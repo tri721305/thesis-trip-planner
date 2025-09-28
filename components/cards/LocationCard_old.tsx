@@ -110,12 +110,12 @@ const LocationCard = ({
   console.log("dataPlace", placeData);
   return (
     <Card
-      className="w-full  !bg-white absolute -right-[105%] max-h-[300px] overflow-auto bottom-4 max-w-4xl mx-auto shadow-lg border-0"
+      className="w-full bg-white absolute -right-[105%] bottom-4 max-w-4xl mx-auto shadow-lg border-0"
       style={{
         zIndex: 40,
-        overflow: "auto",
-        maxHeight: "300px",
-        overflowY: "auto",
+        height: "500px", // Fixed height thay vì max-height
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       {loading ? (
@@ -130,8 +130,8 @@ const LocationCard = ({
       ) : (
         <>
           {/* Navigation Tabs */}
-          <Tabs defaultValue="about" className="w-full">
-            <TabsList className="w-full justify-start bg-transparent border-b border-border rounded-none h-12 p-0">
+          <Tabs defaultValue="about" className="w-full h-full flex flex-col">
+            <TabsList className="w-full justify-start bg-transparent border-b border-border rounded-none h-12 p-0 flex-shrink-0">
               <TabsTrigger
                 value="about"
                 className="rounded-none border-b-2 border-transparent data-[state=active]:border-location-marker data-[state=active]:bg-transparent data-[state=active]:shadow-none"
@@ -164,10 +164,12 @@ const LocationCard = ({
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="about" className="mt-0 p-6">
-              <div className="flex max-h-[300px] overflow-auto gap-6">
-                {/* Main Content */}
-                <div className="flex-1 space-y-4">
+            <div className="flex-1 overflow-hidden">
+              <TabsContent value="about" className="mt-0 h-full overflow-y-auto">
+                <div className="p-6">
+                  <div className="flex gap-6">
+                    {/* Main Content */}
+                    <div className="flex-1 space-y-4">
                   {/* Location Header */}
                   <div className="flex items-start gap-3">
                     <div className="flex items-center justify-center w-8 h-8 bg-location-marker text-red-500 rounded-full text-sm font-semibold mt-1">
