@@ -2,8 +2,12 @@ import CustomScrollLayoutPlanner from "@/components/scroll/CustomScrollLayoutPla
 import { getPlannerById } from "@/lib/actions/planner.action";
 import React from "react";
 
-const PlannerDetail = async ({ params }: { params: { id: string } }) => {
-  const { id } = params;
+const PlannerDetail = async ({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) => {
+  const { id } = await params;
 
   const plannerResult = await getPlannerById({
     plannerId: id,

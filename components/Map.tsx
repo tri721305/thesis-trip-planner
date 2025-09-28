@@ -26,7 +26,7 @@ const Map: React.FC<MapProps> = ({ destination, className, routeData }) => {
   const MAPTILER_API_KEY = process.env.NEXT_PUBLIC_MAPTILER_API_KEY;
 
   // Get planner data from Zustand store
-  const { plannerData } = usePlannerStore();
+  const { plannerData, flyToPlace } = usePlannerStore();
 
   // Add a force re-render mechanism
   const [forceRender, setForceRender] = useState(0);
@@ -142,6 +142,24 @@ const Map: React.FC<MapProps> = ({ destination, className, routeData }) => {
       });
     }
   }, [destination]);
+
+  // NEW: Fly to clicked place when flyToPlace changes
+  useEffect(() => {
+    if (flyToPlace?.coordinates && mapRef.current) {
+      console.log(
+        "🗺️ Map - Flying to clicked place:",
+        flyToPlace.name,
+        "at",
+        flyToPlace.coordinates
+      );
+      mapRef.current.getMap()?.flyTo({
+        center: flyToPlace.coordinates,
+        zoom: 15, // Zoom closer for individual places
+        duration: 2000,
+        essential: true,
+      });
+    }
+  }, [flyToPlace?.timestamp]); // Watch timestamp to trigger on new clicks
 
   // Fly to places when places data changes
   useEffect(() => {

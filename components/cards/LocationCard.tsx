@@ -110,12 +110,11 @@ const LocationCard = ({
   console.log("dataPlace", placeData);
   return (
     <Card
-      className="w-full  !bg-white absolute -right-[105%] max-h-[300px] overflow-auto bottom-4 max-w-4xl mx-auto shadow-lg border-0"
+      className="w-full  !bg-white absolute -right-[105%] bottom-4 max-w-4xl mx-auto shadow-lg border-0"
       style={{
         zIndex: 40,
-        overflow: "auto",
-        maxHeight: "300px",
-        overflowY: "auto",
+        // maxHeight: "300px",
+        // overflowY: "auto",
       }}
     >
       {loading ? (
@@ -165,7 +164,7 @@ const LocationCard = ({
             </TabsList>
 
             <TabsContent value="about" className="mt-0 p-6">
-              <div className="flex max-h-[300px] overflow-auto gap-6">
+              <div className="flex max-h-[300px] overflow-auto max-h-[300px] gap-6">
                 {/* Main Content */}
                 <div className="flex-1 space-y-4">
                   {/* Location Header */}

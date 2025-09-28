@@ -25,17 +25,32 @@ interface PlannerState {
   plannerData: any;
   // NEW: Routing data for map visualization
   routingData: { [dayKey: string]: DayRoutingData };
+  // NEW: State for flying to clicked places
+  flyToPlace: {
+    coordinates: [number, number];
+    name: string;
+    timestamp: number;
+  } | null;
   setPlannerData: (data: any) => void;
   updatePlannerDetails: (details: any[]) => void;
   // NEW: Method to update routing data
   setRoutingData: (routingData: { [dayKey: string]: DayRoutingData }) => void;
   updateDayRouting: (dayKey: string, dayRouting: DayRoutingData) => void;
+  // NEW: Method to set fly to place
+  setFlyToPlace: (
+    placeData: {
+      coordinates: [number, number];
+      name: string;
+      timestamp: number;
+    } | null
+  ) => void;
   clearPlannerData: () => void;
 }
 
 export const usePlannerStore = create<PlannerState>((set, get) => ({
   plannerData: null,
   routingData: {}, // Initialize empty routing data
+  flyToPlace: null, // Initialize fly to place state
 
   setPlannerData: (data: any) => {
     console.log("🏪 Store - Setting planner data:", {
@@ -104,8 +119,14 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
     set({ routingData: updatedRoutingData });
   },
 
+  // NEW: Set fly to place data
+  setFlyToPlace: (placeData) => {
+    console.log("🏪 Store - Setting fly to place:", placeData);
+    set({ flyToPlace: placeData });
+  },
+
   clearPlannerData: () => {
     console.log("🏪 Store - Clearing planner data and routing data");
-    set({ plannerData: null, routingData: {} });
+    set({ plannerData: null, routingData: {}, flyToPlace: null });
   },
 }));

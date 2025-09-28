@@ -171,6 +171,10 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
   // State for debounced cost input to reduce re-renders
   const [costInputValue, setCostInputValue] = useState<string>("");
 
+  // LocationCard states - same as GuideForm
+  const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
+  const [showLocationCard, setShowLocationCard] = useState(false);
+
   // Debounced callback for cost input
   const debouncedCostUpdate = useDebounce((value: number) => {
     handleExpenseFormChange("value", value);
@@ -807,6 +811,19 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     }
   }, [planner, setPlannerData]);
 
+  // Handle keyboard shortcuts for location card overlay - same as GuideForm
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && showLocationCard) {
+        setShowLocationCard(false);
+        setSelectedPlaceId(null);
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [showLocationCard]);
+
   // Helper function to update store when form changes - MEMOIZED
   const updateStore = React.useCallback(() => {
     const currentFormData = form.getValues();
@@ -1242,8 +1259,9 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                   );
                   return (
                     <div
+                      onClick={() => handleClickPlace(item)}
                       key={`place-${idx}`}
-                      className="flex gap-3 items-center  rounded-lg item-hover-btn"
+                      className="flex gap-3 cursor-pointer items-center  rounded-lg item-hover-btn"
                     >
                       <div className="background-light800_darkgradient flex gap-3 items-start rounded-lg p-3  flex-1">
                         <section>
@@ -1919,7 +1937,11 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
   };
 
   const handlePlaceSelect = (place: any, index: any) => {
-    // Direct selection from component
+    // Show LocationCard overlay with place ID - same as GuideForm
+    setSelectedPlaceId(place.id || place._id);
+    setShowLocationCard(true);
+
+    // Direct selection from component - add to route immediately (original behavior)
     const currentItems = form.getValues(`details.${index}.data`) || [];
     // const newPosition = currentItems.length + 1;
 
@@ -2198,6 +2220,52 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     }
   };
 
+  const handleClickPlace = (place: any) => {
+    console.log("Clicked place", place);
+
+    // Get place ID for LocationCard
+    const placeId = place.id || place._id || place.attractionId;
+
+    if (placeId) {
+      // Show LocationCard với place ID
+      setSelectedPlaceId(placeId);
+      setShowLocationCard(true);
+      console.log("Showing LocationCard for place ID:", placeId);
+    }
+
+    // Extract coordinates from place
+    let coordinates: [number, number] | null = null;
+
+    if (
+      place.location?.coordinates &&
+      Array.isArray(place.location.coordinates) &&
+      place.location.coordinates.length === 2
+    ) {
+      const [lon, lat] = place.location.coordinates;
+      if (typeof lon === "number" && typeof lat === "number") {
+        coordinates = [lon, lat];
+      }
+    }
+
+    if (coordinates) {
+      // Use setFlyToPlace từ store để Map có thể fly đến đó
+      const { setFlyToPlace } = usePlannerStore.getState();
+      setFlyToPlace({
+        coordinates,
+        name: place.name || "Unknown Place",
+        timestamp: Date.now(), // để trigger effect trong Map
+      });
+
+      console.log(
+        "Flying to place:",
+        place.name,
+        "at coordinates:",
+        coordinates
+      );
+    } else {
+      console.warn("No valid coordinates found for place:", place.name);
+    }
+  };
   const resetExpenseForm = () => {
     setExpenseFormData({
       value: 0,
@@ -4239,6 +4307,11 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
           }}
           setOpen={setShowExpenses}
         />
+      )}
+
+      {/* LocationCard Overlay - Show when user selects a place */}
+      {showLocationCard && selectedPlaceId && (
+        <LocationCard placeId={selectedPlaceId} />
       )}
     </div>
   );
