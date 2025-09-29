@@ -177,3 +177,32 @@ interface HasVotedResponse {
   hasUpvoted: boolean;
   hasDownvoted: boolean;
 }
+
+// Comment types
+interface CreateCommentParams {
+  content: string;
+  guideId: string;
+  parentComment?: string; // For replies
+}
+
+interface GetCommentsParams {
+  guideId: string;
+  page?: number;
+  pageSize?: number;
+  filter?: "latest" | "oldest" | "popular";
+}
+
+interface DeleteCommentParams {
+  commentId: string;
+}
+
+interface UpdateCommentParams {
+  commentId: string;
+  content: string;
+}
+
+interface GetRepliesParams {
+  parentCommentId: string;
+  page?: number;
+  pageSize?: number;
+}

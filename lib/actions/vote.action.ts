@@ -4,6 +4,7 @@ import mongoose, { ClientSession } from "mongoose";
 import { revalidatePath } from "next/cache";
 
 import Guide from "@/database/guide.model";
+import Comment from "@/database/comment.model";
 import Vote from "@/database/vote.model";
 
 import action from "../handler/action";
@@ -29,7 +30,12 @@ async function recalculateVoteCounts(
     });
 
     // Update the target document with actual counts (NO SESSION - outside transaction)
-    const Model = targetType === "guide" ? Guide : null;
+    const Model =
+      targetType === "guide"
+        ? Guide
+        : targetType === "comment"
+          ? Comment
+          : null;
     if (!Model) {
       return handleError(new Error("Unsupported target type")) as ErrorResponse;
     }
@@ -77,7 +83,12 @@ export async function createVote(
   session.startTransaction();
 
   try {
-    const Model = targetType === "guide" ? Guide : null;
+    const Model =
+      targetType === "guide"
+        ? Guide
+        : targetType === "comment"
+          ? Comment
+          : null;
 
     if (!Model) {
       throw new Error("Unsupported target type");
@@ -127,7 +138,13 @@ export async function createVote(
     // Recalculate vote counts OUTSIDE transaction to avoid write conflicts
     await recalculateVoteCounts(targetId, targetType);
 
-    revalidatePath(`/guides/${targetId}`);
+    if (targetType === "guide") {
+      revalidatePath(`/guides/${targetId}`);
+    } else if (targetType === "comment") {
+      // For comments, we might want to revalidate the guide page or specific comment section
+      // You can adjust this based on your routing structure
+      revalidatePath(`/guides`);
+    }
 
     return { success: true };
   } catch (error) {

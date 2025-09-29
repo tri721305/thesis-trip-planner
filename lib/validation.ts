@@ -1010,3 +1010,40 @@ export const HasVotedSchema = CreateVoteSchema.pick({
   targetId: true,
   targetType: true,
 });
+
+// Comment schemas
+export const CommentServerSchema = z.object({
+  content: z
+    .string()
+    .min(1, { message: "Comment content is required." })
+    .max(2000, { message: "Comment cannot exceed 2000 characters." }),
+  guideId: z.string().min(1, { message: "Guide ID is required." }),
+  parentComment: z.string().optional(), // For replies
+});
+
+export const GetCommentsSchema = z.object({
+  guideId: z.string().min(1, { message: "Guide ID is required." }),
+  page: z.number().int().positive().default(1).optional(),
+  pageSize: z.number().int().positive().default(10).optional(),
+  filter: z.enum(["latest", "oldest", "popular"]).default("latest").optional(),
+});
+
+export const DeleteCommentSchema = z.object({
+  commentId: z.string().min(1, { message: "Comment ID is required." }),
+});
+
+export const UpdateCommentSchema = z.object({
+  commentId: z.string().min(1, { message: "Comment ID is required." }),
+  content: z
+    .string()
+    .min(1, { message: "Comment content is required." })
+    .max(2000, { message: "Comment cannot exceed 2000 characters." }),
+});
+
+export const GetRepliesSchema = z.object({
+  parentCommentId: z
+    .string()
+    .min(1, { message: "Parent comment ID is required." }),
+  page: z.number().int().positive().default(1).optional(),
+  pageSize: z.number().int().positive().default(5).optional(),
+});

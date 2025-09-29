@@ -218,9 +218,9 @@ export async function getGuideById(params: { guideId: string }) {
       };
     }
     const guide = await Guide.findById(guideId).populate({
-      path: 'author',
-      model: 'User',
-      select: 'username image name'
+      path: "author",
+      model: "User",
+      select: "username image name",
     });
 
     if (!guide) {
@@ -236,30 +236,32 @@ export async function getGuideById(params: { guideId: string }) {
     console.log("🔍 Debug populate result:");
     console.log("- guide.author:", guide.author);
     console.log("- guide.author type:", typeof guide.author);
-    console.log("- guide.author populated:", guide.populated('author'));
+    console.log("- guide.author populated:", guide.populated("author"));
 
     // Structure the response with authorDetails
     const guideData = JSON.parse(JSON.stringify(guide));
-    
+
     // More robust check for author data
     let authorDetails = null;
-    if (guide.author && typeof guide.author === 'object' && guide.author._id) {
+    if (guide.author && typeof guide.author === "object" && guide.author._id) {
       // Author was populated successfully
       authorDetails = {
         username: guide.author.username,
         image: guide.author.image,
-        name: guide.author.name
+        name: guide.author.name,
       };
     } else if (guide.author) {
       // Author is just an ID, try to fetch separately
       console.log("Author not populated, fetching separately...");
       try {
-        const authorUser = await User.findById(guide.author).select('username image name');
+        const authorUser = await User.findById(guide.author).select(
+          "username image name"
+        );
         if (authorUser) {
           authorDetails = {
             username: authorUser.username,
             image: authorUser.image,
-            name: authorUser.name
+            name: authorUser.name,
           };
         }
       } catch (err) {
@@ -271,7 +273,7 @@ export async function getGuideById(params: { guideId: string }) {
 
     const result = {
       ...guideData,
-      authorDetails
+      authorDetails,
     };
 
     return {

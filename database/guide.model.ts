@@ -318,7 +318,7 @@ const travelGuideSchema = new mongoose.Schema(
     author: {
       type: Types.ObjectId,
       ref: "User",
-      required: true
+      required: true,
     },
     tripmates: [
       {

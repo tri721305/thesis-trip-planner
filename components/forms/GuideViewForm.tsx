@@ -102,12 +102,15 @@ import {
   getGuideById,
   updateGuideMainImage,
 } from "@/lib/actions/guide.action";
+import { createComment } from "@/lib/actions/comment.action";
 import { getPlaceById } from "@/lib/actions/place.action";
 import { useToast } from "@/hooks/use-toast";
 import { Toast } from "../ui/toast";
 import UserSearch from "../search/UserSearch";
 import { formatCurrency } from "@/lib/currency";
 import LocationCard from "../cards/LocationCard";
+import CommentsSection from "../comments/CommentsSection";
+import DebouncedNoteInput from "../input/DebouncedNoteInput";
 
 type PlannerFormData = z.infer<typeof PlannerSchema>;
 
@@ -628,16 +631,16 @@ const GuideViewForm = ({ planner }: { planner?: any }) => {
                         onChange={(value) => updateItemData(index, idx, value)}
                         placeholder="Write or paste notes here"
                         debounceMs={500}
-                        className="border-none shadow-none no-focus"
+                        className="border-none shadow-none no-focus pointer-events-none"
                       />
-                      <Button
+                      {/* <Button
                         onClick={() => {
                           removeItem(index, idx);
                         }}
                         className=" hover-btn !bg-transparent border-none shadow-none text-light800_dark300  flex items-center justify-center"
                       >
                         <Trash />
-                      </Button>
+                      </Button> */}
                     </div>
                   );
                 }
@@ -656,14 +659,14 @@ const GuideViewForm = ({ planner }: { planner?: any }) => {
                         key={`checklist-${index}-${idx}`}
                         items={item.items as string[]}
                       />
-                      <Button
+                      {/* <Button
                         onClick={() => {
                           removeItem(index, idx);
                         }}
                         className=" hover-btn !bg-transparent border-none shadow-none text-light800_dark300  flex items-center justify-center"
                       >
                         <Trash />
-                      </Button>
+                      </Button> */}
                     </div>
                   );
                 }
@@ -706,7 +709,7 @@ const GuideViewForm = ({ planner }: { planner?: any }) => {
                               Note: {item.note}
                             </p>
                           )} */}
-                          <div className="flex">
+                          {/* <div className="flex">
                             <RangeTimePicker
                               key={`time-picker-${index}-${idx}`}
                               value={{
@@ -801,7 +804,7 @@ const GuideViewForm = ({ planner }: { planner?: any }) => {
                                   )
                                 : "Add Cost"}
                             </Button>
-                          </div>
+                          </div> */}
                         </section>
                         <section>
                           <ImageGallery
@@ -812,14 +815,14 @@ const GuideViewForm = ({ planner }: { planner?: any }) => {
                           />
                         </section>
                       </div>
-                      <Button
+                      {/* <Button
                         onClick={() => {
                           removeItem(index, idx);
                         }}
                         className=" hover-btn !bg-transparent border-none shadow-none text-light800_dark300  flex items-center justify-center"
                       >
                         <Trash />
-                      </Button>
+                      </Button> */}
                     </div>
                   );
                 }
@@ -1026,7 +1029,7 @@ const GuideViewForm = ({ planner }: { planner?: any }) => {
                 return null;
               })()} */}
 
-              <div className="flex items-center gap-2">
+              {/* <div className="flex items-center gap-2">
                 <PlaceSearch
                   onPlaceSelect={(place) => {
                     handlePlaceSelect(place, index);
@@ -1048,7 +1051,7 @@ const GuideViewForm = ({ planner }: { planner?: any }) => {
                 >
                   <MdChecklist />
                 </Button>
-              </div>
+              </div> */}
             </div>
           }
         />
@@ -2319,7 +2322,7 @@ const GuideViewForm = ({ planner }: { planner?: any }) => {
             </div>
           </div>
 
-          <div className="flex items-center justify-start gap-2 px-8">
+          {/* <div className="flex items-center justify-start gap-2 px-8">
             <Button
               type="button"
               onClick={() => addNewDetail("route")}
@@ -2337,7 +2340,7 @@ const GuideViewForm = ({ planner }: { planner?: any }) => {
               <Plus className="h-4 w-4 mr-2" />
               Add List
             </Button>
-          </div>
+          </div> */}
 
           {/* Submit Button */}
           {/* <div className="flex gap-4 w-full p-4 justify-end">
@@ -2350,17 +2353,12 @@ const GuideViewForm = ({ planner }: { planner?: any }) => {
               {isPending ? "Updating..." : "Update Guide"}
             </Button>
           </div> */}
-          <div className="p-4">
-            <div className="flex gap-2">
-              <Avatar>
-                <AvatarImage src={planner?.authorDetails?.image} />
-                <AvatarFallback>AVT</AvatarFallback>
-              </Avatar>
-              <Input className="h-[40] flex-1" placeholder="Add a comment..." />
-              <Button className="w-[40px] h-[40px]" size={"icon"}>
-                <FaPlus />
-              </Button>
-            </div>
+          {/* Comments Section */}
+          <div className="px-8">
+            <CommentsSection
+              guideId={planner?._id}
+              currentUserImage={planner?.authorDetails?.image}
+            />
           </div>
         </form>
       </Form>

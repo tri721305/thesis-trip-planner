@@ -137,9 +137,9 @@ export async function getPlannerById(params: {
     }
 
     const planner = await TravelPlan.findById(plannerId).populate({
-      path: 'author',
-      model: 'User',
-      select: 'username image name'
+      path: "author",
+      model: "User",
+      select: "username image name",
     });
 
     if (!planner) {
@@ -155,30 +155,36 @@ export async function getPlannerById(params: {
     console.log("🔍 Debug planner populate result:");
     console.log("- planner.author:", planner.author);
     console.log("- planner.author type:", typeof planner.author);
-    console.log("- planner.author populated:", planner.populated('author'));
+    console.log("- planner.author populated:", planner.populated("author"));
 
     // Structure the response with authorDetails
     const plannerData = JSON.parse(JSON.stringify(planner));
-    
+
     // More robust check for author data
     let authorDetails = null;
-    if (planner.author && typeof planner.author === 'object' && planner.author._id) {
+    if (
+      planner.author &&
+      typeof planner.author === "object" &&
+      planner.author._id
+    ) {
       // Author was populated successfully
       authorDetails = {
         username: planner.author.username,
         image: planner.author.image,
-        name: planner.author.name
+        name: planner.author.name,
       };
     } else if (planner.author) {
       // Author is just an ID, try to fetch separately
       console.log("Author not populated, fetching separately...");
       try {
-        const authorUser = await User.findById(planner.author).select('username image name');
+        const authorUser = await User.findById(planner.author).select(
+          "username image name"
+        );
         if (authorUser) {
           authorDetails = {
             username: authorUser.username,
             image: authorUser.image,
-            name: authorUser.name
+            name: authorUser.name,
           };
         }
       } catch (err) {
@@ -190,7 +196,7 @@ export async function getPlannerById(params: {
 
     const result = {
       ...plannerData,
-      authorDetails
+      authorDetails,
     };
 
     return {
