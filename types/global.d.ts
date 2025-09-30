@@ -26,6 +26,162 @@ declare global {
     author: Types.ObjectId;
     lodging: ILodging[];
   }
+
+  // Hotel Booking Types
+  interface BookingGuestInfo {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    specialRequests?: string;
+  }
+
+  interface BookedRoom {
+    roomName: string;
+    roomType: string;
+    maxPeople: {
+      total?: number;
+      adults?: number;
+      children?: number;
+    };
+    areaSquareMeters?: number;
+    amenities: string[];
+    bedGroups?: string[];
+    pricePerNight: number;
+    currency: string;
+    quantity: number;
+  }
+
+  interface BookedHotel {
+    hotelId: number;
+    name: string;
+    location: {
+      longitude: number;
+      latitude: number;
+    };
+    address?: string;
+    images?: Array<{
+      url: string;
+      thumbnailUrl?: string;
+    }>;
+    amenities?: string[];
+    rating?: {
+      value: number;
+      source: string;
+    };
+  }
+
+  interface HotelBooking {
+    _id: string;
+    bookingId: string;
+    userId: string;
+    paymentId?: string;
+    hotel: BookedHotel;
+    rooms: BookedRoom[];
+    checkInDate: Date;
+    checkOutDate: Date;
+    nights: number;
+    guestInfo: BookingGuestInfo;
+    guestCount: {
+      adults: number;
+      children: number;
+      childrenAges?: number[];
+    };
+    pricing: {
+      subtotal: number;
+      taxes: number;
+      fees: number;
+      total: number;
+      currency: string;
+    };
+    status: "pending" | "confirmed" | "cancelled" | "completed" | "no-show";
+    paymentStatus: "pending" | "paid" | "failed" | "refunded";
+    paymentMethod?: string;
+    source: string;
+    confirmationEmailSent: boolean;
+    specialRequests?: string;
+    notes?: string;
+    createdAt: Date;
+    updatedAt: Date;
+  }
+
+  // Payment Types
+  interface PaymentBillingDetails {
+    name: string;
+    email: string;
+    phone?: string;
+    address?: {
+      line1: string;
+      line2?: string;
+      city: string;
+      state?: string;
+      postalCode?: string;
+      country: string;
+    };
+  }
+
+  interface PaymentBreakdown {
+    subtotal: number;
+    taxes: number;
+    fees: number;
+    discount?: number;
+    total: number;
+    currency: string;
+  }
+
+  interface StripeInfo {
+    paymentIntentId: string;
+    clientSecret?: string;
+    chargeId?: string;
+    receiptUrl?: string;
+    refundId?: string;
+    failureCode?: string;
+    failureMessage?: string;
+  }
+
+  interface PaymentRefund {
+    refundId: string;
+    amount: number;
+    reason: string;
+    status: "pending" | "succeeded" | "failed";
+    createdAt: Date;
+    processedAt?: Date;
+    stripeRefundId?: string;
+  }
+
+  interface Payment {
+    _id: string;
+    paymentId: string;
+    userId: string;
+    bookingId: string;
+    amount: number;
+    currency: string;
+    paymentMethod: "stripe" | "paypal" | "bank_transfer" | "cash";
+    status:
+      | "pending"
+      | "processing"
+      | "succeeded"
+      | "failed"
+      | "cancelled"
+      | "refunded"
+      | "partially_refunded";
+    breakdown: PaymentBreakdown;
+    billingDetails: PaymentBillingDetails;
+    stripeInfo?: StripeInfo;
+    transactionId?: string;
+    referenceNumber?: string;
+    refunds?: PaymentRefund[];
+    retryCount: number;
+    description?: string;
+    notes?: string;
+    source: string;
+    processedAt?: Date;
+    failedAt?: Date;
+    refundedAt?: Date;
+    createdAt: Date;
+    updatedAt: Date;
+  }
+
   interface Question {
     _id: string;
     title: string;

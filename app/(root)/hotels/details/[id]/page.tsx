@@ -19,12 +19,13 @@ const HotelDetail = async ({ params, searchParams }: RouteParams) => {
     hotelId: id,
   });
 
+  console.log("Hotel details data:", data);
   return (
-    <div className="h-[calc(100vh-80px)] overflow-auto flex flex-col gap-[60px] px-24 py-4">
+    <div className="h-[calc(100vh-80px)] py-8 overflow-auto flex flex-col gap-[60px] px-24 py-4">
       <section className="flex items-center justify-between">
         <div className="flex flex-col gap-4">
           <h1 className="font-bold text-[3rem] text-[#2c365d] leading-none">
-            {data?.hotel?.details?.data?.name || "Hotel Name"}
+            {data?.hotel?.original_hotel?.name || "Hotel Name"}
           </h1>
           <div>
             <div className="flex gap-2 items-center">

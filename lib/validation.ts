@@ -1047,3 +1047,218 @@ export const GetRepliesSchema = z.object({
   page: z.number().int().positive().default(1).optional(),
   pageSize: z.number().int().positive().default(5).optional(),
 });
+
+// Hotel Booking Validation Schemas
+export const CreateHotelBookingSchema = z.object({
+  hotelId: z
+    .number()
+    .int()
+    .positive({ message: "Hotel ID must be a positive integer." }),
+  hotelName: z.string().min(1, { message: "Hotel name is required." }),
+  hotelLocation: z.object({
+    longitude: z.number().min(-180).max(180),
+    latitude: z.number().min(-90).max(90),
+  }),
+  hotelAddress: z.string().optional(),
+  hotelImages: z
+    .array(
+      z.object({
+        url: z.string().url(),
+        thumbnailUrl: z.string().url().optional(),
+      })
+    )
+    .optional(),
+  hotelAmenities: z.array(z.string()).optional(),
+  hotelRating: z
+    .object({
+      value: z.number().min(0).max(10),
+      source: z.string(),
+    })
+    .optional(),
+  rooms: z
+    .array(
+      z.object({
+        roomName: z.string().min(1, { message: "Room name is required." }),
+        roomType: z.string().min(1, { message: "Room type is required." }),
+        maxPeople: z
+          .object({
+            total: z.number().int().positive().optional(),
+            adults: z.number().int().min(0).optional(),
+            children: z.number().int().min(0).optional(),
+          })
+          .optional(),
+        areaSquareMeters: z.number().positive().optional(),
+        amenities: z.array(z.string()),
+        bedGroups: z.array(z.string()).optional(),
+        pricePerNight: z
+          .number()
+          .min(0, { message: "Price must be non-negative." }),
+        currency: z
+          .string()
+          .min(3)
+          .max(3, { message: "Currency must be 3 characters." }),
+        quantity: z
+          .number()
+          .int()
+          .positive({ message: "Quantity must be positive." }),
+      })
+    )
+    .min(1, { message: "At least one room is required." }),
+  checkInDate: z.string().or(z.date()),
+  checkOutDate: z.string().or(z.date()),
+  guestInfo: z.object({
+    firstName: z
+      .string()
+      .min(1, { message: "First name is required." })
+      .max(50),
+    lastName: z.string().min(1, { message: "Last name is required." }).max(50),
+    email: z.string().email({ message: "Invalid email address." }),
+    phone: z.string().optional(),
+    specialRequests: z.string().max(500).optional(),
+  }),
+  guestCount: z.object({
+    adults: z
+      .number()
+      .int()
+      .min(1, { message: "At least one adult is required." }),
+    children: z.number().int().min(0),
+    childrenAges: z.array(z.number().int().min(0).max(17)).optional(),
+  }),
+  pricing: z.object({
+    subtotal: z.number().min(0),
+    taxes: z.number().min(0),
+    fees: z.number().min(0),
+    total: z.number().min(0),
+    currency: z.string().min(3).max(3),
+  }),
+  specialRequests: z.string().max(1000).optional(),
+  source: z.string().default("web").optional(),
+});
+
+export const GetHotelBookingsSchema = z.object({
+  userId: z.string().optional(),
+  status: z
+    .enum(["pending", "confirmed", "cancelled", "completed", "no-show"])
+    .optional(),
+  page: z.number().int().positive().default(1).optional(),
+  pageSize: z.number().int().positive().max(100).default(10).optional(),
+  sortBy: z
+    .enum(["createdAt", "checkInDate", "total"])
+    .default("createdAt")
+    .optional(),
+  sortOrder: z.enum(["asc", "desc"]).default("desc").optional(),
+});
+
+export const UpdateBookingStatusSchema = z.object({
+  bookingId: z.string().min(1, { message: "Booking ID is required." }),
+  status: z.enum(["pending", "confirmed", "cancelled", "completed", "no-show"]),
+  notes: z.string().max(500).optional(),
+});
+
+export const CancelBookingSchema = z.object({
+  bookingId: z.string().min(1, { message: "Booking ID is required." }),
+  reason: z
+    .string()
+    .min(1, { message: "Cancellation reason is required." })
+    .max(500),
+  refundAmount: z.number().min(0).optional(),
+});
+
+// Payment Validation Schemas
+export const CreatePaymentSchema = z.object({
+  bookingId: z.string().min(1, { message: "Booking ID is required." }),
+  amount: z.number().min(0, { message: "Amount must be non-negative." }),
+  currency: z
+    .string()
+    .min(3)
+    .max(3, { message: "Currency must be 3 characters." }),
+  paymentMethod: z.enum(["stripe", "paypal", "bank_transfer", "cash"]),
+  breakdown: z.object({
+    subtotal: z.number().min(0),
+    taxes: z.number().min(0),
+    fees: z.number().min(0),
+    discount: z.number().min(0).optional(),
+    total: z.number().min(0),
+    currency: z.string().min(3).max(3),
+  }),
+  billingDetails: z.object({
+    name: z.string().min(1, { message: "Name is required." }).max(100),
+    email: z.string().email({ message: "Invalid email address." }),
+    phone: z.string().optional(),
+    address: z
+      .object({
+        line1: z.string().min(1, { message: "Address line 1 is required." }),
+        line2: z.string().optional(),
+        city: z.string().min(1, { message: "City is required." }),
+        state: z.string().optional(),
+        postalCode: z.string().optional(),
+        country: z
+          .string()
+          .min(2)
+          .max(2, { message: "Country must be 2 characters." }),
+      })
+      .optional(),
+  }),
+  description: z.string().max(500).optional(),
+  source: z.string().default("web").optional(),
+});
+
+export const CreateStripePaymentIntentSchema = z.object({
+  paymentId: z.string().min(1, { message: "Payment ID is required." }),
+  amount: z.number().int().positive({ message: "Amount must be positive." }),
+  currency: z.string().min(3).max(3),
+  description: z.string().max(500).optional(),
+  metadata: z.record(z.string()).optional(),
+});
+
+export const UpdatePaymentStatusSchema = z.object({
+  paymentId: z.string().min(1, { message: "Payment ID is required." }),
+  status: z.enum([
+    "pending",
+    "processing",
+    "succeeded",
+    "failed",
+    "cancelled",
+    "refunded",
+    "partially_refunded",
+  ]),
+  stripeInfo: z
+    .object({
+      paymentIntentId: z.string().optional(),
+      clientSecret: z.string().optional(),
+      chargeId: z.string().optional(),
+      receiptUrl: z.string().url().optional(),
+      failureCode: z.string().optional(),
+      failureMessage: z.string().optional(),
+    })
+    .optional(),
+  transactionId: z.string().optional(),
+  notes: z.string().max(500).optional(),
+});
+
+export const ProcessRefundSchema = z.object({
+  paymentId: z.string().min(1, { message: "Payment ID is required." }),
+  amount: z.number().min(0, { message: "Refund amount must be non-negative." }),
+  reason: z.string().min(1, { message: "Refund reason is required." }).max(500),
+  stripeRefundId: z.string().optional(),
+});
+
+export const GetPaymentsSchema = z.object({
+  userId: z.string().optional(),
+  bookingId: z.string().optional(),
+  status: z.string().optional(),
+  page: z.number().int().positive().default(1).optional(),
+  pageSize: z.number().int().positive().max(100).default(10).optional(),
+  sortBy: z
+    .enum(["createdAt", "amount", "status"])
+    .default("createdAt")
+    .optional(),
+  sortOrder: z.enum(["asc", "desc"]).default("desc").optional(),
+});
+
+export const ConfirmStripePaymentSchema = z.object({
+  paymentIntentId: z
+    .string()
+    .min(1, { message: "Payment Intent ID is required." }),
+  paymentMethodId: z.string().optional(),
+});

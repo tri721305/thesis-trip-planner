@@ -16,6 +16,169 @@ interface AuthCredentials {
   password: string;
 }
 
+// Hotel Booking Action Types
+interface CreateHotelBookingParams {
+  bookingId?: string; // Thêm bookingId là optional để có thể truyền từ client
+  hotelId: number;
+  hotelName: string;
+  hotelLocation: {
+    longitude: number;
+    latitude: number;
+  };
+  hotelAddress?: string;
+  hotelImages?: Array<{
+    url: string;
+    thumbnailUrl?: string;
+  }>;
+  hotelAmenities?: string[];
+  hotelRating?: {
+    value: number;
+    source: string;
+  };
+  rooms: Array<{
+    roomName: string;
+    roomType: string;
+    maxPeople: {
+      total?: number;
+      adults?: number;
+      children?: number;
+    };
+    areaSquareMeters?: number;
+    amenities: string[];
+    bedGroups?: string[];
+    pricePerNight: number;
+    currency: string;
+    quantity: number;
+  }>;
+  checkInDate: string | Date;
+  checkOutDate: string | Date;
+  guestInfo: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    specialRequests?: string;
+  };
+  guestCount: {
+    adults: number;
+    children: number;
+    childrenAges?: number[];
+  };
+  pricing: {
+    subtotal: number;
+    taxes: number;
+    fees: number;
+    total: number;
+    currency: string;
+  };
+  specialRequests?: string;
+  source?: string;
+}
+
+interface GetHotelBookingsParams {
+  userId?: string;
+  status?: "pending" | "confirmed" | "cancelled" | "completed" | "no-show";
+  page?: number;
+  pageSize?: number;
+  sortBy?: "createdAt" | "checkInDate" | "total";
+  sortOrder?: "asc" | "desc";
+}
+
+interface UpdateBookingStatusParams {
+  bookingId: string;
+  status: "pending" | "confirmed" | "cancelled" | "completed" | "no-show";
+  notes?: string;
+}
+
+interface CancelBookingParams {
+  bookingId: string;
+  reason: string;
+  refundAmount?: number;
+}
+
+// Payment Action Types
+interface CreatePaymentParams {
+  bookingId: string;
+  amount: number;
+  currency: string;
+  paymentMethod: "stripe" | "paypal" | "bank_transfer" | "cash";
+  breakdown: {
+    subtotal: number;
+    taxes: number;
+    fees: number;
+    discount?: number;
+    total: number;
+    currency: string;
+  };
+  billingDetails: {
+    name: string;
+    email: string;
+    phone?: string;
+    address?: {
+      line1: string;
+      line2?: string;
+      city: string;
+      state?: string;
+      postalCode?: string;
+      country: string;
+    };
+  };
+  description?: string;
+  source?: string;
+}
+
+interface CreateStripePaymentIntentParams {
+  paymentId: string;
+  amount: number;
+  currency: string;
+  description?: string;
+  metadata?: Record<string, string>;
+}
+
+interface UpdatePaymentStatusParams {
+  paymentId: string;
+  status:
+    | "pending"
+    | "processing"
+    | "succeeded"
+    | "failed"
+    | "cancelled"
+    | "refunded"
+    | "partially_refunded";
+  stripeInfo?: {
+    paymentIntentId?: string;
+    clientSecret?: string;
+    chargeId?: string;
+    receiptUrl?: string;
+    failureCode?: string;
+    failureMessage?: string;
+  };
+  transactionId?: string;
+  notes?: string;
+}
+
+interface ProcessRefundParams {
+  paymentId: string;
+  amount: number;
+  reason: string;
+  stripeRefundId?: string;
+}
+
+interface GetPaymentsParams {
+  userId?: string;
+  bookingId?: string;
+  status?: string;
+  page?: number;
+  pageSize?: number;
+  sortBy?: "createdAt" | "amount" | "status";
+  sortOrder?: "asc" | "desc";
+}
+
+interface ConfirmStripePaymentParams {
+  paymentIntentId: string;
+  paymentMethodId?: string;
+}
+
 interface CreateGuideParams {
   title: string;
   content: string;
