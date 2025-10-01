@@ -40,13 +40,16 @@ export async function getPlaces(params: PaginatedSearchParams): Promise<
   try {
     // Search query
     if (query) {
+      // Đảm bảo query là chuỗi
+      const queryStr = typeof query === "string" ? query : String(query);
+
       filterQuery.$or = [
-        { name: { $regex: query, $options: "i" } },
-        { description: { $regex: query, $options: "i" } },
-        { generatedDescription: { $regex: query, $options: "i" } },
-        { "address.fullAddress": { $regex: query, $options: "i" } },
-        { "address.city": { $regex: query, $options: "i" } },
-        { categories: { $in: [new RegExp(query, "i")] } },
+        { name: { $regex: queryStr, $options: "i" } },
+        { description: { $regex: queryStr, $options: "i" } },
+        { generatedDescription: { $regex: queryStr, $options: "i" } },
+        { "address.fullAddress": { $regex: queryStr, $options: "i" } },
+        { "address.city": { $regex: queryStr, $options: "i" } },
+        { categories: { $in: [new RegExp(queryStr, "i")] } },
       ];
     }
 
@@ -287,26 +290,29 @@ export async function getAdministrativeUnit(
 
   try {
     if (query) {
+      // Đảm bảo query là chuỗi
+      const queryStr = typeof query === "string" ? query : String(query);
+
       filterQuery.$or = [
         // {
-        //   tenhc: { $regex: query, $options: "i" },
+        //   tenhc: { $regex: queryStr, $options: "i" },
         // },
         {
-          truocsapnhap: { $regex: query, $options: "i" },
+          truocsapnhap: { $regex: queryStr, $options: "i" },
         },
         {
-          tentinh: { $regex: query, $options: "i" },
+          tentinh: { $regex: queryStr, $options: "i" },
         },
       ];
       filterQueryWard.$or = [
         {
-          loai: { $regex: query, $options: "i" },
+          loai: { $regex: queryStr, $options: "i" },
         },
         {
-          tenhc: { $regex: query, $options: "i" },
+          tenhc: { $regex: queryStr, $options: "i" },
         },
         {
-          truocsapnhap: { $regex: query, $options: "i" },
+          truocsapnhap: { $regex: queryStr, $options: "i" },
         },
       ];
     }

@@ -6,22 +6,65 @@ import data from "@/components/maps/streets.json";
 import { getPlaceById } from "@/lib/actions/place.action";
 import { usePlannerStore } from "@/store/plannerStore";
 
+// Interface for hotel data
+interface Hotel {
+  _id: string; // Có thể là string sau khi serialized từ ObjectId
+  offerId?: string;
+  source?: string;
+  lodging: {
+    name: string;
+    location: {
+      longitude: number;
+      latitude: number;
+    };
+    hotelClass?: number;
+    rating?: {
+      source?: string;
+      value: number;
+    };
+    wanderlogRating?: number;
+    ratingCount?: number;
+    images?: Array<{ url: string }>;
+    amenities?: Array<{ name: string }>;
+  };
+  priceRate?: {
+    amount?: number;
+    currencyCode?: string;
+    total?: {
+      amount: number;
+      currencyCode: string;
+    };
+  };
+  // Các trường đã serialized
+  createdAt?: string;
+  updatedAt?: string;
+  availableRooms?: number;
+  isLowAvailability?: boolean;
+}
+
 interface MapProps {
   destination?: {
     coordinates: [number, number]; // [longitude, latitude]
     name?: string;
   };
   className?: string;
-  // NEW: Route data for visualization
+  // Route data for visualization
   routeData?: Array<{
     geometry: any; // GeoJSON LineString
     fromPlace: string;
     toPlace: string;
     color?: string;
   }>;
+  // Hotel data for displaying on map
+  hotels?: Hotel[];
 }
 
-const Map: React.FC<MapProps> = ({ destination, className, routeData }) => {
+const Map: React.FC<MapProps> = ({
+  destination,
+  className,
+  routeData,
+  hotels,
+}) => {
   const mapRef = useRef<any>(null);
   const MAPTILER_API_KEY = process.env.NEXT_PUBLIC_MAPTILER_API_KEY;
 
@@ -201,6 +244,56 @@ const Map: React.FC<MapProps> = ({ destination, className, routeData }) => {
     }
   }, [mapPlaces, destination]);
 
+  // Fit map to show all hotels when hotels data changes
+  useEffect(() => {
+    if (hotels && hotels.length > 0 && mapRef.current) {
+      // If there are hotels, fit bounds to show all of them
+      const validHotels = hotels.filter(
+        (hotel) =>
+          hotel?.lodging?.location?.longitude &&
+          hotel?.lodging?.location?.latitude &&
+          !isNaN(hotel.lodging.location.longitude) &&
+          !isNaN(hotel.lodging.location.latitude)
+      );
+
+      if (validHotels.length === 0) return;
+
+      const lngs = validHotels.map((hotel) => hotel.lodging.location.longitude);
+      const lats = validHotels.map((hotel) => hotel.lodging.location.latitude);
+
+      const bounds = [
+        [Math.min(...lngs), Math.min(...lats)],
+        [Math.max(...lngs), Math.max(...lats)],
+      ];
+
+      const padding = 0.01;
+      bounds[0][0] -= padding;
+      bounds[0][1] -= padding;
+      bounds[1][0] += padding;
+      bounds[1][1] += padding;
+
+      setTimeout(() => {
+        mapRef.current?.getMap()?.fitBounds(bounds as any, {
+          padding: 50,
+          duration: 1500,
+          essential: true,
+        });
+      }, 300);
+    }
+  }, [hotels]);
+
+  // Helper function to format price
+  const formatPrice = (amount?: number, currency?: string) => {
+    if (!amount) return "";
+
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: currency || "VND",
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
   return (
     <div className={`w-full h-full ${className || ""}`}>
       <MapGL
@@ -349,6 +442,106 @@ const Map: React.FC<MapProps> = ({ destination, className, routeData }) => {
                   }}
                 />
               </Source>
+            );
+          })}
+        {/* Hotel markers */}
+        {hotels &&
+          hotels.map((hotel, index) => {
+            const { longitude, latitude } = hotel.lodging.location;
+            // Skip invalid coordinates
+            if (
+              !longitude ||
+              !latitude ||
+              isNaN(longitude) ||
+              isNaN(latitude)
+            ) {
+              return null;
+            }
+
+            // Calculate hotel rating stars
+            const ratingValue =
+              hotel.lodging.rating?.value || hotel.lodging.wanderlogRating || 0;
+            const starsCount =
+              hotel.lodging.hotelClass || Math.round(ratingValue / 2);
+
+            // Format hotel price - prefer total price if available
+            const price =
+              hotel.priceRate?.total?.amount || hotel.priceRate?.amount;
+            const currency =
+              hotel.priceRate?.total?.currencyCode ||
+              hotel.priceRate?.currencyCode;
+
+            // Generate unique key
+            const uniqueKey = `hotel-${hotel._id || hotel.offerId}-${index}`;
+
+            return (
+              <Marker
+                key={uniqueKey}
+                longitude={longitude}
+                latitude={latitude}
+                anchor="bottom"
+              >
+                <div className="flex flex-col items-center">
+                  <div className="w-8 h-8 bg-amber-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center cursor-pointer hover:bg-amber-600 transition-colors group relative">
+                    <span className="text-white text-sm">🏨</span>
+
+                    {/* Hotel tooltip */}
+                    <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-white text-gray-800 px-3 py-2 rounded shadow-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-50 min-w-44 max-w-64 border border-amber-300">
+                      <div className="font-bold text-sm">
+                        {hotel.lodging.name}
+                      </div>
+
+                      {/* Stars */}
+                      {starsCount > 0 && (
+                        <div className="flex text-amber-500 mt-1">
+                          {Array.from(
+                            { length: Math.min(starsCount, 5) },
+                            (_, i) => (
+                              <span key={i}>⭐</span>
+                            )
+                          )}
+                        </div>
+                      )}
+
+                      {/* Rating */}
+                      {(hotel.lodging.rating ||
+                        hotel.lodging.wanderlogRating) && (
+                        <div className="text-green-600 text-xs mt-1 font-semibold">
+                          {(
+                            hotel.lodging.rating?.value ||
+                            hotel.lodging.wanderlogRating ||
+                            0
+                          ).toFixed(1)}{" "}
+                          / 10
+                          {hotel.lodging.rating?.source &&
+                            ` (${hotel.lodging.rating.source})`}
+                          {hotel.lodging.ratingCount &&
+                            ` - ${hotel.lodging.ratingCount} ratings`}
+                        </div>
+                      )}
+
+                      {/* Price */}
+                      {price && (
+                        <div className="text-blue-600 text-xs mt-1 font-bold">
+                          {formatPrice(price, currency)}
+                          <span className="text-gray-500 ml-1">/ đêm</span>
+                        </div>
+                      )}
+
+                      {/* Source */}
+                      {hotel.source && (
+                        <div className="text-gray-500 text-xs mt-1">
+                          Nguồn:{" "}
+                          {hotel.source.charAt(0).toUpperCase() +
+                            hotel.source.slice(1)}
+                        </div>
+                      )}
+
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rotate-45 border-r border-b border-amber-300"></div>
+                    </div>
+                  </div>
+                </div>
+              </Marker>
             );
           })}
       </MapGL>

@@ -16,13 +16,14 @@ import HotelOffers from "@/database/hotel-offers.model";
 interface FilterOptions {
   source?: string;
   sortBy?: string;
+  sortOrder?: number; // 1 for ascending, -1 for descending
 }
 
 export async function getHotels(
   params: PaginatedSearchHotelParams & { filter?: FilterOptions }
 ): Promise<
   ActionResponse<{
-    hotels: Hotel[];
+    hotels: any[];
     isNext: boolean;
   }>
 > {
@@ -48,11 +49,21 @@ export async function getHotels(
   let sortCriteria = {};
 
   try {
-    if (query) {
+    if (query && typeof query === "string") {
       filterQuery.$or = [
         { "lodging.name": { $regex: query, $options: "i" } },
         { "lodging.address": { $regex: query, $options: "i" } },
         { source: { $regex: query, $options: "i" } },
+      ];
+    } else if (query) {
+      // Nếu query không phải là string, ép kiểu thành string hoặc bỏ qua
+      console.warn("Query is not a string:", query);
+      // Chuyển đổi query thành string nếu có thể
+      const queryStr = String(query);
+      filterQuery.$or = [
+        { "lodging.name": { $regex: queryStr, $options: "i" } },
+        { "lodging.address": { $regex: queryStr, $options: "i" } },
+        { source: { $regex: queryStr, $options: "i" } },
       ];
     }
 
@@ -81,14 +92,30 @@ export async function getHotels(
       .limit(limit)
       .sort(sortCriteria)
       .lean();
-    console.log("hotel after filter", hotels);
+
+    // Chuyển đổi dữ liệu để có thể truyền từ Server Components sang Client Components
+    const serializedHotels = hotels.map((hotel: any) => {
+      // Chuyển _id từ ObjectId sang string
+      return {
+        ...hotel,
+        _id: hotel._id ? hotel._id.toString() : undefined,
+        // Chuyển đổi các ngày thành chuỗi ISO
+        createdAt: hotel.createdAt ? hotel.createdAt.toISOString() : undefined,
+        updatedAt: hotel.updatedAt ? hotel.updatedAt.toISOString() : undefined,
+      };
+    });
+
+    console.log(
+      "hotel after filter and serialization",
+      serializedHotels.length
+    );
     const isNext = totalHotels > skip + hotels.length;
 
     return {
       success: true,
       data: {
         isNext,
-        hotels: JSON.parse(JSON.stringify(hotels)),
+        hotels: serializedHotels,
       },
     };
   } catch (error) {
@@ -150,6 +177,71 @@ export async function getHotelOfferById(
     return {
       success: true,
       data: { hotel: JSON.parse(JSON.stringify(hotel)) },
+    };
+  } catch (error) {
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+/**
+ * Lấy danh sách khách sạn có priceRate.site là "Wanderlog"
+ * @param params Tham số phân trang và lọc
+ * @returns Danh sách khách sạn từ nguồn Wanderlog
+ */
+export async function getHotelsByWanderlog(
+  params: PaginatedSearchHotelParams & { filter?: FilterOptions }
+): Promise<ActionResponse<{ hotels: any[]; isNext: boolean }>> {
+  const { page = 1, pageSize = 10, filter } = params;
+  const sortBy = filter?.sortBy || "rating";
+  const sortOrder = filter?.sortOrder || -1;
+
+  const skip = (Number(page) - 1) * pageSize;
+  const limit = pageSize;
+
+  try {
+    // Tạo query để lọc các khách sạn có priceRate.site là "Wanderlog"
+    const filterQuery = { "priceRate.site": "Wanderlog" };
+
+    // Tính tổng số khách sạn tìm thấy
+    const totalHotels = await Hotel.countDocuments(filterQuery);
+
+    // Xác định cách sắp xếp
+    let sortCriteria = {};
+    if (sortBy === "rating") {
+      sortCriteria = { "lodging.wanderlogRating": sortOrder };
+    } else if (sortBy === "price") {
+      sortCriteria = { "priceRate.amount": sortOrder };
+    } else if (sortBy === "popularity") {
+      sortCriteria = { "lodging.ratingCount": sortOrder };
+    }
+
+    // Truy vấn cơ sở dữ liệu
+    const hotels = await Hotel.find(filterQuery)
+      .skip(skip)
+      .limit(limit)
+      .sort(sortCriteria)
+      .lean();
+
+    // Chuyển đổi dữ liệu để có thể truyền từ Server Components sang Client Components
+    const serializedHotels = hotels.map((hotel: any) => {
+      return {
+        ...hotel,
+        _id: hotel._id ? hotel._id.toString() : undefined,
+        createdAt: hotel.createdAt ? hotel.createdAt.toISOString() : undefined,
+        updatedAt: hotel.updatedAt ? hotel.updatedAt.toISOString() : undefined,
+      };
+    });
+
+    console.log("Wanderlog hotels found:", serializedHotels.length);
+
+    const isNext = totalHotels > skip + hotels.length;
+
+    return {
+      success: true,
+      data: {
+        hotels: serializedHotels,
+        isNext,
+      },
     };
   } catch (error) {
     return handleError(error) as ErrorResponse;

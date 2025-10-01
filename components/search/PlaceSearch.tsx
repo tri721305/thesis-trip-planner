@@ -192,7 +192,10 @@ const PlaceSearch = ({
       </div>
 
       {isOpen && search.trim() && (
-        <div className="absolute top-full z-10 mt-3 w-full rounded-xl bg-white py-2 shadow-lg border border-gray-200 dark:bg-dark-400 dark:border-dark-300">
+        <div
+          style={{ zIndex: 100 }}
+          className="absolute top-full z-10 mt-3 w-full rounded-xl bg-white py-2 shadow-lg border border-gray-200 dark:bg-dark-400 dark:border-dark-300"
+        >
           {isLoading ? (
             <div className="flex-center flex-col px-5 py-8">
               <ReloadIcon className="my-2 h-8 w-8 animate-spin text-blue-500" />
