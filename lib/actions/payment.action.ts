@@ -36,7 +36,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 /**
- * Create a new payment
+ * Create a new payment or update existing one
  */
 export async function createPayment(
   params: CreatePaymentParams
@@ -104,39 +104,81 @@ export async function createPayment(
       throw new Error("Booking is already paid");
     }
 
-    // Create payment record with the MongoDB ObjectId from booking
     // Ensure we have the MongoDB ObjectId for bookingId field in Payment model
     const bookingMongoId = booking._id;
 
-    // Generate a payment ID manually to avoid mongoose validation error
-    const timestamp = Date.now().toString(36).toUpperCase();
-    const random = Math.random().toString(36).substr(2, 4).toUpperCase();
-    const generatedPaymentId = `PAY${timestamp}${random}`;
+    // Kiểm tra xem đã có payment cho booking này chưa - search by several methods
+    let existingPayment = null;
+    
+    // Method 1: Search by bookingId reference
+    existingPayment = await Payment.findOne({ bookingId: bookingMongoId }, null, { session });
+    
+    // Method 2: If booking has a payment reference, use that
+    if (!existingPayment && booking.paymentId) {
+      existingPayment = await Payment.findById(booking.paymentId, null, { session });
+      console.log(`Found payment by booking.paymentId reference: ${existingPayment?.paymentId || 'not found'}`);
+    }
+    
+    let payment;
+    
+    if (existingPayment) {
+      console.log(`Payment already exists for this booking: ${existingPayment.paymentId}. Updating instead of creating new.`);
+      
+      // Only update certain fields if payment isn't already succeeded
+      if (existingPayment.status === 'succeeded') {
+        console.log(`Payment ${existingPayment.paymentId} is already in succeeded state. Not updating.`);
+      } else {
+        // Cập nhật payment hiện có thay vì tạo mới
+        existingPayment.amount = amount;
+        existingPayment.currency = currency;
+        existingPayment.paymentMethod = paymentMethod;
+        existingPayment.breakdown = breakdown;
+        existingPayment.billingDetails = billingDetails;
+        existingPayment.description = description;
+        existingPayment.updatedAt = new Date();
+        
+        // If payment was in failed state, reset it to pending
+        if (existingPayment.status === 'failed') {
+          existingPayment.status = 'pending';
+        }
+        
+        await existingPayment.save({ session });
+        console.log("Updated existing payment:", existingPayment.paymentId);
+      }
+      
+      // Sử dụng payment hiện có
+      payment = [existingPayment];
+    } else {
+      // Generate a payment ID manually to avoid mongoose validation error
+      const timestamp = Date.now().toString(36).toUpperCase();
+      const random = Math.random().toString(36).substr(2, 4).toUpperCase();
+      const generatedPaymentId = `PAY${timestamp}${random}`;
 
-    console.log(
-      `Creating payment with ID: ${generatedPaymentId} for booking MongoDB ID: ${bookingMongoId}`
-    );
+      console.log(
+        `Creating new payment with ID: ${generatedPaymentId} for booking MongoDB ID: ${bookingMongoId}`
+      );
 
-    // Tạo đối tượng payment không có stripeInfo
-    const payment = await Payment.create(
-      [
-        {
-          paymentId: generatedPaymentId,
-          userId,
-          bookingId: bookingMongoId,
-          amount,
-          currency,
-          paymentMethod,
-          breakdown,
-          billingDetails,
-          description,
-          status: "pending",
-          retryCount: 0,
-          source,
-        },
-      ],
-      { session }
-    );
+      // Tạo đối tượng payment mới
+      payment = await Payment.create(
+        [
+          {
+            paymentId: generatedPaymentId,
+            userId,
+            bookingId: bookingMongoId,
+            amount,
+            currency,
+            paymentMethod,
+            breakdown,
+            billingDetails,
+            description,
+            status: "pending",
+            retryCount: 0,
+            source,
+          },
+        ],
+        { session }
+      );
+    }
 
     console.log("payment nè", payment);
     // Update booking with payment reference
@@ -162,6 +204,58 @@ export async function createPayment(
     return handleError(error) as ErrorResponse;
   } finally {
     session.endSession();
+  }
+}
+
+/**
+ * Reset a payment that is stuck in the "processing" state
+ * This allows for retry of failed payment attempts
+ */
+export async function resetProcessingPayment(
+  paymentId: string
+): Promise<ActionResponse> {
+  try {
+    await connectToDatabase();
+
+    const payment = await Payment.findOne({ paymentId });
+
+    if (!payment) {
+      throw new Error("Payment not found");
+    }
+
+    // Only allow resetting payments that are in processing state
+    if (payment.status !== "processing") {
+      throw new Error(`Payment is not in processing state, current state: ${payment.status}`);
+    }
+
+    // Reset payment to pending state
+    payment.status = "pending";
+    payment.updatedAt = new Date();
+    
+    // Add a note about the reset
+    if (payment.notes) {
+      payment.notes += `\nPayment reset from processing to pending state on ${new Date().toISOString()}`;
+    } else {
+      payment.notes = `Payment reset from processing to pending state on ${new Date().toISOString()}`;
+    }
+
+    // If we have retryCount, increment it
+    if (typeof payment.retryCount === 'number') {
+      payment.retryCount += 1;
+    } else {
+      payment.retryCount = 1;
+    }
+
+    await payment.save();
+
+    console.log(`Reset payment ${paymentId} from processing to pending state`);
+    
+    // Revalidate booking pages
+    revalidatePath("/bookings");
+
+    return { success: true };
+  } catch (error) {
+    return handleError(error) as ErrorResponse;
   }
 }
 
@@ -217,8 +311,19 @@ export async function createStripePaymentIntent(
       throw new Error("Unauthorized to process this payment");
     }
 
-    if (payment.status !== "pending") {
-      throw new Error(`Payment already in ${payment.status} state`);
+    // Check payment status but allow retry for processing state
+    if (payment.status !== "pending" && payment.status !== "processing") {
+      // Only block if payment is in other states like succeeded, failed, etc.
+      if (payment.status === "succeeded") {
+        throw new Error("Payment has already been completed successfully");
+      } else {
+        throw new Error(`Payment is in ${payment.status} state and cannot be processed`);
+      }
+    }
+    
+    // If payment is in processing state, log it but allow to continue
+    if (payment.status === "processing") {
+      console.log(`Notice: Creating new payment intent for payment ${payment.paymentId} that is already in processing state. This may be a retry attempt.`);
     }
 
     // Create payment intent
@@ -230,7 +335,7 @@ export async function createStripePaymentIntent(
 
     // Nếu amount là chuỗi có dấu chấm/phẩy ngăn cách, chuyển đổi sang số
     if (typeof amount === "string") {
-      numericAmount = Number(amount.replace(/[.,]/g, ""));
+      numericAmount = Number(String(amount).replace(/[.,]/g, ""));
     } else {
       numericAmount = amount;
     }
@@ -630,68 +735,109 @@ export async function processPayment(
     const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId);
 
     if (paymentIntent.status !== "succeeded") {
-      throw new Error(
-        `Payment not successful. Status: ${paymentIntent.status}`
-      );
+      throw new Error(`Payment not successful. Status: ${paymentIntent.status}`);
+    }
+    
+    console.log(`Processing payment with intent ID: ${paymentIntentId}, booking ID: ${bookingId}`);
+    
+    // Kiểm tra xem đã có payment với trạng thái succeeded cho payment intent này chưa
+    const existingSuccessfulPayment = await Payment.findOne(
+      { 
+        "stripeInfo.paymentIntentId": paymentIntentId,
+        status: "succeeded"
+      },
+      null,
+      { session }
+    );
+    
+    if (existingSuccessfulPayment) {
+      console.log(`Payment ${existingSuccessfulPayment.paymentId} has already been processed successfully for this intent.`);
+      await session.commitTransaction();
+      return {
+        success: true,
+        message: "Payment was already processed",
+        payment: existingSuccessfulPayment.toObject() as unknown as IPayment
+      };
     }
 
-    // Find the payment in our database
-    const payment = await Payment.findOne(
+    // Find the payment in our database by paymentIntentId
+    let payment = await Payment.findOne(
       { "stripeInfo.paymentIntentId": paymentIntentId },
       null,
       { session }
     );
-
-    if (!payment) {
-      throw new Error("Payment record not found");
+    
+    // Nếu không tìm thấy payment bằng paymentIntentId, thử tìm bằng bookingId từ metadata
+    if (!payment && paymentIntent.metadata?.bookingId) {
+      const bookingIdFromMetadata = paymentIntent.metadata.bookingId;
+      console.log(`Payment not found by intent ID. Trying with bookingId from metadata: ${bookingIdFromMetadata}`);
+      
+      // First try to get the booking itself since it might be a string bookingId
+      const booking = await HotelBooking.findOne({ bookingId: bookingIdFromMetadata }, null, { session });
+      
+      if (booking) {
+        console.log(`Found booking with bookingId ${bookingIdFromMetadata}`);
+        // Try to find payment using booking._id
+        payment = await Payment.findOne({ bookingId: booking._id }, null, { session });
+        
+        // If booking has paymentId reference, use that too
+        if (!payment && booking.paymentId) {
+          payment = await Payment.findById(booking.paymentId, null, { session });
+        }
+      } else {
+        // Try to use it as a MongoDB ObjectId directly (if possible)
+        try {
+          const bookingObjectId = new mongoose.Types.ObjectId(bookingIdFromMetadata);
+          payment = await Payment.findOne({ bookingId: bookingObjectId }, null, { session });
+        } catch (err) {
+          console.log(`Could not convert ${bookingIdFromMetadata} to MongoDB ObjectId: ${err.message}`);
+        }
+      }
+      
+      // Nếu tìm thấy payment bằng bookingId, cập nhật stripeInfo của nó
+      if (payment) {
+        console.log(`Found payment ${payment.paymentId} using bookingId ${bookingIdFromMetadata}`);
+        if (!payment.stripeInfo) {
+          payment.stripeInfo = {};
+        }
+        payment.stripeInfo.paymentIntentId = paymentIntent.id;
+      }
     }
 
-    // Find the booking to validate amount and currency
-    const bookingForValidation = await HotelBooking.findOne(
-      { bookingId },
-      null,
-      { session }
-    );
-
-    if (bookingForValidation) {
-      // Validate that payment amount and currency match booking
-      const expectedCurrency =
-        bookingForValidation.pricing.currency.toLowerCase();
-      let expectedAmount = bookingForValidation.pricing.total;
-
-      // Convert Stripe amount back to base units for comparison
-      let stripeAmount = paymentIntent.amount;
-      if (expectedCurrency !== "vnd") {
-        // For currencies using cents (like USD), divide by 100
-        stripeAmount = stripeAmount / 100;
+    // Nếu vẫn không tìm thấy payment, thử tìm booking
+    if (!payment && bookingId) {
+      console.log(`No payment found for this intent. Checking for booking with ID: ${bookingId}`);
+      
+      const booking = await HotelBooking.findOne({ bookingId }, null, { session });
+      
+      if (booking) {
+        // Nếu booking đã có payment reference
+        if (booking.paymentId) {
+          payment = await Payment.findById(booking.paymentId, null, { session });
+          console.log(`Found payment ${payment?.paymentId || 'unknown'} using booking.paymentId reference`);
+        }
+        
+        if (!payment) {
+          // Log lỗi nhưng không tạo payment mới
+          console.error(`Cannot find payment for booking ${bookingId}. Booking exists but no payment record found.`);
+          throw new Error(`Payment record not found for booking ${bookingId}`);
+        }
       }
+    }
 
-      console.log("Validating payment details:", {
-        expected: { amount: expectedAmount, currency: expectedCurrency },
-        received: { amount: stripeAmount, currency: paymentIntent.currency },
-      });
-
-      // Check for mismatches
-      if (
-        Math.abs(stripeAmount - expectedAmount) > 0.01 ||
-        paymentIntent.currency !== expectedCurrency
-      ) {
-        console.error("Payment amount or currency mismatch", {
-          expected: { amount: expectedAmount, currency: expectedCurrency },
-          received: { amount: stripeAmount, currency: paymentIntent.currency },
-        });
-        // Still proceed but log the error - you could make this stricter by throwing an error
-      }
+    if (!payment) {
+      throw new Error(`Payment record not found for payment intent: ${paymentIntentId}`);
     }
 
     // Update payment status
     payment.status = "succeeded";
     payment.processedAt = new Date();
+    payment.updatedAt = new Date();
     payment.transactionId = paymentIntent.id;
 
     if (!payment.stripeInfo || !payment.stripeInfo.paymentIntentId) {
       payment.stripeInfo = {
-        paymentIntentId: paymentIntent.id, // Đảm bảo luôn có paymentIntentId
+        paymentIntentId: paymentIntent.id,
         chargeId: paymentIntent.latest_charge as string,
       };
     } else {
@@ -699,22 +845,23 @@ export async function processPayment(
     }
 
     await payment.save({ session });
+    console.log(`Updated payment ${payment.paymentId} status to succeeded`);
 
     // Update booking status
-    // Use findOne with the bookingId string instead of findById with MongoDB _id
-    const booking = await HotelBooking.findOne({ bookingId }, null, {
-      session,
-    });
+    const booking = await HotelBooking.findOne({ bookingId }, null, { session });
 
     if (booking) {
       booking.paymentStatus = "paid";
       booking.status = "confirmed";
+      booking.updatedAt = new Date();
       await booking.save({ session });
+      console.log(`Updated booking ${booking.bookingId} status to confirmed`);
     } else {
-      console.error("Booking not found with ID:", bookingId);
+      console.error(`Booking not found with ID: ${bookingId}`);
     }
 
     await session.commitTransaction();
+    console.log(`Payment processing completed successfully for ${paymentIntentId}`);
 
     // Revalidate booking pages
     revalidatePath("/bookings");
@@ -736,4 +883,3 @@ export async function processPayment(
   } finally {
     session.endSession();
   }
-}
