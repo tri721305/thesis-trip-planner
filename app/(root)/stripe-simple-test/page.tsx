@@ -16,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import BookingSummary from "@/components/BookingSummary";
 import {
   createStripePaymentIntent,
   createPayment,
@@ -141,13 +142,35 @@ export default function StripeSimpleTestPage() {
   const [error, setError] = useState<string | null>(null);
   const [bookingId, setBookingId] = useState<string | null>(null);
   const [paymentId, setPaymentId] = useState<string | null>(null);
+  const [bookingData, setBookingData] = useState<any>(null);
+  const [isLoadingBooking, setIsLoadingBooking] = useState(false);
 
-  // Check for booking ID in URL when component mounts
+  // Check for booking ID in URL when component mounts and fetch booking data
   React.useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const bookingParam = urlParams.get("booking");
     if (bookingParam) {
       setBookingId(bookingParam);
+
+      // Fetch booking data
+      const fetchBookingData = async () => {
+        setIsLoadingBooking(true);
+        try {
+          const response = await fetch(`/api/bookings/${bookingParam}`);
+          if (!response.ok) {
+            throw new Error(`Failed to fetch booking: ${response.statusText}`);
+          }
+          const data = await response.json();
+          setBookingData(data);
+        } catch (err: any) {
+          console.error("Error fetching booking:", err);
+          setError(err.message || "Failed to load booking information");
+        } finally {
+          setIsLoadingBooking(false);
+        }
+      };
+
+      fetchBookingData();
     }
   }, []);
 
@@ -164,26 +187,40 @@ export default function StripeSimpleTestPage() {
 
       console.log("Creating payment with bookingId:", bookingId);
 
+      // Đầu tiên, lấy thông tin booking để có giá chính xác
+      const response = await fetch(`/api/bookings/${bookingId}`);
+      if (!response.ok) {
+        throw new Error(
+          `Failed to fetch booking information: ${response.statusText}`
+        );
+      }
+
+      const bookingData = await response.json();
+      console.log("Retrieved booking data:", bookingData);
+
+      // Sử dụng giá và loại tiền tệ từ booking
+      const bookingAmount = bookingData.pricing.total;
+      const bookingCurrency = bookingData.pricing.currency.toLowerCase();
+
       // Bước 1: Tạo payment document
-      console.log("Calling createPayment...");
+      console.log(
+        `Calling createPayment with amount: ${bookingAmount} ${bookingCurrency}...`
+      );
       const paymentResult = await createPayment({
         bookingId: bookingId, // Sử dụng booking ID từ URL (sẽ được chuyển đổi đúng trong server action)
-        amount: 345,
-        currency: "usd",
+        amount: bookingAmount,
+        currency: bookingCurrency,
         paymentMethod: "stripe",
-        breakdown: {
-          subtotal: 300,
-          taxes: 30,
-          fees: 15,
-          total: 345,
-          currency: "usd",
-        },
+        breakdown: bookingData.pricing, // Sử dụng breakdown từ dữ liệu booking
         billingDetails: {
-          name: "Test User",
-          email: "test@example.com",
-          phone: "1234567890",
+          name:
+            bookingData.guestInfo?.firstName +
+              " " +
+              bookingData.guestInfo?.lastName || "Test User",
+          email: bookingData.guestInfo?.email || "test@example.com",
+          phone: bookingData.guestInfo?.phone || "1234567890",
         },
-        description: "Test payment for simple test page",
+        description: "Payment for booking " + bookingId,
       });
 
       console.log("createPayment completed, result:", paymentResult);
@@ -233,9 +270,9 @@ export default function StripeSimpleTestPage() {
 
       // Bước 2: Tạo Stripe Payment Intent
       const intentResult = await createStripePaymentIntent({
-        amount: 345, // $3.45
-        currency: "usd",
-        description: "Test payment",
+        amount: bookingAmount,
+        currency: bookingCurrency,
+        description: `Payment for booking ${bookingId}`,
         paymentId: paymentId,
       });
 
@@ -273,6 +310,14 @@ export default function StripeSimpleTestPage() {
                     Using booking ID: {bookingId}
                   </div>
 
+                  {isLoadingBooking ? (
+                    <div className="text-center py-4">
+                      Loading booking details...
+                    </div>
+                  ) : bookingData ? (
+                    <BookingSummary booking={bookingData} />
+                  ) : null}
+
                   <p>
                     Click the button below to initiate a test payment for this
                     booking.
@@ -301,10 +346,14 @@ export default function StripeSimpleTestPage() {
 
               <Button
                 onClick={handleInitiatePayment}
-                disabled={isInitiating || !bookingId}
+                disabled={
+                  isInitiating || !bookingId || isLoadingBooking || !bookingData
+                }
                 className="w-full mt-4"
               >
-                {isInitiating ? "Creating payment..." : "Start Test Payment"}
+                {isInitiating
+                  ? "Creating payment..."
+                  : `Pay ${bookingData?.pricing?.total || ""} ${bookingData?.pricing?.currency || ""}`}
               </Button>
             </>
           ) : (

@@ -82,7 +82,9 @@ export async function createPayment(
 
     // Verify booking exists and belongs to the user
     // Find booking by bookingId field (string)
-    const booking = await HotelBooking.findOne({ bookingId }).session(session);
+    const booking = await HotelBooking.findOne({ bookingId }, null, {
+      session,
+    });
 
     console.log(`Booking search result`, booking);
 
@@ -466,7 +468,7 @@ export async function processRefund(
     if (payment.status === "refunded") {
       // Use findOne with the bookingId string instead of findById with MongoDB _id
       const booking = await HotelBooking.findOne({
-        bookingId: payment.bookingId,
+        bookingId: payment.bookingId.toString(),
       });
 
       if (booking && booking.status !== "cancelled") {
@@ -634,12 +636,52 @@ export async function processPayment(
     }
 
     // Find the payment in our database
-    const payment = await Payment.findOne({
-      "stripeInfo.paymentIntentId": paymentIntentId,
-    }).session(session);
+    const payment = await Payment.findOne(
+      { "stripeInfo.paymentIntentId": paymentIntentId },
+      null,
+      { session }
+    );
 
     if (!payment) {
       throw new Error("Payment record not found");
+    }
+
+    // Find the booking to validate amount and currency
+    const bookingForValidation = await HotelBooking.findOne(
+      { bookingId },
+      null,
+      { session }
+    );
+
+    if (bookingForValidation) {
+      // Validate that payment amount and currency match booking
+      const expectedCurrency =
+        bookingForValidation.pricing.currency.toLowerCase();
+      let expectedAmount = bookingForValidation.pricing.total;
+
+      // Convert Stripe amount back to base units for comparison
+      let stripeAmount = paymentIntent.amount;
+      if (expectedCurrency !== "vnd") {
+        // For currencies using cents (like USD), divide by 100
+        stripeAmount = stripeAmount / 100;
+      }
+
+      console.log("Validating payment details:", {
+        expected: { amount: expectedAmount, currency: expectedCurrency },
+        received: { amount: stripeAmount, currency: paymentIntent.currency },
+      });
+
+      // Check for mismatches
+      if (
+        Math.abs(stripeAmount - expectedAmount) > 0.01 ||
+        paymentIntent.currency !== expectedCurrency
+      ) {
+        console.error("Payment amount or currency mismatch", {
+          expected: { amount: expectedAmount, currency: expectedCurrency },
+          received: { amount: stripeAmount, currency: paymentIntent.currency },
+        });
+        // Still proceed but log the error - you could make this stricter by throwing an error
+      }
     }
 
     // Update payment status
@@ -660,7 +702,9 @@ export async function processPayment(
 
     // Update booking status
     // Use findOne with the bookingId string instead of findById with MongoDB _id
-    const booking = await HotelBooking.findOne({ bookingId }).session(session);
+    const booking = await HotelBooking.findOne({ bookingId }, null, {
+      session,
+    });
 
     if (booking) {
       booking.paymentStatus = "paid";
