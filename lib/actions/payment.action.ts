@@ -223,8 +223,30 @@ export async function createStripePaymentIntent(
     // Tìm booking để lấy bookingId chuỗi cho metadata
     const bookingData = await HotelBooking.findById(payment.bookingId);
 
+    // Đảm bảo số tiền là một số hợp lệ, không phải chuỗi định dạng
+    let numericAmount: number;
+
+    // Nếu amount là chuỗi có dấu chấm/phẩy ngăn cách, chuyển đổi sang số
+    if (typeof amount === "string") {
+      numericAmount = Number(amount.replace(/[.,]/g, ""));
+    } else {
+      numericAmount = amount;
+    }
+
+    // VND không có đơn vị nhỏ hơn, USD cần nhân 100 để chuyển từ đô sang xu
+    let stripeAmount: number;
+    if (currency.toLowerCase() === "vnd") {
+      stripeAmount = Math.round(numericAmount); // VND không cần nhân với 100
+    } else {
+      stripeAmount = Math.round(numericAmount * 100); // Các loại tiền khác cần nhân với 100
+    }
+
+    console.log(
+      `Creating Stripe Payment Intent: Original amount=${amount}, Numeric=${numericAmount}, Stripe amount=${stripeAmount} ${currency}`
+    );
+
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: Math.round(amount * 100), // Convert to smallest currency unit
+      amount: stripeAmount,
       currency,
       automatic_payment_methods: {
         enabled: true,

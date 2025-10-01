@@ -7,9 +7,11 @@ import GlobalSearch from "@/components/search/GlobalSearch";
 import Theme from "./Theme";
 import MobileNavigation from "./MobileNavigation";
 import NavLinks from "./NavLinks";
-import { auth } from "@/auth";
+import { auth, signOut } from "@/auth";
 import UserAvatar from "@/components/UserAvatar";
 import { Button } from "@/components/ui/button";
+import ROUTES from "@/constants/route";
+import { IoMdLogOut } from "react-icons/io";
 
 const Navbar = async () => {
   const session = await auth();
@@ -35,13 +37,30 @@ const Navbar = async () => {
       <GlobalSearch />
       {!session?.user?.id && (
         <div className="flex gap-2 items-center">
-          <Button className="bg-primary-500 text-white shadow-md font-bold">
+          {/* <Button className="bg-primary-500 text-white shadow-md font-bold">
             {" "}
             Sign In
+          </Button> */}
+          <Button
+            className="small-medium bg-primary-500 hover:bg-primary-500 shadow-md text-white min-h-[41px] w-full rounded-lg px-4 py-3"
+            asChild
+          >
+            <Link href={ROUTES.SIGN_IN}>
+              <Image
+                src="/icons/account.svg"
+                alt="Account"
+                width={20}
+                height={20}
+                className="invert-colors lg:hidden"
+              />
+              <span className="text-white text-[14px] font-bold max-lg:hidden">
+                Sign In
+              </span>
+            </Link>
           </Button>
           <Button
             variant={"outline"}
-            className="border border-primary-500 text-primary-500 border-none shadow-md font-bold"
+            className="border border-primary-500 hover:bg-white !text-primary-500 border-none shadow-md font-bold"
           >
             Sign Up
           </Button>
@@ -55,6 +74,18 @@ const Navbar = async () => {
             name={session.user.name!}
             imageUrl={session.user.image!}
           />
+        )}
+        {session?.user?.id && (
+          <Button
+            onClick={async () => {
+              "use server";
+
+              await signOut();
+            }}
+            className="h-[40px] font-bold"
+          >
+            Logout <IoMdLogOut />
+          </Button>
         )}
         <MobileNavigation />
       </div>

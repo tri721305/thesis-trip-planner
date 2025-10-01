@@ -19,6 +19,7 @@ import { BiSolidLike } from "react-icons/bi";
 import { getHotels } from "@/lib/actions/hotel.action";
 import ImageGallery from "@/components/images/ImageGallery";
 import { capitalizeFirstLetter } from "@/lib/utils";
+import Map from "@/components/Map";
 
 const HotelSearchPage = () => {
   const [location, setLocation] = useState();
@@ -53,6 +54,7 @@ const HotelSearchPage = () => {
         pageSize: 10,
       });
 
+      console.log("List hotels", data);
       if (success) {
         setHotelList(data);
       }
@@ -261,7 +263,9 @@ const HotelSearchPage = () => {
           })}
         </div>
       </section>
-      <section className="flex-1">Map</section>
+      <section className="flex-1">
+        <Map />
+      </section>
     </div>
   );
 };

@@ -16,10 +16,10 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { 
-  createStripePaymentIntent, 
-  createPayment, 
-  updatePaymentStatus 
+import {
+  createStripePaymentIntent,
+  createPayment,
+  updatePaymentStatus,
 } from "@/lib/actions/payment.action";
 
 // Khởi tạo Stripe promise bên ngoài component để tránh tạo lại mỗi khi render
@@ -34,7 +34,10 @@ interface SimpleCheckoutFormProps {
 }
 
 // Component thanh toán đơn giản
-function SimpleCheckoutForm({ clientSecret, paymentId }: SimpleCheckoutFormProps) {
+function SimpleCheckoutForm({
+  clientSecret,
+  paymentId,
+}: SimpleCheckoutFormProps) {
   const stripe = useStripe();
   const elements = useElements();
   const [isLoading, setIsLoading] = useState(false);
@@ -63,33 +66,38 @@ function SimpleCheckoutForm({ clientSecret, paymentId }: SimpleCheckoutFormProps
     // Kiểm tra kết quả
     if (paymentIntent) {
       setMessage(`Payment ${paymentIntent.status}: ${paymentIntent.id}`);
-      
+
       // Nếu thanh toán thành công, cập nhật trạng thái trong database
-      if (paymentIntent.status === 'succeeded') {
+      if (paymentIntent.status === "succeeded") {
         try {
-          setUpdateStatus('Updating payment status in database...');
+          setUpdateStatus("Updating payment status in database...");
           const updateResult = await updatePaymentStatus({
             paymentId: paymentId,
-            status: 'succeeded',
+            status: "succeeded",
             stripeInfo: {
-              paymentIntentId: paymentIntent.id
+              paymentIntentId: paymentIntent.id,
               // Đối với Stripe, Charge ID có thể lấy từ API riêng nếu cần
-            }
+            },
           });
-          
+
           if (!updateResult) {
-            setUpdateStatus('Failed to update payment status: No response from server');
+            setUpdateStatus(
+              "Failed to update payment status: No response from server"
+            );
           } else if (updateResult.success) {
-            setUpdateStatus('Payment status updated successfully in database!');
+            setUpdateStatus("Payment status updated successfully in database!");
           } else {
-            const errorMsg = typeof updateResult.error === 'object' 
-              ? updateResult.error?.message 
-              : updateResult.error || 'Unknown error';
+            const errorMsg =
+              typeof updateResult.error === "object"
+                ? updateResult.error?.message
+                : updateResult.error || "Unknown error";
             setUpdateStatus(`Failed to update payment status: ${errorMsg}`);
           }
         } catch (updateError: any) {
-          console.error('Error updating payment status:', updateError);
-          setUpdateStatus(`Error updating payment status: ${updateError.message}`);
+          console.error("Error updating payment status:", updateError);
+          setUpdateStatus(
+            `Error updating payment status: ${updateError.message}`
+          );
         }
       }
     } else if (error) {
@@ -110,7 +118,7 @@ function SimpleCheckoutForm({ clientSecret, paymentId }: SimpleCheckoutFormProps
           {message}
         </div>
       )}
-      
+
       {updateStatus && (
         <div
           className={`p-3 rounded-md ${updateStatus.includes("successfully") ? "bg-green-50 text-green-700" : "bg-blue-50 text-blue-700"}`}
@@ -302,7 +310,10 @@ export default function StripeSimpleTestPage() {
           ) : (
             <Elements stripe={stripePromise} options={{ clientSecret }}>
               {paymentId ? (
-                <SimpleCheckoutForm clientSecret={clientSecret} paymentId={paymentId} />
+                <SimpleCheckoutForm
+                  clientSecret={clientSecret}
+                  paymentId={paymentId}
+                />
               ) : (
                 <div className="p-3 bg-red-50 text-red-700 rounded-md">
                   Payment ID is missing. Please restart the payment process.

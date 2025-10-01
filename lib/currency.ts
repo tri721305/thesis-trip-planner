@@ -36,6 +36,48 @@ export const CURRENCIES: Record<string, CurrencyConfig> = {
     locale: "ar-MA",
     decimals: 2,
   },
+  gbp: {
+    code: "GBP",
+    symbol: "£",
+    name: "British Pound",
+    locale: "en-GB",
+    decimals: 2,
+  },
+  jpy: {
+    code: "JPY",
+    symbol: "¥",
+    name: "Japanese Yen",
+    locale: "ja-JP",
+    decimals: 0,
+  },
+  sgd: {
+    code: "SGD",
+    symbol: "S$",
+    name: "Singapore Dollar",
+    locale: "en-SG",
+    decimals: 2,
+  },
+  aud: {
+    code: "AUD",
+    symbol: "A$",
+    name: "Australian Dollar",
+    locale: "en-AU",
+    decimals: 2,
+  },
+  krw: {
+    code: "KRW",
+    symbol: "₩",
+    name: "South Korean Won",
+    locale: "ko-KR",
+    decimals: 0,
+  },
+  thb: {
+    code: "THB",
+    symbol: "฿",
+    name: "Thai Baht",
+    locale: "th-TH",
+    decimals: 2,
+  },
 };
 
 // Format currency amount
@@ -69,23 +111,39 @@ export const formatCurrency = (
   const decimals = hideDecimals ? 0 : currency.decimals;
 
   try {
-    const formatted = new Intl.NumberFormat(currency.locale, {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals,
-    }).format(numAmount);
+    // Using Intl.NumberFormat with currency style for better formatting
+    let formatted;
 
-    // Build result
-    let result = formatted;
+    if (showSymbol && !showCode) {
+      // Use currency style formatting when showing symbol but not code
+      formatted = new Intl.NumberFormat(currency.locale, {
+        style: "currency",
+        currency: currency.code,
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      }).format(numAmount);
 
-    if (showSymbol && showCode) {
-      result = `${currency.symbol}${formatted} ${currency.code}`;
-    } else if (showSymbol) {
-      result = `${currency.symbol}${formatted}`;
-    } else if (showCode) {
-      result = `${formatted} ${currency.code}`;
+      return formatted;
+    } else {
+      // Use standard number formatting for other cases
+      formatted = new Intl.NumberFormat(currency.locale, {
+        minimumFractionDigits: decimals,
+        maximumFractionDigits: decimals,
+      }).format(numAmount);
+
+      // Build result
+      let result = formatted;
+
+      if (showSymbol && showCode) {
+        result = `${currency.symbol}${formatted} ${currency.code}`;
+      } else if (showSymbol) {
+        result = `${currency.symbol}${formatted}`;
+      } else if (showCode) {
+        result = `${formatted} ${currency.code}`;
+      }
+
+      return result;
     }
-
-    return result;
   } catch (error) {
     console.error("Currency formatting error:", error);
     return `${currency.symbol}${numAmount}`;
@@ -190,15 +248,42 @@ export const getExchangeRate = async (
   from: string,
   to: string
 ): Promise<number> => {
-  // Mock exchange rates - replace with real API
-  const mockRates: Record<string, Record<string, number>> = {
-    vnd: { usd: 0.000041, eur: 0.000038, mad: 0.00041 },
-    usd: { vnd: 24390, eur: 0.92, mad: 10.1 },
-    eur: { vnd: 26510, usd: 1.09, mad: 11.0 },
-    mad: { vnd: 2439, usd: 0.099, eur: 0.091 },
+  from = from.toLowerCase();
+  to = to.toLowerCase();
+
+  // Return 1 if converting to the same currency
+  if (from === to) return 1;
+
+  // Common base rates against USD (as of mid-2023)
+  const usdRates: Record<string, number> = {
+    vnd: 24500, // 1 USD = ~24,500 VND
+    eur: 0.92, // 1 USD = ~0.92 EUR
+    gbp: 0.79, // 1 USD = ~0.79 GBP
+    jpy: 140, // 1 USD = ~140 JPY
+    sgd: 1.35, // 1 USD = ~1.35 SGD
+    aud: 1.5, // 1 USD = ~1.50 AUD
+    mad: 10.1, // 1 USD = ~10.1 MAD
+    krw: 1300, // 1 USD = ~1300 KRW
+    thb: 35.5, // 1 USD = ~35.5 THB
   };
 
-  return mockRates[from]?.[to] || 1;
+  // First convert to USD (if not already USD)
+  let rate: number;
+
+  if (from === "usd") {
+    // Direct conversion from USD to target currency
+    rate = usdRates[to] || 1;
+  } else if (to === "usd") {
+    // Direct conversion to USD from source currency
+    rate = 1 / (usdRates[from] || 1);
+  } else {
+    // Convert through USD
+    const fromToUsd = 1 / (usdRates[from] || 1);
+    const usdToTarget = usdRates[to] || 1;
+    rate = fromToUsd * usdToTarget;
+  }
+
+  return rate;
 };
 
 // Convert between currencies
