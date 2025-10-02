@@ -138,14 +138,57 @@ export async function getHotelDetailById(
   const { hotelId } = params;
 
   try {
-    const hotel = await HotelDetails.findOne({
-      hotel_id: hotelId,
-    });
-    if (!hotel) throw new Error("Hotel not found");
+    // Tìm kiếm theo hotel_id hoặc theo offerId
+    const hotelQuery = hotelId.startsWith("offer-")
+      ? { offerId: hotelId.replace("offer-", "") }
+      : { hotel_id: hotelId };
 
+    const hotel = await HotelDetails.findOne(hotelQuery);
+
+    if (!hotel) {
+      // Nếu không tìm thấy chi tiết khách sạn, thử tìm theo _id hoặc offerId trong Hotel collection
+      const originalHotel = hotelId.startsWith("offer-")
+        ? await Hotel.findOne({ offerId: hotelId.replace("offer-", "") })
+        : await Hotel.findOne({ _id: hotelId });
+
+      if (!originalHotel) throw new Error("Hotel not found");
+
+      // Nếu tìm thấy, nhưng không có chi tiết, trả về dữ liệu cơ bản
+      return {
+        success: true,
+        data: {
+          hotel: {
+            original_hotel: JSON.parse(JSON.stringify(originalHotel)),
+            details: {
+              data: {
+                // Thêm dữ liệu cơ bản từ originalHotel
+                description: "Chi tiết đang được cập nhật",
+                address: originalHotel.lodging.address,
+                nearbyAttractions: [],
+                lodging: {
+                  amenities: [],
+                },
+              },
+            },
+          },
+        },
+      };
+    }
+
+    // Nếu tìm thấy hotel details, tìm thêm thông tin từ Hotel collection
+    const originalHotel = await Hotel.findOne(hotelQuery);
+
+    // Trả về kết hợp cả hai
     return {
       success: true,
-      data: { hotel: JSON.parse(JSON.stringify(hotel)) },
+      data: {
+        hotel: {
+          ...JSON.parse(JSON.stringify(hotel)),
+          original_hotel: originalHotel
+            ? JSON.parse(JSON.stringify(originalHotel))
+            : null,
+        },
+      },
     };
   } catch (error) {
     return handleError(error) as ErrorResponse;

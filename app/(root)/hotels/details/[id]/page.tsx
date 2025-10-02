@@ -10,6 +10,7 @@ import { CalendarDatePicker } from "@/components/calendar-date-picker";
 import Availability from "@/components/Availability";
 import "./style.css";
 import Map from "@/components/Map";
+import HotelImageGallery from "@/components/HotelImageGallery";
 
 interface HotelDetails {}
 const HotelDetail = async ({ params, searchParams }: RouteParams) => {
@@ -22,7 +23,7 @@ const HotelDetail = async ({ params, searchParams }: RouteParams) => {
 
   console.log("Hotel details data:", data);
   return (
-    <div className="h-[calc(100vh-80px)] py-8 overflow-auto flex flex-col gap-[60px] px-24 py-4">
+    <div className="h-[calc(100vh-80px)] overflow-auto flex flex-col gap-[60px] px-24 py-8">
       <section className="flex items-center justify-between">
         <div className="flex flex-col gap-4">
           <h1 className="font-bold text-[3rem] text-[#2c365d] leading-none">
@@ -63,7 +64,20 @@ const HotelDetail = async ({ params, searchParams }: RouteParams) => {
           </Button>
         </div>
       </section>
-      <section>Image list</section>
+      <section>
+        <HotelImageGallery
+          images={
+            data?.hotel?.original_hotel?.lodging?.images?.map(
+              (img: any) => img?.url
+            ) ||
+            data?.hotel?.details?.data?.lodging?.images?.map(
+              (img: any) => img?.url
+            ) ||
+            []
+          }
+          className="w-full"
+        />
+      </section>
       <section className="flex flex-col gap-2">
         <h1 className="font-bold text-[24px] text-[#2c365d] leading-none">
           Over view
@@ -105,21 +119,34 @@ const HotelDetail = async ({ params, searchParams }: RouteParams) => {
         </h1>
         <div className="flex gap-4 mt-2">
           <div className="flex-1 bg-blue-200 rounded-lg h-[350px]">
-            <Map 
+            <Map
               destination={{
                 coordinates: [
-                  data?.hotel?.original_hotel?.location?.longitude || 0,
-                  data?.hotel?.original_hotel?.location?.latitude || 0
+                  data?.hotel?.original_hotel?.location?.longitude ||
+                    data?.hotel?.details?.data?.location?.coordinates?.[0] ||
+                    data?.hotel?.details?.data?.longitude ||
+                    106.6297,
+                  data?.hotel?.original_hotel?.location?.latitude ||
+                    data?.hotel?.details?.data?.location?.coordinates?.[1] ||
+                    data?.hotel?.details?.data?.latitude ||
+                    10.8231,
                 ],
-                name: data?.hotel?.original_hotel?.name || "Hotel Location"
+                name:
+                  data?.hotel?.original_hotel?.name ||
+                  data?.hotel?.details?.data?.name ||
+                  "Hotel Location",
               }}
               hotels={[]}
-              nearbyPlaces={data?.hotel?.details?.data?.nearbyAttractions?.map((place: any) => ({
-                name: place.name,
-                coordinates: [place.longitude, place.latitude],
-                distance: place.distanceInKm || place.distance,
-                placeType: "attraction"
-              })) || []}
+              nearbyPlaces={
+                data?.hotel?.details?.data?.nearbyAttractions?.map(
+                  (place: any) => ({
+                    name: place.name,
+                    coordinates: [place.longitude, place.latitude],
+                    distance: place.distanceInKm || place.distance,
+                    placeType: "attraction",
+                  })
+                ) || []
+              }
               className="h-[400px] w-full"
             />
           </div>
@@ -130,11 +157,17 @@ const HotelDetail = async ({ params, searchParams }: RouteParams) => {
             </h2>
             {data?.hotel?.details?.data?.nearbyAttractions?.map(
               (place: any, index: number) => (
-                <p key={place?.name + index} className="flex items-center gap-1">
-                  <span className="text-sm text-blue-600">📍</span> {place?.name}
-                  {place?.distanceInKm && <span className="text-xs text-gray-500 ml-1">
-                    ({place.distanceInKm.toFixed(1)} km)
-                  </span>}
+                <p
+                  key={place?.name + index}
+                  className="flex items-center gap-1"
+                >
+                  <span className="text-sm text-blue-600">📍</span>{" "}
+                  {place?.name}
+                  {place?.distanceInKm && (
+                    <span className="text-xs text-gray-500 ml-1">
+                      ({place.distanceInKm.toFixed(1)} km)
+                    </span>
+                  )}
                 </p>
               )
             )}
@@ -151,15 +184,26 @@ const HotelDetail = async ({ params, searchParams }: RouteParams) => {
       </section>
 
       {/* Log hotel data for debugging */}
-      {/* {process.env.NODE_ENV === 'development' && (
+      {process.env.NODE_ENV === "development" && (
         <div className="hidden">
-          {console.log('Hotel data for Map:', {
+          {console.log("Hotel data for Map:", {
             original_hotel: data?.hotel?.original_hotel,
-            details: data?.hotel?.details?.data?.location,
-            offers: data?.hotel?.offers
+            details_location: data?.hotel?.details?.data?.location,
+            details_data: data?.hotel?.details?.data,
+            coordinates_used: [
+              data?.hotel?.original_hotel?.location?.longitude ||
+                data?.hotel?.details?.data?.location?.coordinates?.[0] ||
+                data?.hotel?.details?.data?.longitude ||
+                106.6297,
+              data?.hotel?.original_hotel?.location?.latitude ||
+                data?.hotel?.details?.data?.location?.coordinates?.[1] ||
+                data?.hotel?.details?.data?.latitude ||
+                10.8231,
+            ],
+            offers: data?.hotel?.offers,
           })}
         </div>
-      )} */}
+      )}
       <section>
         <h1 className="font-bold text-[24px] mb-[16px] text-[#2c365d] leading-none">
           Reviews

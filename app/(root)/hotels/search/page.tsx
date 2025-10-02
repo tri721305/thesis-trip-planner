@@ -48,10 +48,16 @@ const HotelSearchPage = () => {
   const formatRating = (rating: number) => {
     return rating % 1 === 0 ? rating.toString() : rating.toFixed(1);
   };
-  const handleGetHotelsByWanderLog = async () => {
+  const handleGetHotelsByWanderLog = async (offerId?: string) => {
     try {
       setIsLoading(true);
       setError(null);
+
+      // Nếu có offerId, chuyển hướng đến trang chi tiết
+      if (offerId) {
+        window.location.href = `/hotels/details/offer-${offerId}`;
+        return;
+      }
 
       // Sử dụng hàm getHotelsByWanderlog thay vì getHotels với filter
       const { data, success, error } = await getHotelsByWanderlog({
@@ -63,10 +69,8 @@ const HotelSearchPage = () => {
               ? "price"
               : sortBy === "price_desc"
                 ? "price"
-                : sortBy === "popularity"
-                  ? "popularity"
-                  : "rating",
-          sortOrder: sortBy === "price_asc" ? 1 : -1,
+                : sortBy,
+          sortOrder: sortBy === "price_desc" ? -1 : 1,
         },
       });
 
@@ -520,7 +524,7 @@ const HotelSearchPage = () => {
             </div>
 
             <div
-              onClick={handleGetHotelsByWanderLog}
+              onClick={() => handleGetHotelsByWanderLog()}
               className="flex gap-2 bg-gray-200 items-center p-2 rounded-[40px] w-fit px-4 cursor-pointer hover:bg-gray-300"
             >
               <Hotel size={14} /> Khách sạn Wanderlog
@@ -606,7 +610,13 @@ const HotelSearchPage = () => {
                 </div>
                 <div className="px-0 md:px-4 flex-1 flex flex-col md:flex-row justify-between w-full gap-4">
                   <div className="max-w-full md:max-w-[360px] flex-1">
-                    <h1 className="text-lg font-semibold">
+                    <h1
+                      className="text-lg font-semibold cursor-pointer hover:text-primary-500"
+                      onClick={() =>
+                        hotel?.offerId &&
+                        handleGetHotelsByWanderLog(hotel.offerId)
+                      }
+                    >
                       {hotel?.lodging?.name}
                     </h1>
 

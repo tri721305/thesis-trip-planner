@@ -313,7 +313,6 @@ const Map: React.FC<MapProps> = ({
         attributionControl={false}
         projection={"globe"}
       >
-
         {/* Place markers */}
         {mapPlaces
           .filter((place) => {
@@ -433,60 +432,63 @@ const Map: React.FC<MapProps> = ({
             );
           })}
         {/* Nearby Places markers - Render these FIRST so they appear UNDER the hotel marker */}
-        {nearbyPlaces && nearbyPlaces.map((place, index) => {
-          // Skip invalid coordinates
-          if (
-            !place.coordinates ||
-            !Array.isArray(place.coordinates) ||
-            place.coordinates.length !== 2 ||
-            isNaN(place.coordinates[0]) ||
-            isNaN(place.coordinates[1])
-          ) {
-            return null;
-          }
-          
-          // Generate unique key
-          const uniqueKey = `place-${place.name}-${index}`;
-          
-          return (
-            <Marker
-              key={uniqueKey}
-              longitude={place.coordinates[0]}
-              latitude={place.coordinates[1]}
-              anchor="bottom"
-            >
-              <div className="flex flex-col items-center">
-                <div className="w-6 h-6 bg-blue-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center cursor-pointer hover:bg-blue-600 transition-colors group relative">
-                  <span className="text-white text-xs font-bold">{index + 1}</span>
+        {nearbyPlaces &&
+          nearbyPlaces.map((place, index) => {
+            // Skip invalid coordinates
+            if (
+              !place.coordinates ||
+              !Array.isArray(place.coordinates) ||
+              place.coordinates.length !== 2 ||
+              isNaN(place.coordinates[0]) ||
+              isNaN(place.coordinates[1])
+            ) {
+              return null;
+            }
 
-                  {/* Place tooltip */}
-                  <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-white text-gray-800 px-3 py-2 rounded shadow-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-20 min-w-44 max-w-64 border border-blue-300">
-                    <div className="font-bold text-sm">
-                      {place.name}
+            // Generate unique key
+            const uniqueKey = `place-${place.name}-${index}`;
+
+            return (
+              <Marker
+                key={uniqueKey}
+                longitude={place.coordinates[0]}
+                latitude={place.coordinates[1]}
+                anchor="bottom"
+              >
+                <div className="flex flex-col items-center">
+                  <div className="w-6 h-6 bg-blue-500 rounded-full border-2 border-white shadow-lg flex items-center justify-center cursor-pointer hover:bg-blue-600 transition-colors group relative">
+                    <span className="text-white text-xs font-bold">
+                      {index + 1}
+                    </span>
+
+                    {/* Place tooltip */}
+                    <div className="absolute bottom-full mb-2 left-1/2 transform -translate-x-1/2 bg-white text-gray-800 px-3 py-2 rounded shadow-lg text-xs font-medium whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity z-20 min-w-44 max-w-64 border border-blue-300">
+                      <div className="font-bold text-sm">{place.name}</div>
+
+                      {/* Distance */}
+                      {place.distance !== undefined && (
+                        <div className="text-blue-600 text-xs mt-1 font-semibold">
+                          {place.distance.toFixed(1)} km from hotel
+                        </div>
+                      )}
+
+                      {/* Place Type */}
+                      {place.placeType && (
+                        <div className="text-gray-500 text-xs mt-1">
+                          Type:{" "}
+                          {place.placeType.charAt(0).toUpperCase() +
+                            place.placeType.slice(1)}
+                        </div>
+                      )}
+
+                      <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rotate-45 border-r border-b border-blue-300"></div>
                     </div>
-                    
-                    {/* Distance */}
-                    {place.distance !== undefined && (
-                      <div className="text-blue-600 text-xs mt-1 font-semibold">
-                        {place.distance.toFixed(1)} km from hotel
-                      </div>
-                    )}
-                    
-                    {/* Place Type */}
-                    {place.placeType && (
-                      <div className="text-gray-500 text-xs mt-1">
-                        Type: {place.placeType.charAt(0).toUpperCase() + place.placeType.slice(1)}
-                      </div>
-                    )}
-                    
-                    <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-2 h-2 bg-white rotate-45 border-r border-b border-blue-300"></div>
                   </div>
                 </div>
-              </div>
-            </Marker>
-          );
-        })}
-          
+              </Marker>
+            );
+          })}
+
         {/* Hotel markers */}
         {hotels &&
           hotels.map((hotel, index) => {
@@ -594,7 +596,10 @@ const Map: React.FC<MapProps> = ({
             latitude={destination.coordinates[1]}
             anchor="bottom"
           >
-            <div className="flex flex-col items-center" style={{ zIndex: 1000 }}>
+            <div
+              className="flex flex-col items-center"
+              style={{ zIndex: 1000 }}
+            >
               <div className="w-12 h-12 bg-red-500 rounded-full border-4 border-white shadow-xl flex items-center justify-center cursor-pointer group relative">
                 <span className="text-white text-sm font-bold">H</span>
                 {destination.name && (
