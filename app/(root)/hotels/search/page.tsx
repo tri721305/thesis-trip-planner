@@ -6,6 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import BackButton from "@/components/buttons/BackButton";
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { IoMdClose } from "react-icons/io";
 import {
   Popover,
@@ -14,7 +16,7 @@ import {
 } from "@/components/ui/popover";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
-import { Hotel, Star } from "lucide-react";
+import { Hotel, HotelIcon, Star } from "lucide-react";
 import { GrLikeFill } from "react-icons/gr";
 import { BiSolidLike } from "react-icons/bi";
 import { getHotels, getHotelsByWanderlog } from "@/lib/actions/hotel.action";
@@ -25,6 +27,7 @@ import Map from "@/components/Map";
 import RecentlyViewedHotels from "@/components/hotels/RecentlyViewedHotels";
 
 const HotelSearchPage = () => {
+  const router = useRouter();
   const [location, setLocation] = useState("");
   const [selectedDateRange, setSelectedDateRange] = useState({
     from: new Date(),
@@ -43,6 +46,7 @@ const HotelSearchPage = () => {
   const [minRating, setMinRating] = useState(0);
   const [searchPerformed, setSearchPerformed] = useState(false);
   const [sortBy, setSortBy] = useState("rating");
+  const [isFilteringTravelers, setIsFilteringTravelers] = useState(false);
 
   // Function to format rating without unnecessary decimals
   const formatRating = (rating: number) => {
@@ -53,9 +57,9 @@ const HotelSearchPage = () => {
       setIsLoading(true);
       setError(null);
 
-      // Nếu có offerId, chuyển hướng đến trang chi tiết
+      // Nếu có offerId, chuyển hướng đến trang chi tiết sử dụng router
       if (offerId) {
-        window.location.href = `/hotels/details/offer-${offerId}`;
+        router.push(`/hotels/details/offer-${offerId}`);
         return;
       }
 
@@ -79,6 +83,7 @@ const HotelSearchPage = () => {
       if (success && data) {
         setHotelList(data);
         setSearchPerformed(true);
+        setIsFilteringTravelers(true); // Đánh dấu đang lọc Travelers
 
         if (data.hotels.length === 0) {
           setError("Không tìm thấy khách sạn Wanderlog");
@@ -216,6 +221,7 @@ const HotelSearchPage = () => {
 
   // Hàm xử lý tìm kiếm
   const handleSearch = () => {
+    setIsFilteringTravelers(false); // Reset trạng thái filter Travelers khi thực hiện tìm kiếm mới
     if (searchType === "available") {
       searchAvailableRooms();
     } else {
@@ -268,9 +274,49 @@ const HotelSearchPage = () => {
     }
   };
 
-  // Tải khách sạn khi trang được mở lần đầu
+  // Tải khách sạn khi trang được mở lần đầu và xử lý URL params nếu có
   useEffect(() => {
-    fetchAllHotels();
+    // Kiểm tra các tham số URL từ HotelSearchForm
+    const queryParams = new URLSearchParams(window.location.search);
+
+    // Lấy tham số từ URL
+    const urlLocation = queryParams.get("location");
+    const urlCheckInDate = queryParams.get("checkInDate");
+    const urlCheckOutDate = queryParams.get("checkOutDate");
+    const urlAdults = queryParams.get("adults");
+    const urlChildren = queryParams.get("children");
+    const urlRoomCount = queryParams.get("roomCount");
+
+    // Nếu có các tham số tìm kiếm trong URL, thiết lập state và thực hiện tìm kiếm
+    if (urlCheckInDate && urlCheckOutDate) {
+      // Cập nhật vị trí nếu có
+      if (urlLocation) {
+        setLocation(urlLocation);
+      }
+
+      // Cập nhật ngày check-in, check-out
+      setSelectedDateRange({
+        from: new Date(urlCheckInDate),
+        to: new Date(urlCheckOutDate),
+      });
+
+      // Cập nhật số lượng người lớn, trẻ em và phòng
+      if (urlAdults) setAdults(parseInt(urlAdults));
+      if (urlChildren) setChildren(parseInt(urlChildren));
+      if (urlRoomCount) setRoomCount(parseInt(urlRoomCount));
+
+      // Thiết lập chế độ tìm kiếm phòng trống
+      setSearchType("available");
+
+      // Thực hiện tìm kiếm với các tham số từ URL
+      setTimeout(() => {
+        searchAvailableRooms();
+      }, 300);
+    } else {
+      // Nếu không có tham số tìm kiếm, lấy tất cả khách sạn
+      setIsFilteringTravelers(false);
+      fetchAllHotels();
+    }
   }, []);
 
   // Cập nhật kết quả khi thay đổi cách sắp xếp
@@ -290,20 +336,10 @@ const HotelSearchPage = () => {
         className="flex-1 overflow-auto"
         style={{ boxShadow: "1px 1px 10px 1px lightgray" }}
       >
-        <div className="flex justify-between items-center p-2">
-          <div className="flex gap-2">
-            <BackButton />
-            <Button
-              variant="outline"
-              className="text-xs"
-              onClick={() => (window.location.href = "/hotels/test-search")}
-            >
-              Thử nghiệm tìm kiếm phòng trống
-            </Button>
-          </div>
-          <div className="flex gap-2">
+        <div className="flex justify-center items-center p-2">
+          <div className="flex items-end  gap-2">
             <div className="flex flex-col gap-2 min-w-[300px]">
-              <Label>Điểm đến</Label>
+              <Label>Where ?</Label>
               <ProvinceWardSearch
                 onPlaceSelect={(place) => {
                   setLocation(place?.displayName || place);
@@ -312,7 +348,7 @@ const HotelSearchPage = () => {
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label>Ngày đặt phòng</Label>
+              <Label>Time</Label>
               <CalendarDatePicker
                 date={selectedDateRange}
                 onDateSelect={(e) => {
@@ -323,26 +359,26 @@ const HotelSearchPage = () => {
               />
             </div>
             <div className="flex flex-col gap-2">
-              <Label>Khách & Phòng</Label>
+              <Label>Lodging & Guests</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button
                     variant="outline"
                     className="h-[56px] !bg-[#f3f4f5] text-black border-none"
                   >
-                    {roomCount} phòng, {adults} người lớn, {children} trẻ em
+                    {roomCount} Room, {adults} Adults, {children} Child
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent className="w-80">
                   <div className="grid gap-4">
                     <div className="space-y-2">
                       <h4 className="leading-none font-medium">
-                        Phòng & Khách
+                        Lodging & Guests
                       </h4>
                     </div>
                     <div className="grid gap-2">
                       <div className="grid grid-cols-3 items-center gap-4">
-                        <Label htmlFor="rooms">Phòng</Label>
+                        <Label htmlFor="rooms">Room</Label>
                         <Input
                           id="rooms"
                           type="number"
@@ -357,7 +393,7 @@ const HotelSearchPage = () => {
                         />
                       </div>
                       <div className="grid grid-cols-3 items-center gap-4">
-                        <Label htmlFor="adults">Người lớn</Label>
+                        <Label htmlFor="adults">Adults</Label>
                         <Input
                           id="adults"
                           type="number"
@@ -405,7 +441,7 @@ const HotelSearchPage = () => {
                           document.body.click(); // Close popover
                         }}
                       >
-                        Xác nhận
+                        Save
                       </Button>
                     </div>
                   </div>
@@ -443,7 +479,7 @@ const HotelSearchPage = () => {
                     Đang tìm...
                   </div>
                 ) : (
-                  "Tìm khách sạn"
+                  "Search"
                 )}
               </Button>
             </div>
@@ -482,7 +518,7 @@ const HotelSearchPage = () => {
 
           <div className="flex flex-wrap gap-2 items-center">
             <div className="flex gap-2 items-center">
-              <Label className="whitespace-nowrap">Tìm kiếm:</Label>
+              <Label className="whitespace-nowrap">Find:</Label>
               <select
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm"
                 value={searchType}
@@ -490,26 +526,26 @@ const HotelSearchPage = () => {
                   setSearchType(e.target.value as "all" | "available")
                 }
               >
-                <option value="all">Tất cả khách sạn</option>
-                <option value="available">Khách sạn có phòng trống</option>
+                <option value="all">All</option>
+                <option value="available">Available Hotels</option>
               </select>
             </div>
 
             <div className="flex gap-2 items-center">
-              <Label className="whitespace-nowrap">Sắp xếp:</Label>
+              <Label className="whitespace-nowrap">Filter:</Label>
               <select
                 className="px-3 py-2 border border-gray-300 rounded-md text-sm"
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
               >
-                <option value="rating">Xếp hạng cao nhất</option>
-                <option value="price_asc">Giá thấp đến cao</option>
-                <option value="price_desc">Giá cao đến thấp</option>
-                <option value="popularity">Phổ biến nhất</option>
+                <option value="rating">Highest Rating</option>
+                <option value="price_asc">Price: Low to High</option>
+                <option value="price_desc">Price: High to Low</option>
+                <option value="popularity">Most Popular</option>
               </select>
             </div>
 
-            <div
+            {/* <div
               className="flex gap-2 bg-gray-200 items-center p-2 rounded-[40px] w-fit px-4 cursor-pointer"
               onClick={() => {
                 const newRating = minRating === 0 ? 7 : 0;
@@ -521,13 +557,17 @@ const HotelSearchPage = () => {
                 className={minRating > 0 ? "text-yellow-500" : ""}
               />
               {minRating > 0 ? `Đánh giá ≥ ${minRating}` : "Mọi đánh giá"}
-            </div>
+            </div> */}
 
             <div
               onClick={() => handleGetHotelsByWanderLog()}
-              className="flex gap-2 bg-gray-200 items-center p-2 rounded-[40px] w-fit px-4 cursor-pointer hover:bg-gray-300"
+              className={`flex gap-2 items-center p-2 rounded-[40px] w-fit px-4 cursor-pointer ${
+                isFilteringTravelers
+                  ? "bg-orange-200 hover:bg-orange-300"
+                  : "bg-gray-200 hover:bg-gray-300"
+              }`}
             >
-              <Hotel size={14} /> Khách sạn Wanderlog
+              <Hotel size={14} /> Travelers
             </div>
 
             <Button
@@ -538,9 +578,10 @@ const HotelSearchPage = () => {
                 setMinRating(0);
                 setSearchType("all");
                 setSortBy("rating");
+                setIsFilteringTravelers(false);
               }}
             >
-              Reset bộ lọc
+              Reset
             </Button>
           </div>
         </div>
@@ -573,7 +614,7 @@ const HotelSearchPage = () => {
           <div className="flex justify-center my-8">
             <div className="flex flex-col items-center">
               <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
-              <p className="mt-4 text-gray-600">Đang tìm kiếm khách sạn...</p>
+              <p className="mt-4 text-gray-600">Finding...</p>
             </div>
           </div>
         )}
@@ -612,10 +653,12 @@ const HotelSearchPage = () => {
                   <div className="max-w-full md:max-w-[360px] flex-1">
                     <h1
                       className="text-lg font-semibold cursor-pointer hover:text-primary-500"
-                      onClick={() =>
-                        hotel?.offerId &&
-                        handleGetHotelsByWanderLog(hotel.offerId)
-                      }
+                      onClick={() => {
+                        if (hotel?.offerId) {
+                          saveToRecentlyViewed(hotel, hotel.offerId);
+                          router.push(`/hotels/details/${hotel.offerId}`);
+                        }
+                      }}
                     >
                       {hotel?.lodging?.name}
                     </h1>
@@ -688,11 +731,11 @@ const HotelSearchPage = () => {
                       </ul>
                     </div>
 
-                    {hotel?.availableRooms !== undefined && (
+                    {/* {hotel?.availableRooms !== undefined && (
                       <div className="mt-2 text-sm font-semibold text-green-600">
                         {hotel.availableRooms} phòng trống có sẵn
                       </div>
-                    )}
+                    )} */}
                   </div>
 
                   <div className="flex flex-row md:flex-col justify-between md:items-end gap-4 mt-4 md:mt-0">
@@ -727,24 +770,32 @@ const HotelSearchPage = () => {
                       </h1>
                       <span className="text-xs text-gray-500">/ đêm</span>
                       <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          className="flex-1"
-                          onClick={() => {
-                            console.log("hotel selected", hotel);
-                            const hotelId = hotel?.offerId;
-                            if (hotelId) {
-                              saveToRecentlyViewed(hotel, hotelId);
-                              window.open(
-                                `/hotels/details/${hotelId}`,
-                                "_blank"
-                              );
-                            }
-                          }}
-                        >
-                          Xem chi tiết
-                        </Button>
-                        <Button
+                        {hotel?.offerId ? (
+                          <Link href={`/hotels/details/${hotel.offerId}`} passHref>
+                            <Button
+                              variant="outline"
+                              className="flex-1 bg-primary-500 hover:bg-primary-600 text-white hover:text-white w-full"
+                              onClick={() => {
+                                console.log("hotel selected", hotel);
+                                saveToRecentlyViewed(hotel, hotel.offerId);
+                              }}
+                            >
+                              Book <HotelIcon />
+                            </Button>
+                          </Link>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            className="flex-1 bg-primary-500 hover:bg-primary-600 text-white hover:text-white"
+                            onClick={() => {
+                              console.log("No valid hotel ID");
+                            }}
+                            disabled
+                          >
+                            Book <HotelIcon />
+                          </Button>
+                        )}
+                        {/* <Button
                           className="bg-primary-500 hover:bg-primary-600 flex-1"
                           onClick={() => {
                             const hotelId = hotel?._id || hotel?.lodging?._id;
@@ -756,7 +807,7 @@ const HotelSearchPage = () => {
                           }}
                         >
                           Đặt phòng
-                        </Button>
+                        </Button> */}
                       </div>
                       <p className="text-[10px] text-gray-500 mt-1">
                         {capitalizeFirstLetter(hotel?.source || "")}

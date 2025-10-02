@@ -18,11 +18,11 @@ const HotelSearchForm = () => {
   const router = useRouter();
   const [selectedDateRange, setSelectedDateRange] = useState({
     from: new Date(),
-    to: new Date(),
+    to: new Date(new Date().setDate(new Date().getDate() + 1)), // Default to tomorrow
   });
   const [location, setLocation] = useState<any>(null);
-  const [guests, setGuests] = useState<any>(null);
-  const [rooms, setRooms] = useState<any>(null);
+  const [guests, setGuests] = useState<any>(2);
+  const [rooms, setRooms] = useState<any>(1);
   const form = useForm<z.infer<typeof SearchHotelSChema>>({
     resolver: zodResolver(SearchHotelSChema),
     defaultValues: {
@@ -30,7 +30,7 @@ const HotelSearchForm = () => {
       checkInDate: "",
       checkOutDate: "",
       guests: 2,
-      rooms: 2,
+      rooms: 1,
     },
   });
 
@@ -44,6 +44,33 @@ const HotelSearchForm = () => {
       rooms,
     };
     console.log(dataSubmit);
+
+    // Navigate to the search page with query parameters
+    const searchParams = new URLSearchParams();
+
+    // Add location parameter if it exists
+    if (location) {
+      // If location is an object with displayName property
+      if (typeof location === "object" && location?.displayName) {
+        searchParams.append("location", location.displayName);
+      }
+      // If location is a string
+      else if (typeof location === "string") {
+        searchParams.append("location", location);
+      }
+    }
+
+    // Add date parameters
+    searchParams.append("checkInDate", selectedDateRange.from.toISOString());
+    searchParams.append("checkOutDate", selectedDateRange.to.toISOString());
+
+    // Add guest and room parameters
+    searchParams.append("adults", guests?.toString() || "2");
+    searchParams.append("children", "0"); // Default to 0 children
+    searchParams.append("roomCount", rooms?.toString() || "1");
+
+    // Redirect to the search page with parameters
+    router.push(`/hotels/search?${searchParams.toString()}`);
   };
 
   return (
@@ -66,6 +93,7 @@ const HotelSearchForm = () => {
             setGuests(e.target.value);
           }}
           placeholder="Guests"
+          defaultValue="2"
           icon={<User />}
         />
         <InputWithIcon
@@ -73,6 +101,7 @@ const HotelSearchForm = () => {
             setRooms(e.target.value);
           }}
           placeholder="Rooms"
+          defaultValue="1"
           icon={<MdLocalHotel />}
         />
       </div>

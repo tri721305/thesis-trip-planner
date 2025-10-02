@@ -146,43 +146,52 @@ classDiagram
 ### Core Payment Classes
 
 #### Payment
+
 - Central entity for payment information
 - Tracks payment status, amount, and associated references
 - Contains methods to calculate refund amounts
 
 #### BillingDetails
+
 - Contact information for the person making the payment
 - Contains name, email, phone, and possibly an address
 
 #### PaymentBreakdown
+
 - Detailed breakdown of payment amounts
 - Shows subtotal, taxes, fees, discounts, and total
 
 #### StripeInfo
+
 - Stripe-specific payment information
 - Contains references to Stripe resources like paymentIntentId
 
 #### Refund
+
 - Information about a refund processed for a payment
 - Tracks refund amount, reason, status, and Stripe reference
 
 ### Related Entities
 
 #### HotelBooking
+
 - The booking that is being paid for
 - References the payment and contains booking details
 
 #### User
+
 - The user who made the payment
 - Contains basic user information
 
 ### Service Classes
 
 #### PaymentService
+
 - Handles all payment-related operations
 - Creates payments, processes transactions, handles refunds
 
 #### StripeAPI
+
 - Interface to the Stripe payment processor
 - Creates payment intents, processes refunds, handles webhooks
 
