@@ -66,6 +66,7 @@ import {
   Save,
   ChartBar,
   X,
+  Eye,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -114,6 +115,8 @@ const splitType = ["Don't split", "Everyone", "Invidiuals"];
 const GuideForm = ({ planner }: { planner?: any }) => {
   const router = useRouter();
   const { toast } = useToast();
+
+  console.log("planner guide", planner);
   const [isPending, startTransition] = useTransition();
 
   // Zustand store for planner data
@@ -828,7 +831,7 @@ const GuideForm = ({ planner }: { planner?: any }) => {
                             </p>
                           )} */}
                           <div className="flex">
-                            <RangeTimePicker
+                            {/* <RangeTimePicker
                               key={`time-picker-${index}-${idx}`}
                               value={{
                                 startTime: item.timeStart || "",
@@ -906,8 +909,8 @@ const GuideForm = ({ planner }: { planner?: any }) => {
                                   );
                                 }
                               }}
-                            />
-                            <Button
+                            /> */}
+                            {/* <Button
                               variant="ghost"
                               onClick={() => {
                                 handleOpenExpenseDialog(index, idx);
@@ -921,7 +924,7 @@ const GuideForm = ({ planner }: { planner?: any }) => {
                                     { showSymbol: true, compact: false }
                                   )
                                 : "Add Cost"}
-                            </Button>
+                            </Button> */}
                           </div>
                         </section>
                         <section>
@@ -3201,6 +3204,14 @@ const GuideForm = ({ planner }: { planner?: any }) => {
 
           {/* Submit Button */}
           <div className="flex gap-4 w-full p-4 justify-end">
+            <Button
+              onClick={() => {
+                router.push(`/guides/view/${planner?._id}`);
+              }}
+              variant={"outline"}
+            >
+              <Eye />
+            </Button>
             <Button
               type="submit"
               disabled={isPending}

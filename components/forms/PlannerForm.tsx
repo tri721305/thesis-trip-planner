@@ -96,6 +96,7 @@ import {
   updatePlanner,
   updatePlannerMainImage,
   getPlannerById,
+  partialUpdatePlanner,
 } from "@/lib/actions/planner.action";
 import { getPlaceById } from "@/lib/actions/place.action";
 import { useToast } from "@/hooks/use-toast";
@@ -332,6 +333,311 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
       console.error("❌ OpenStreetMap routing error after retries:", error);
       return null;
     }
+  };
+
+  // Hàm tìm tọa độ gần nhất trong danh sách
+  const findClosestCoordinate = (
+    waypoint: { lat: number; lon: number },
+    placesMap: Record<string, string>,
+    maxDistance: number = 0.0001
+  ): string | null => {
+    const keys = Object.keys(placesMap);
+    let closestKey = null;
+    let minDistance = Infinity;
+
+    for (const key of keys) {
+      const [lat, lon] = key.split(",").map(Number);
+
+      // Tính khoảng cách theo Haversine
+      const distance = Math.sqrt(
+        Math.pow(waypoint.lat - lat, 2) + Math.pow(waypoint.lon - lon, 2)
+      );
+
+      if (distance < minDistance && distance < maxDistance) {
+        minDistance = distance;
+        closestKey = key;
+      }
+    }
+
+    return closestKey;
+  };
+
+  // Hàm tối ưu hóa lộ trình sử dụng OSRM Trip API
+  const optimizeRouteWithOSRM = async (
+    coordinates: Array<{ lat: number; lon: number }>,
+    source: string = "first",
+    destination: string = "last"
+  ) => {
+    if (coordinates.length < 2) return null;
+
+    // Validate coordinates
+    for (const coord of coordinates) {
+      if (
+        typeof coord.lat !== "number" ||
+        typeof coord.lon !== "number" ||
+        coord.lat < -90 ||
+        coord.lat > 90 ||
+        coord.lon < -180 ||
+        coord.lon > 180 ||
+        isNaN(coord.lat) ||
+        isNaN(coord.lon)
+      ) {
+        console.error("❌ Tọa độ không hợp lệ:", coord);
+        return null;
+      }
+    }
+
+    try {
+      // Format coordinates for OSRM API: longitude,latitude;longitude,latitude
+      const coordsString = coordinates
+        .map((coord) => `${coord.lon.toFixed(6)},${coord.lat.toFixed(6)}`)
+        .join(";");
+
+      console.log(`🔍 Gọi OSRM Trip API với ${coordinates.length} điểm`);
+
+      // Use OSRM Trip API to find the optimal route through all points
+      const response = await fetch(
+        `https://routing.openstreetmap.de/routed-car/trip/v1/driving/${coordsString}?overview=full&geometries=geojson&steps=true&source=${source}&destination=${destination}`,
+        {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "User-Agent":
+              "TravelPlannerApp/1.0 (Contact: admin@travelplanner.com)",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error(
+          `Lỗi OSRM Trip API: ${response.status} ${response.statusText}`
+        );
+      }
+
+      const data = await response.json();
+
+      if (data.trips && data.trips.length > 0) {
+        const trip = data.trips[0];
+        // Lấy thứ tự tối ưu của các điểm
+        const waypointOrder = data.waypoints.sort(
+          (a, b) => a.waypoint_index - b.waypoint_index
+        );
+
+        console.log(
+          `✅ OSRM Trip API thành công: ${Math.round(trip.distance / 1000)}km, ${Math.round(trip.duration / 60)} phút`
+        );
+
+        return {
+          distance: Math.round(trip.distance || 0), // in meters
+          duration: Math.round(trip.duration || 0), // in seconds
+          geometry: trip.geometry, // GeoJSON coordinates
+          waypoints: waypointOrder.map((wp) => ({
+            lat: wp.location[1],
+            lon: wp.location[0],
+            originalIndex: wp.waypoint_index,
+          })),
+          legs: trip.legs || [],
+        };
+      } else {
+        throw new Error("Không tìm thấy lộ trình trong phản hồi API");
+      }
+    } catch (error) {
+      console.error("❌ Lỗi OSRM Trip API:", error);
+      return null;
+    }
+  };
+
+  // Hàm tối ưu hóa lộ trình cho một ngày sử dụng OSRM Trip API
+  const optimizeDayRouteOSRM = async (dayIndex: number) => {
+    const details = form.getValues("details");
+    if (!details || !details[dayIndex]) return;
+
+    const detail = details[dayIndex];
+    if (detail.type !== "route") return;
+
+    toast({
+      title: "Tối ưu hóa lộ trình",
+      description: "Đang tính toán đường đi tối ưu...",
+    });
+
+    // Extract date from the day
+    const dayDate = new Date(detail.date);
+
+    // Get hotel information for this date if available
+    let hotelInfo = null;
+    try {
+      const lodgings = form.getValues("lodging") || [];
+
+      // Find a hotel where the date falls between check-in and check-out
+      for (const hotel of lodgings) {
+        if (!hotel.checkIn || !hotel.checkOut) continue;
+
+        const checkInDate = new Date(hotel.checkIn);
+        const checkOutDate = new Date(hotel.checkOut);
+
+        // If dayDate is on or after checkIn and before checkOut
+        if (dayDate >= checkInDate && dayDate < checkOutDate) {
+          // Return hotel with coordinates if available
+          if (
+            hotel.location?.coordinates &&
+            Array.isArray(hotel.location.coordinates) &&
+            hotel.location.coordinates.length === 2
+          ) {
+            const [lon, lat] = hotel.location.coordinates;
+            hotelInfo = {
+              name: hotel.name,
+              coordinates: {
+                lat: lat,
+                lon: lon,
+              },
+            };
+            break;
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Lỗi khi tìm khách sạn cho ngày:", error);
+    }
+
+    // Extract places with coordinates from the day's data
+    const places = detail.data.filter((item: any) => item.type === "place");
+    const placesWithCoords = [];
+    const placesMap = {};
+
+    for (const place of places) {
+      if (
+        place.location?.coordinates &&
+        Array.isArray(place.location.coordinates) &&
+        place.location.coordinates.length === 2
+      ) {
+        const [lon, lat] = place.location.coordinates;
+        const placeCoords = {
+          id: place.id,
+          name: place.name,
+          coordinates: {
+            lat: lat,
+            lon: lon,
+          },
+        };
+        placesWithCoords.push(placeCoords.coordinates);
+        // Sử dụng định dạng chính xác hơn để lưu tọa độ làm key
+        placesMap[`${lat.toFixed(6)},${lon.toFixed(6)}`] = place.id;
+
+        // In ra log để debug
+        console.log(
+          `🗺️ Địa điểm: ${place.name}, ID: ${place.id}, Tọa độ: [${lat.toFixed(6)},${lon.toFixed(6)}]`
+        );
+      }
+    }
+
+    if (placesWithCoords.length <= 1) {
+      toast({
+        title: "Không thể tối ưu hóa lộ trình",
+        description: "Cần ít nhất 2 địa điểm có tọa độ để tối ưu hóa.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // If we have a hotel, add it as first and last point
+    let coordinates = [...placesWithCoords];
+    let source = "first";
+    let destination = "last";
+
+    if (hotelInfo?.coordinates) {
+      // Add hotel coordinates at the beginning
+      coordinates = [hotelInfo.coordinates, ...placesWithCoords];
+      // Configure OSRM to use first point (hotel) as source and destination
+      source = "first";
+      destination = "first";
+    }
+
+    // Get optimized route using OSRM Trip API
+    const optimizedRoute = await optimizeRouteWithOSRM(
+      coordinates,
+      source,
+      destination
+    );
+
+    if (!optimizedRoute) {
+      toast({
+        title: "Lỗi tối ưu hóa lộ trình",
+        description:
+          "Không thể tính toán lộ trình tối ưu. Vui lòng thử lại sau.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Create mapping of original coordinates to new order
+    const newOrder = [];
+
+    // In ra debug các waypoints được trả về từ API
+    console.log(
+      `🗺️ Số waypoints nhận được: ${optimizedRoute.waypoints.length}`
+    );
+    for (const wp of optimizedRoute.waypoints) {
+      console.log(`📍 Waypoint: [${wp.lat.toFixed(6)},${wp.lon.toFixed(6)}]`);
+    }
+
+    // In ra tất cả các keys trong placesMap để debug
+    console.log(`🔑 Tất cả placesMap keys:`, Object.keys(placesMap));
+
+    for (let i = 0; i < optimizedRoute.waypoints.length; i++) {
+      const wp = optimizedRoute.waypoints[i];
+      // Format với độ chính xác giống như khi tạo key
+      const coordKey = `${wp.lat.toFixed(6)},${wp.lon.toFixed(6)}`;
+      const placeId = placesMap[coordKey];
+
+      console.log(
+        `🔍 Tìm kiếm ID cho tọa độ: ${coordKey}, tìm thấy: ${placeId || "không tìm thấy"}`
+      );
+
+      // Skip hotel coordinates (if they were added)
+      if (placeId) {
+        newOrder.push(placeId);
+      } else {
+        // Thử tìm kiếm với dung sai
+        const foundKey = findClosestCoordinate(wp, placesMap);
+        if (foundKey) {
+          console.log(`🔄 Tìm thấy điểm gần nhất: ${foundKey}`);
+          newOrder.push(placesMap[foundKey]);
+        }
+      }
+    }
+
+    // Create a mapping for the new order of places
+    const placeOrderMap = {};
+    newOrder.forEach((id, index) => {
+      placeOrderMap[id] = index;
+    });
+
+    // Reorder the places in the day's data
+    const updatedData = [...detail.data];
+    updatedData.sort((a, b) => {
+      if (a.type !== "place" || b.type !== "place") return 0;
+      return (placeOrderMap[a.id] || 0) - (placeOrderMap[b.id] || 0);
+    });
+
+    // Update the form with the optimized route
+    const updatedDetails = [...details];
+    updatedDetails[dayIndex] = {
+      ...detail,
+      data: updatedData,
+    };
+
+    form.setValue("details", updatedDetails);
+
+    toast({
+      title: "Lộ trình đã được tối ưu hóa",
+      description: hotelInfo
+        ? `Lộ trình đã được tối ưu hóa bắt đầu và kết thúc tại ${hotelInfo.name}`
+        : "Lộ trình đã được tối ưu hóa để di chuyển hiệu quả nhất",
+      variant: "default",
+    });
+
+    // Recalculate routes
+    calculateDayRoutes(dayIndex);
   };
 
   // NEW: Enhanced function to calculate routes between consecutive places within each day
@@ -1051,38 +1357,6 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     [isUserScrolling]
   );
 
-  // Helper function to check if a date has hotel accommodation
-  const checkHotelAvailability = (date: Date): boolean => {
-    const lodgings = form.getValues("lodging") || [];
-
-    // Kiểm tra nếu ngày này có nằm trong khoảng check-in và check-out của bất kỳ khách sạn nào
-    return lodgings.some((lodging) => {
-      if (!lodging.checkIn || !lodging.checkOut) return false;
-
-      const checkInDate = new Date(lodging.checkIn);
-      const checkOutDate = new Date(lodging.checkOut);
-
-      // Ngày cần kiểm tra nằm trong khoảng này (inclusively)
-      return date >= checkInDate && date <= checkOutDate;
-    });
-  };
-
-  // Function to check hotel availability for a range of dates
-  const getMissingHotelDates = (startDate: Date, endDate: Date): Date[] => {
-    const missingDates: Date[] = [];
-    const currentDate = new Date(startDate);
-
-    // Lặp qua từng ngày và kiểm tra có khách sạn không
-    while (currentDate <= endDate) {
-      if (!checkHotelAvailability(currentDate)) {
-        missingDates.push(new Date(currentDate));
-      }
-      currentDate.setDate(currentDate.getDate() + 1);
-    }
-
-    return missingDates;
-  };
-
   const generateDayDetails = (startDate: Date, endDate: Date) => {
     const details = [];
     const currentDate = new Date(startDate);
@@ -1227,89 +1501,6 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
           }
           itemExpand={
             <div className="flex flex-col gap-2">
-              {/* Cảnh báo về việc không có khách sạn cho ngày này */}
-              {(() => {
-                // Kiểm tra ngày của mục này (từ tên)
-                const detail = form.getValues(`details.${index}`);
-                if (detail?.type === "route" && detail?.name) {
-                  try {
-                    // Parse ngày từ tên (format là "dddd, Do MMMM")
-                    const dateString = detail.name;
-                    const dateParts = dateString.split(", ");
-                    if (dateParts.length >= 2) {
-                      const dayMonth = dateParts[1]; // "15th August"
-                      // Lấy năm từ startDate trong form
-                      const startDate = form.getValues("startDate");
-                      const year = startDate
-                        ? new Date(startDate).getFullYear()
-                        : new Date().getFullYear();
-
-                      // Kết hợp để tạo ngày đầy đủ
-                      const fullDate = `${dayMonth} ${year}`;
-                      const currentDate = moment(
-                        fullDate,
-                        "Do MMMM YYYY"
-                      ).toDate();
-
-                      // Kiểm tra nếu ngày này có khách sạn không
-                      if (!checkHotelAvailability(currentDate)) {
-                        return (
-                          <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-4">
-                            <div className="flex">
-                              <div className="flex-shrink-0">
-                                <svg
-                                  className="h-5 w-5 text-amber-400"
-                                  viewBox="0 0 20 20"
-                                  fill="currentColor"
-                                >
-                                  <path
-                                    fillRule="evenodd"
-                                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                                    clipRule="evenodd"
-                                  />
-                                </svg>
-                              </div>
-                              <div className="ml-3">
-                                <p className="text-sm text-amber-700">
-                                  <strong>Chưa có chỗ ở cho ngày này!</strong>{" "}
-                                  Hãy thêm khách sạn/chỗ nghỉ cho ngày{" "}
-                                  {moment(currentDate).format("DD/MM/YYYY")}.
-                                </p>
-                                <div className="mt-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="border-amber-500 text-amber-600 hover:bg-amber-50"
-                                    onClick={() => {
-                                      // Cuộn lên phần Hotels & Lodging
-                                      document
-                                        .getElementById("lodging-section")
-                                        ?.scrollIntoView({
-                                          behavior: "smooth",
-                                        });
-                                      // Hiển thị form để thêm khách sạn mới
-                                      setShowAddHotel(true);
-                                    }}
-                                  >
-                                    Thêm chỗ ở ngay
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      }
-                    }
-                  } catch (error) {
-                    console.error(
-                      "Lỗi khi kiểm tra khách sạn cho ngày cụ thể:",
-                      error
-                    );
-                  }
-                }
-                return null;
-              })()}
-
               {currentRouteItems?.map((item, idx) => {
                 // Calculate the place number for this specific item
                 const testPlace = currentRouteItems.slice(0, idx + 1);
@@ -1555,6 +1746,17 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                             ) : (
                               "Calculate Routes"
                             )}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => optimizeDayRouteOSRM(index)}
+                            disabled={dayRouting?.isCalculating}
+                            className="flex items-center gap-2 text-xs"
+                            title="Tối ưu hóa thứ tự các địa điểm để giảm thời gian di chuyển"
+                          >
+                            <Route className="h-3 w-3" />
+                            Optimize
                           </Button>
                           {/* NEW: Debug button to log routing data */}
                           <Button
@@ -1921,7 +2123,6 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                 ? moment(form.watch(`lodging.${index}.checkOut`)).toDate()
                 : new Date(),
             }}
-            // disablePastDates={true} // Disable ngày quá khứ cho hotel bookings
             onDateSelect={(e) => {
               form.setValue(`lodging.${index}.checkIn`, e.from);
               form.setValue(`lodging.${index}.checkOut`, e.to);
@@ -2594,6 +2795,95 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     input.click();
   };
 
+  // Function to remove a tripmate from planner
+  const removeTripmateMember = async (tripmateIndex: number) => {
+    if (!planner?._id && !planner?.id) {
+      console.error("No planner ID available");
+      return;
+    }
+
+    try {
+      const plannerId = planner._id || planner.id;
+      const currentTripmates = [...(form.getValues("tripmates") || [])];
+
+      if (tripmateIndex < 0 || tripmateIndex >= currentTripmates.length) {
+        toast({
+          title: "Error",
+          description: "Invalid tripmate index",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Create updated tripmates array without the tripmate to remove
+      const updatedTripmates = currentTripmates.filter(
+        (_, index) => index !== tripmateIndex
+      );
+
+      // Cập nhật giao diện và form trước khi gọi API
+
+      // 1. Cập nhật form trực tiếp (quan trọng nhất)
+      form.setValue("tripmates", updatedTripmates);
+
+      // 2. Tạo bản sao của planner hiện tại và cập nhật
+      const updatedPlanner = {
+        ...currentPlannerData,
+        tripmates: updatedTripmates,
+      };
+
+      // 3. Cập nhật state hiển thị
+      setCurrentPlannerData(updatedPlanner);
+
+      // 4. Cập nhật state của component - rất quan trọng
+      planner.tripmates = updatedTripmates;
+
+      // 5. Cập nhật store
+      setPlannerData(updatedPlanner);
+
+      // Update the planner with partial update
+      const updateResult = await partialUpdatePlanner({
+        plannerId,
+        tripmates: updatedTripmates,
+      });
+
+      if (updateResult.success) {
+        toast({
+          title: "Tripmate removed",
+          description: "Tripmate has been removed from the planner",
+          variant: "default",
+        });
+
+        // Đã cập nhật UI trước rồi, nên không cần refreshPlannerData nữa
+        // Điều này giúp tránh tình trạng UI nhấp nháy
+      } else {
+        // Nếu có lỗi, khôi phục lại dữ liệu ban đầu
+        form.setValue("tripmates", currentTripmates);
+        setCurrentPlannerData({
+          ...currentPlannerData,
+          tripmates: currentTripmates,
+        });
+        planner.tripmates = currentTripmates;
+        setPlannerData({
+          ...currentPlannerData,
+          tripmates: currentTripmates,
+        });
+
+        toast({
+          title: "Failed to remove tripmate",
+          description: updateResult.error?.message || "An error occurred",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error removing tripmate:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove tripmate",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Function to refresh planner data after tripmate is added
   const refreshPlannerData = async () => {
     if (!planner?._id && !planner?.id) {
@@ -3022,74 +3312,6 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                 }
                 itemExpand={
                   <div className="flex flex-col gap-4">
-                    {/* Hiển thị cảnh báo về những ngày chưa có khách sạn */}
-                    {(() => {
-                      // Chỉ hiển thị nếu đã có ngày bắt đầu và kết thúc
-                      const startDate = form.getValues("startDate");
-                      const endDate = form.getValues("endDate");
-
-                      if (startDate && endDate) {
-                        const missingDates = getMissingHotelDates(
-                          new Date(startDate),
-                          new Date(endDate)
-                        );
-
-                        if (missingDates.length > 0) {
-                          return (
-                            <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
-                              <div className="flex">
-                                <div className="flex-shrink-0">
-                                  <svg
-                                    className="h-5 w-5 text-red-400"
-                                    viewBox="0 0 20 20"
-                                    fill="currentColor"
-                                  >
-                                    <path
-                                      fillRule="evenodd"
-                                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
-                                      clipRule="evenodd"
-                                    />
-                                  </svg>
-                                </div>
-                                <div className="ml-3">
-                                  <p className="text-sm text-red-700">
-                                    <strong>Cảnh báo:</strong> Chuyến đi của bạn
-                                    có {missingDates.length} ngày chưa có chỗ ở.
-                                  </p>
-                                  <div className="mt-2 text-sm">
-                                    <ul className="list-disc pl-5 space-y-1">
-                                      {missingDates
-                                        .slice(0, 3)
-                                        .map((date, idx) => (
-                                          <li
-                                            key={idx}
-                                            className="text-red-600"
-                                          >
-                                            {moment(date).format("DD/MM/YYYY")}{" "}
-                                            ({moment(date).format("dddd")})
-                                          </li>
-                                        ))}
-                                      {missingDates.length > 3 && (
-                                        <li className="text-red-600">
-                                          ...và {missingDates.length - 3} ngày
-                                          khác
-                                        </li>
-                                      )}
-                                    </ul>
-                                  </div>
-                                  <p className="text-sm mt-2 text-red-700">
-                                    Hãy thêm khách sạn/chỗ nghỉ cho tất cả các
-                                    ngày trong chuyến đi.
-                                  </p>
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        }
-                      }
-
-                      return null;
-                    })()}
                     {/* {showAddHotel ? (
                       <LodgingSearch
                         size="large"
@@ -4110,20 +4332,79 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                 <Tabs defaultValue="edit">
                   <TabsList>
                     <TabsTrigger value="edit">Can Edit</TabsTrigger>
-                    <TabsTrigger value="view">View Only</TabsTrigger>
+                    {/* <TabsTrigger value="view">View Only</TabsTrigger> */}
                   </TabsList>
                   <TabsContent value="edit">
                     {manageTripmates ? (
-                      <div>
-                        <Button
-                          onClick={() => {
-                            setManageTripmates(false);
-                          }}
-                          size={"icon"}
-                        >
-                          <Undo />
-                        </Button>
-                        Manager Triplate do it later
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <h3 className="text-lg font-semibold">
+                            Manage Tripmates
+                          </h3>
+                          <Button
+                            onClick={() => {
+                              setManageTripmates(false);
+                            }}
+                            size="sm"
+                            variant="outline"
+                          >
+                            <Undo className="mr-2 h-4 w-4" />
+                            Back
+                          </Button>
+                        </div>
+
+                        {planner?.tripmates?.length > 0 ? (
+                          <div className="space-y-2">
+                            {planner.tripmates.map(
+                              (tripmate: any, index: number) => (
+                                <div
+                                  key={index}
+                                  className="flex items-center justify-between p-3 border rounded-lg bg-white dark:bg-gray-800"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    {tripmate.image ? (
+                                      <img
+                                        src={tripmate.image}
+                                        alt={tripmate.name}
+                                        className="w-10 h-10 rounded-full object-cover"
+                                      />
+                                    ) : (
+                                      <div className="w-10 h-10 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">
+                                        <User className="h-6 w-6 text-gray-500 dark:text-gray-400" />
+                                      </div>
+                                    )}
+                                    <div>
+                                      <p className="font-medium">
+                                        {tripmate.name}
+                                      </p>
+                                      {tripmate.email && (
+                                        <p className="text-sm text-gray-500 dark:text-gray-400">
+                                          {tripmate.email}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+
+                                  <Button
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => removeTripmateMember(index)}
+                                    title="Remove tripmate"
+                                    className="h-8 w-8 p-0"
+                                  >
+                                    <Trash className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              )
+                            )}
+                          </div>
+                        ) : (
+                          <div className="text-center p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
+                            <p className="text-gray-500 dark:text-gray-400">
+                              No tripmates added yet
+                            </p>
+                          </div>
+                        )}
                       </div>
                     ) : (
                       <div className="flex flex-col gap-2">

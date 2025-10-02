@@ -1,0 +1,165 @@
+classDiagram
+    class Guide {
+        +String title
+        +String content
+        +ObjectId author
+        +Array tags
+        +Number views
+        +Number upvotes
+        +Number downvotes
+        +Number comments
+        +String image
+        +String location
+        +Array details
+        +Array highlights
+        +String state
+        +String type
+        +Date createdAt
+        +Date updatedAt
+    }
+
+    class User {
+        +String name
+        +String username
+        +String email
+        +String bio
+        +String image
+        +String location
+        +String portfolio
+        +Number reputation
+        +String phone
+    }
+
+    class Comment {
+        +ObjectId author
+        +ObjectId guide
+        +String content
+        +Number upvotes
+        +Number downvotes
+        +ObjectId parentComment
+        +Array replies
+        +Boolean isDeleted
+        +Date editedAt
+        +Date createdAt
+        +Date updatedAt
+        +addReply(replyId)
+        +removeReply(replyId)
+        +markAsEdited()
+        +softDelete()
+    }
+
+    class Vote {
+        +ObjectId author
+        +ObjectId actionId
+        +String actionType
+        +String voteType
+        +Date createdAt
+        +Date updatedAt
+        +getVoteCounts()
+        +getUserVote()
+        +toggleVote()
+    }
+
+    class BaseDetail {
+        <<abstract>>
+        +String type
+        +String name
+        +Number index
+    }
+
+    class RouteDetail {
+        +String name
+        +Number index
+        +Array data
+    }
+
+    class ListDetail {
+        +String name
+        +Number index
+        +Array data
+    }
+
+    class BaseDataItem {
+        <<abstract>>
+        +String type
+    }
+
+    class NoteDataItem {
+        +String content
+    }
+
+    class ChecklistDataItem {
+        +Array items
+        +Array completed
+    }
+
+    class PlaceDataItem {
+        +String id
+        +String name
+        +String address
+        +String description
+        +Array categories
+        +Array tags
+        +String phone
+        +String website
+        +Array images
+        +Array imageKeys
+        +Number rating
+        +Number numRatings
+        +Number attractionId
+        +Mixed priceLevel
+        +Array openingPeriods
+        +Object location
+        +String timeStart
+        +String timeEnd
+        +Object cost
+        +String note
+    }
+
+    class Cost {
+        +String type
+        +Number value
+        +String paidBy
+        +String description
+        +Array splitBetween
+    }
+
+    class SplitBetween {
+        +String userId
+        +String name
+        +Number amount
+        +Boolean settled
+        +Boolean selected
+    }
+
+    class Location {
+        +Object address
+        +Object coordinates
+        +Object ward
+        +Object district
+        +Object province
+        +String locationType
+        +String description
+        +String fullAddress
+        +String fullAddressEn
+        +Boolean isActive
+    }
+
+    Guide "1" -- "1" User : author
+    Guide "1" -- "*" Comment : has
+    Guide "1" -- "*" Vote : has votes where actionType=guide
+    Guide "1" -- "*" BaseDetail : contains
+    BaseDetail <|-- RouteDetail : extends
+    BaseDetail <|-- ListDetail : extends
+    RouteDetail "1" -- "*" BaseDataItem : contains
+    ListDetail "1" -- "*" BaseDataItem : contains
+    BaseDataItem <|-- NoteDataItem : extends
+    BaseDataItem <|-- ChecklistDataItem : extends
+    BaseDataItem <|-- PlaceDataItem : extends
+    PlaceDataItem "1" -- "1" Cost : may have
+    Cost "1" -- "*" SplitBetween : has
+    Comment "1" -- "1" User : author
+    Comment "1" -- "*" Comment : has replies
+    Comment "1" -- "*" Vote : has votes where actionType=comment
+    Vote "1" -- "1" User : author
+    PlaceDataItem -- Location : references

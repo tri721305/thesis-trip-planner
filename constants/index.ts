@@ -6,8 +6,18 @@ export const sidebarLinks = [
   },
   {
     imgURL: "",
-    label: "Tours",
-    route: "/tours",
+    label: "Planners",
+    route: "/planners",
+  },
+  {
+    imgURL: "",
+    label: "Guides",
+    route: "/guides",
+  },
+  {
+    imgURL: "",
+    label: "Hotels",
+    route: "/hotels",
   },
   {
     imgURL: "",
@@ -19,11 +29,7 @@ export const sidebarLinks = [
     label: "Our Services",
     route: "/out-services",
   },
-  {
-    imgURL: "",
-    label: "Planners",
-    route: "/planners",
-  },
+
   {
     imgURL: "",
     label: "Profile",

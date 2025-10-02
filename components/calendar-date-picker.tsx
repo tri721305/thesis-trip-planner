@@ -82,7 +82,6 @@ interface CalendarDatePickerProps
   numberOfMonths?: 1 | 2;
   yearsRange?: number;
   typeShow?: "default" | "reduce";
-  disablePastDates?: boolean; // Thêm prop để disable ngày quá khứ
   onDateSelect: (range: { from: Date; to: Date }) => void;
 }
 
@@ -99,7 +98,6 @@ export const CalendarDatePicker = React.forwardRef<
       numberOfMonths = 2,
       yearsRange = 10,
       typeShow = "default",
-      disablePastDates = false, // Mặc định là false để tương thích ngược với các component hiện tại
       onDateSelect,
       variant,
       ...props
@@ -697,7 +695,6 @@ export const CalendarDatePicker = React.forwardRef<
                       numberOfMonths={numberOfMonths}
                       showOutsideDays={false}
                       className={className}
-                      disabled={disablePastDates ? { before: new Date() } : undefined} // Disable ngày quá khứ nếu prop được bật
                     />
                   </div>
                 </div>

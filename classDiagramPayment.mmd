@@ -1,0 +1,138 @@
+classDiagram
+    class Payment {
+        +String paymentId
+        +ObjectId userId
+        +ObjectId bookingId
+        +Number amount
+        +String currency
+        +String paymentMethod
+        +String status
+        +PaymentBreakdown breakdown
+        +BillingDetails billingDetails
+        +StripeInfo stripeInfo
+        +String transactionId
+        +String referenceNumber
+        +Array refunds
+        +Number retryCount
+        +Date lastRetryAt
+        +Date nextRetryAt
+        +String description
+        +String notes
+        +String source
+        +Date processedAt
+        +Date failedAt
+        +Date refundedAt
+        +Date createdAt
+        +Date updatedAt
+        +Number totalRefunded()
+        +Number remainingAmount()
+    }
+
+    class BillingDetails {
+        +String name
+        +String email
+        +String phone
+        +Address address
+    }
+
+    class Address {
+        +String line1
+        +String line2
+        +String city
+        +String state
+        +String postalCode
+        +String country
+    }
+
+    class PaymentBreakdown {
+        +Number subtotal
+        +Number taxes
+        +Number fees
+        +Number discount
+        +Number total
+        +String currency
+    }
+
+    class StripeInfo {
+        +String paymentIntentId
+        +String clientSecret
+        +String chargeId
+        +String receiptUrl
+        +String refundId
+        +String failureCode
+        +String failureMessage
+    }
+
+    class Refund {
+        +String refundId
+        +Number amount
+        +String reason
+        +String status
+        +Date createdAt
+        +Date processedAt
+        +String stripeRefundId
+    }
+
+    class HotelBooking {
+        +String bookingId
+        +ObjectId userId
+        +ObjectId paymentId
+        +BookedHotel hotel
+        +Array rooms
+        +Date checkInDate
+        +Date checkOutDate
+        +Number nights
+        +GuestInfo guestInfo
+        +Object guestCount
+        +Object pricing
+        +String status
+        +String paymentStatus
+        +String paymentMethod
+        +Object cancellation
+        +String source
+        +Boolean confirmationEmailSent
+        +String specialRequests
+        +String notes
+        +Date createdAt
+        +Date updatedAt
+    }
+
+    class User {
+        +String name
+        +String username
+        +String email
+        +String bio
+        +String image
+        +String location
+        +String portfolio
+        +Number reputation
+        +String phone
+    }
+
+    class PaymentService {
+        +createPayment(CreatePaymentParams)
+        +createStripePaymentIntent(CreateStripePaymentIntentParams)
+        +processPayment(ProcessPaymentParams)
+        +updatePaymentStatus(UpdatePaymentStatusParams)
+        +processRefund(ProcessRefundParams)
+        +getPayments(GetPaymentsParams)
+        +getPaymentById(paymentId)
+        +resetProcessingPayment(paymentId)
+    }
+
+    class StripeAPI {
+        +createPaymentIntent(amount, currency, metadata)
+        +retrievePaymentIntent(paymentIntentId)
+        +createRefund(paymentIntentId, amount, reason)
+        +handleWebhookEvent(event)
+    }
+
+    Payment "1" *-- "1" PaymentBreakdown : contains
+    Payment "1" *-- "1" BillingDetails : contains
+    Payment "1" *-- "0..1" StripeInfo : may contain
+    Payment "1" *-- "*" Refund : contains
+    Payment "1" -- "1" HotelBooking : references
+    Payment "1" -- "1" User : belongs to
+    BillingDetails "1" *-- "0..1" Address : may contain
+    PaymentService -- Payment : manages
+    PaymentService -- StripeAPI : uses
