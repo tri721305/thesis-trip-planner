@@ -1051,6 +1051,38 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     [isUserScrolling]
   );
 
+  // Helper function to check if a date has hotel accommodation
+  const checkHotelAvailability = (date: Date): boolean => {
+    const lodgings = form.getValues("lodging") || [];
+
+    // Kiểm tra nếu ngày này có nằm trong khoảng check-in và check-out của bất kỳ khách sạn nào
+    return lodgings.some((lodging) => {
+      if (!lodging.checkIn || !lodging.checkOut) return false;
+
+      const checkInDate = new Date(lodging.checkIn);
+      const checkOutDate = new Date(lodging.checkOut);
+
+      // Ngày cần kiểm tra nằm trong khoảng này (inclusively)
+      return date >= checkInDate && date <= checkOutDate;
+    });
+  };
+
+  // Function to check hotel availability for a range of dates
+  const getMissingHotelDates = (startDate: Date, endDate: Date): Date[] => {
+    const missingDates: Date[] = [];
+    const currentDate = new Date(startDate);
+
+    // Lặp qua từng ngày và kiểm tra có khách sạn không
+    while (currentDate <= endDate) {
+      if (!checkHotelAvailability(currentDate)) {
+        missingDates.push(new Date(currentDate));
+      }
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    return missingDates;
+  };
+
   const generateDayDetails = (startDate: Date, endDate: Date) => {
     const details = [];
     const currentDate = new Date(startDate);
@@ -1195,6 +1227,89 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
           }
           itemExpand={
             <div className="flex flex-col gap-2">
+              {/* Cảnh báo về việc không có khách sạn cho ngày này */}
+              {(() => {
+                // Kiểm tra ngày của mục này (từ tên)
+                const detail = form.getValues(`details.${index}`);
+                if (detail?.type === "route" && detail?.name) {
+                  try {
+                    // Parse ngày từ tên (format là "dddd, Do MMMM")
+                    const dateString = detail.name;
+                    const dateParts = dateString.split(", ");
+                    if (dateParts.length >= 2) {
+                      const dayMonth = dateParts[1]; // "15th August"
+                      // Lấy năm từ startDate trong form
+                      const startDate = form.getValues("startDate");
+                      const year = startDate
+                        ? new Date(startDate).getFullYear()
+                        : new Date().getFullYear();
+
+                      // Kết hợp để tạo ngày đầy đủ
+                      const fullDate = `${dayMonth} ${year}`;
+                      const currentDate = moment(
+                        fullDate,
+                        "Do MMMM YYYY"
+                      ).toDate();
+
+                      // Kiểm tra nếu ngày này có khách sạn không
+                      if (!checkHotelAvailability(currentDate)) {
+                        return (
+                          <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-4">
+                            <div className="flex">
+                              <div className="flex-shrink-0">
+                                <svg
+                                  className="h-5 w-5 text-amber-400"
+                                  viewBox="0 0 20 20"
+                                  fill="currentColor"
+                                >
+                                  <path
+                                    fillRule="evenodd"
+                                    d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
+                                    clipRule="evenodd"
+                                  />
+                                </svg>
+                              </div>
+                              <div className="ml-3">
+                                <p className="text-sm text-amber-700">
+                                  <strong>Chưa có chỗ ở cho ngày này!</strong>{" "}
+                                  Hãy thêm khách sạn/chỗ nghỉ cho ngày{" "}
+                                  {moment(currentDate).format("DD/MM/YYYY")}.
+                                </p>
+                                <div className="mt-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="border-amber-500 text-amber-600 hover:bg-amber-50"
+                                    onClick={() => {
+                                      // Cuộn lên phần Hotels & Lodging
+                                      document
+                                        .getElementById("lodging-section")
+                                        ?.scrollIntoView({
+                                          behavior: "smooth",
+                                        });
+                                      // Hiển thị form để thêm khách sạn mới
+                                      setShowAddHotel(true);
+                                    }}
+                                  >
+                                    Thêm chỗ ở ngay
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      }
+                    }
+                  } catch (error) {
+                    console.error(
+                      "Lỗi khi kiểm tra khách sạn cho ngày cụ thể:",
+                      error
+                    );
+                  }
+                }
+                return null;
+              })()}
+
               {currentRouteItems?.map((item, idx) => {
                 // Calculate the place number for this specific item
                 const testPlace = currentRouteItems.slice(0, idx + 1);
@@ -1806,6 +1921,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                 ? moment(form.watch(`lodging.${index}.checkOut`)).toDate()
                 : new Date(),
             }}
+            // disablePastDates={true} // Disable ngày quá khứ cho hotel bookings
             onDateSelect={(e) => {
               form.setValue(`lodging.${index}.checkIn`, e.from);
               form.setValue(`lodging.${index}.checkOut`, e.to);
@@ -2906,6 +3022,74 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                 }
                 itemExpand={
                   <div className="flex flex-col gap-4">
+                    {/* Hiển thị cảnh báo về những ngày chưa có khách sạn */}
+                    {(() => {
+                      // Chỉ hiển thị nếu đã có ngày bắt đầu và kết thúc
+                      const startDate = form.getValues("startDate");
+                      const endDate = form.getValues("endDate");
+
+                      if (startDate && endDate) {
+                        const missingDates = getMissingHotelDates(
+                          new Date(startDate),
+                          new Date(endDate)
+                        );
+
+                        if (missingDates.length > 0) {
+                          return (
+                            <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-4">
+                              <div className="flex">
+                                <div className="flex-shrink-0">
+                                  <svg
+                                    className="h-5 w-5 text-red-400"
+                                    viewBox="0 0 20 20"
+                                    fill="currentColor"
+                                  >
+                                    <path
+                                      fillRule="evenodd"
+                                      d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                                      clipRule="evenodd"
+                                    />
+                                  </svg>
+                                </div>
+                                <div className="ml-3">
+                                  <p className="text-sm text-red-700">
+                                    <strong>Cảnh báo:</strong> Chuyến đi của bạn
+                                    có {missingDates.length} ngày chưa có chỗ ở.
+                                  </p>
+                                  <div className="mt-2 text-sm">
+                                    <ul className="list-disc pl-5 space-y-1">
+                                      {missingDates
+                                        .slice(0, 3)
+                                        .map((date, idx) => (
+                                          <li
+                                            key={idx}
+                                            className="text-red-600"
+                                          >
+                                            {moment(date).format("DD/MM/YYYY")}{" "}
+                                            ({moment(date).format("dddd")})
+                                          </li>
+                                        ))}
+                                      {missingDates.length > 3 && (
+                                        <li className="text-red-600">
+                                          ...và {missingDates.length - 3} ngày
+                                          khác
+                                        </li>
+                                      )}
+                                    </ul>
+                                  </div>
+                                  <p className="text-sm mt-2 text-red-700">
+                                    Hãy thêm khách sạn/chỗ nghỉ cho tất cả các
+                                    ngày trong chuyến đi.
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
+                      }
+
+                      return null;
+                    })()}
                     {/* {showAddHotel ? (
                       <LodgingSearch
                         size="large"
