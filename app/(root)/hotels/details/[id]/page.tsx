@@ -9,6 +9,7 @@ import { Check } from "lucide-react";
 import { CalendarDatePicker } from "@/components/calendar-date-picker";
 import Availability from "@/components/Availability";
 import "./style.css";
+import Map from "@/components/Map";
 
 interface HotelDetails {}
 const HotelDetail = async ({ params, searchParams }: RouteParams) => {
@@ -103,7 +104,25 @@ const HotelDetail = async ({ params, searchParams }: RouteParams) => {
           Location
         </h1>
         <div className="flex gap-4 mt-2">
-          <div className="flex-1 bg-blue-200 rounded-lg">Map</div>
+          <div className="flex-1 bg-blue-200 rounded-lg h-[350px]">
+            <Map 
+              destination={{
+                coordinates: [
+                  data?.hotel?.original_hotel?.location?.longitude || 0,
+                  data?.hotel?.original_hotel?.location?.latitude || 0
+                ],
+                name: data?.hotel?.original_hotel?.name || "Hotel Location"
+              }}
+              hotels={[]}
+              nearbyPlaces={data?.hotel?.details?.data?.nearbyAttractions?.map((place: any) => ({
+                name: place.name,
+                coordinates: [place.longitude, place.latitude],
+                distance: place.distanceInKm || place.distance,
+                placeType: "attraction"
+              })) || []}
+              className="h-[400px] w-full"
+            />
+          </div>
           <div className="w-[30%] flex flex-col gap-2">
             <p>{data?.hotel?.details?.data?.address}</p>
             <h2 className="font-bold text-[16px] text-[#2c365d] leading-none mt-2">
@@ -111,7 +130,12 @@ const HotelDetail = async ({ params, searchParams }: RouteParams) => {
             </h2>
             {data?.hotel?.details?.data?.nearbyAttractions?.map(
               (place: any, index: number) => (
-                <p key={place?.name + index}> {place?.name}</p>
+                <p key={place?.name + index} className="flex items-center gap-1">
+                  <span className="text-sm text-blue-600">📍</span> {place?.name}
+                  {place?.distanceInKm && <span className="text-xs text-gray-500 ml-1">
+                    ({place.distanceInKm.toFixed(1)} km)
+                  </span>}
+                </p>
               )
             )}
           </div>
@@ -125,6 +149,17 @@ const HotelDetail = async ({ params, searchParams }: RouteParams) => {
           <Availability data={data} />
         </div>
       </section>
+
+      {/* Log hotel data for debugging */}
+      {/* {process.env.NODE_ENV === 'development' && (
+        <div className="hidden">
+          {console.log('Hotel data for Map:', {
+            original_hotel: data?.hotel?.original_hotel,
+            details: data?.hotel?.details?.data?.location,
+            offers: data?.hotel?.offers
+          })}
+        </div>
+      )} */}
       <section>
         <h1 className="font-bold text-[24px] mb-[16px] text-[#2c365d] leading-none">
           Reviews

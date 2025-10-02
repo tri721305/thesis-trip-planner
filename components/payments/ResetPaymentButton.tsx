@@ -28,13 +28,14 @@ export default function ResetPaymentButton({
         throw new Error(data.error || "Failed to reset payment");
       }
 
-      toast.success("Payment has been reset to pending state. You can now retry payment.");
-      
+      toast.success(
+        "Payment has been reset to pending state. You can now retry payment."
+      );
+
       // Reload the page after a short delay to show the updated state
       setTimeout(() => {
         window.location.reload();
       }, 1500);
-      
     } catch (error: any) {
       toast.error(error.message || "Failed to reset payment");
     } finally {

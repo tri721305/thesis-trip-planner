@@ -23,13 +23,15 @@ export async function resetProcessingPayment(
 
     // Only allow resetting payments that are in processing state
     if (payment.status !== "processing") {
-      throw new Error(`Payment is not in processing state, current state: ${payment.status}`);
+      throw new Error(
+        `Payment is not in processing state, current state: ${payment.status}`
+      );
     }
 
     // Reset payment to pending state
     payment.status = "pending";
     payment.updatedAt = new Date();
-    
+
     // Add a note about the reset
     if (payment.notes) {
       payment.notes += `\nPayment reset from processing to pending state on ${new Date().toISOString()}`;
@@ -38,7 +40,7 @@ export async function resetProcessingPayment(
     }
 
     // If we have retryCount, increment it
-    if (typeof payment.retryCount === 'number') {
+    if (typeof payment.retryCount === "number") {
       payment.retryCount += 1;
     } else {
       payment.retryCount = 1;

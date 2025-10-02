@@ -120,9 +120,12 @@ export async function POST(req: NextRequest) {
   }
 }
 
-async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent, session: mongoose.ClientSession) {
+async function handlePaymentSucceeded(
+  paymentIntent: Stripe.PaymentIntent,
+  session: mongoose.ClientSession
+) {
   console.log("💰 Payment succeeded:", paymentIntent.id);
-  
+
   // Try multiple methods to find the payment
   // 1. First try by paymentIntentId
   let payment = await Payment.findOne(
@@ -130,35 +133,47 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent, sessi
     null,
     { session }
   );
-  
+
   // 2. If not found, try using metadata
   if (!payment && paymentIntent.metadata?.paymentId) {
-    console.log(`Searching by paymentId from metadata: ${paymentIntent.metadata.paymentId}`);
-    payment = await Payment.findOne({ paymentId: paymentIntent.metadata.paymentId }, null, { session });
+    console.log(
+      `Searching by paymentId from metadata: ${paymentIntent.metadata.paymentId}`
+    );
+    payment = await Payment.findOne(
+      { paymentId: paymentIntent.metadata.paymentId },
+      null,
+      { session }
+    );
   }
-  
+
   // 3. If still not found, try finding by bookingId
   if (!payment && paymentIntent.metadata?.bookingId) {
-    console.log(`Searching by bookingId from metadata: ${paymentIntent.metadata.bookingId}`);
+    console.log(
+      `Searching by bookingId from metadata: ${paymentIntent.metadata.bookingId}`
+    );
     const booking = await HotelBooking.findOne(
       { bookingId: paymentIntent.metadata.bookingId },
       null,
       { session }
     );
-    
+
     if (booking && booking.paymentId) {
       payment = await Payment.findById(booking.paymentId, null, { session });
     }
   }
 
   if (!payment) {
-    console.error(`❌ Payment not found for PaymentIntent: ${paymentIntent.id}`);
+    console.error(
+      `❌ Payment not found for PaymentIntent: ${paymentIntent.id}`
+    );
     return;
   }
-  
+
   // Check if payment is already marked as succeeded to prevent duplicate processing
   if (payment.status === "succeeded") {
-    console.log(`Payment ${payment.paymentId} already marked as succeeded. Skipping update.`);
+    console.log(
+      `Payment ${payment.paymentId} already marked as succeeded. Skipping update.`
+    );
     return;
   }
 
@@ -176,7 +191,9 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent, sessi
   await payment.save({ session });
 
   // Update booking payment status
-  const booking = await HotelBooking.findById(payment.bookingId, null, { session });
+  const booking = await HotelBooking.findById(payment.bookingId, null, {
+    session,
+  });
   if (booking) {
     booking.paymentStatus = "paid";
     booking.status = "confirmed"; // Auto-confirm booking when payment succeeds
@@ -186,12 +203,15 @@ async function handlePaymentSucceeded(paymentIntent: Stripe.PaymentIntent, sessi
   }
 
   console.log(`✅ Payment ${payment.paymentId} marked as succeeded`);
-  
+
   // Revalidate path to update UI
   revalidatePath("/bookings");
 }
 
-async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent, session: mongoose.ClientSession) {
+async function handlePaymentFailed(
+  paymentIntent: Stripe.PaymentIntent,
+  session: mongoose.ClientSession
+) {
   console.log("❌ Payment failed:", paymentIntent.id);
 
   // Same multi-method search as in handlePaymentSucceeded
@@ -200,31 +220,39 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent, session:
     null,
     { session }
   );
-  
+
   if (!payment && paymentIntent.metadata?.paymentId) {
-    payment = await Payment.findOne({ paymentId: paymentIntent.metadata.paymentId }, null, { session });
+    payment = await Payment.findOne(
+      { paymentId: paymentIntent.metadata.paymentId },
+      null,
+      { session }
+    );
   }
-  
+
   if (!payment && paymentIntent.metadata?.bookingId) {
     const booking = await HotelBooking.findOne(
       { bookingId: paymentIntent.metadata.bookingId },
-      null, 
+      null,
       { session }
     );
-    
+
     if (booking && booking.paymentId) {
       payment = await Payment.findById(booking.paymentId, null, { session });
     }
   }
 
   if (!payment) {
-    console.error(`❌ Payment not found for PaymentIntent: ${paymentIntent.id}`);
+    console.error(
+      `❌ Payment not found for PaymentIntent: ${paymentIntent.id}`
+    );
     return;
   }
-  
+
   // Check if payment is already marked as failed to prevent duplicate processing
   if (payment.status === "failed") {
-    console.log(`Payment ${payment.paymentId} already marked as failed. Skipping update.`);
+    console.log(
+      `Payment ${payment.paymentId} already marked as failed. Skipping update.`
+    );
     return;
   }
 
@@ -243,19 +271,24 @@ async function handlePaymentFailed(paymentIntent: Stripe.PaymentIntent, session:
   await payment.save({ session });
 
   // Update booking payment status
-  const booking = await HotelBooking.findById(payment.bookingId, null, { session });
+  const booking = await HotelBooking.findById(payment.bookingId, null, {
+    session,
+  });
   if (booking) {
     booking.paymentStatus = "failed";
     await booking.save({ session });
   }
 
   console.log(`❌ Payment ${payment.paymentId} marked as failed`);
-  
+
   // Revalidate path to update UI
   revalidatePath("/bookings");
 }
 
-async function handleChargeDispute(dispute: Stripe.Dispute, session: mongoose.ClientSession) {
+async function handleChargeDispute(
+  dispute: Stripe.Dispute,
+  session: mongoose.ClientSession
+) {
   console.log("⚠️ Charge dispute created:", dispute.id);
 
   // Find the charge that was disputed
@@ -266,8 +299,12 @@ async function handleChargeDispute(dispute: Stripe.Dispute, session: mongoose.Cl
   }
 
   // Find payment by chargeId
-  const payment = await Payment.findOne({ "stripeInfo.chargeId": chargeId }, null, { session });
-  
+  const payment = await Payment.findOne(
+    { "stripeInfo.chargeId": chargeId },
+    null,
+    { session }
+  );
+
   if (!payment) {
     console.error(`❌ Payment not found for charge: ${chargeId}`);
     return;
@@ -277,22 +314,22 @@ async function handleChargeDispute(dispute: Stripe.Dispute, session: mongoose.Cl
   if (!payment.stripeInfo) {
     payment.stripeInfo = {};
   }
-  
+
   // Create a notes entry about the dispute
   const disputeNote = `Dispute created: ${dispute.id}. Reason: ${dispute.reason}. Status: ${dispute.status}`;
-  
+
   if (payment.notes) {
     payment.notes += `\n${disputeNote}`;
   } else {
     payment.notes = disputeNote;
   }
-  
+
   await payment.save({ session });
-  
+
   // TODO: Implement more comprehensive dispute handling
   // - Flag the booking for admin review
   // - Send notification to admin
   // - Update booking status if necessary
-  
+
   console.log(`⚠️ Added dispute information to payment ${payment.paymentId}`);
 }
