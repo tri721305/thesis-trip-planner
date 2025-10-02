@@ -2,16 +2,25 @@ import React from "react";
 import { Button } from "../ui/button";
 import { Plus } from "lucide-react";
 import { getPlannerByUserId } from "@/lib/actions/planner.action";
+import { getGuideByUserId } from "@/lib/actions/guide.action";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import moment from "moment";
 import { GoKebabHorizontal } from "react-icons/go";
+import Link from "next/link";
 const MyGuideAndPlan = async () => {
-  const { data: planners, success } = await getPlannerByUserId({
+  const { data: planners, success: plannerSuccess } = await getPlannerByUserId({
     limit: 5,
     sortBy: "createdAt",
     sortOrder: "desc",
   });
-  if (!success) {
+
+  const { data: guidesData, success: guidesSuccess } = await getGuideByUserId({
+    limit: 5,
+    sortBy: "createdAt",
+    sortOrder: "desc",
+  });
+
+  if (!plannerSuccess) {
     return;
   }
   console.log("planners", planners);
@@ -20,16 +29,19 @@ const MyGuideAndPlan = async () => {
       <div className="flex-1 rounded-lg p-4 px-6 bg-gray-100">
         <div className="flex justify-between pb-4 items-center">
           <h1 className="text-2xl font-bold">Your Trips</h1>
-          <Button>
-            <Plus /> Plan new trip
+          <Button asChild>
+            <Link href="/planners/create">
+              <Plus className="mr-1" /> Plan new trip
+            </Link>
           </Button>
         </div>
         <div className="flex flex-col gap-2">
           {planners?.planners?.map((plan: any, index) => {
             return (
-              <div
+              <Link
+                href={`/planners/${plan?._id}`}
                 key={plan?._id}
-                className="flex gap-4 pr-4 items-center cursor-pointer"
+                className="flex gap-4 pr-4 items-center cursor-pointer hover:bg-gray-200 p-2 rounded-lg"
               >
                 <div className="rounded-lg flex w-[80px] h-[80px] overflow-hidden">
                   {/* <img
@@ -76,20 +88,87 @@ const MyGuideAndPlan = async () => {
                     <GoKebabHorizontal />
                   </Button>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>
       </div>
       <div className="flex-1 rounded-lg p-4 px-6 bg-gray-100">
-        <div className="flex justify-between items-center">
-          Your Guides
-          <Button>
-            <Plus />
-            Create new guide
+        <div className="flex justify-between pb-4 items-center">
+          <h1 className="text-2xl font-bold">Your Guides</h1>
+          <Button asChild>
+            <Link href="/guides/create">
+              <Plus className="mr-1" /> Create new guide
+            </Link>
           </Button>
         </div>
-        <div>List Plan</div>
+        <div className="flex flex-col gap-2">
+          {guidesSuccess &&
+            guidesData?.guides?.map((guide: any) => (
+              <Link
+                href={`/guides/${guide._id}`}
+                key={guide._id}
+                className="flex gap-4 pr-4 items-center cursor-pointer hover:bg-gray-200 p-2 rounded-lg"
+              >
+                <div className="rounded-lg flex w-[80px] h-[80px] overflow-hidden">
+                  <Avatar className="w-[80px] h-[80px] rounded-lg">
+                    <AvatarImage
+                      src={guide?.image}
+                      alt={guide?.title || "Guide image"}
+                      className="w-full h-full object-cover rounded-lg"
+                    />
+                    <AvatarFallback className="rounded-lg bg-gradient-to-br from-green-400 to-blue-500 text-white font-bold text-xl">
+                      {guide?.title ? guide?.title[0]?.toUpperCase() : "🗺️"}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+                <div>
+                  <h1 className="text-xl font-bold">{guide?.title}</h1>
+                  <div className="flex items-center gap-2">
+                    <div className="text-sm">
+                      <span className="font-medium">
+                        {guide?.destination?.name || "Unknown location"}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span>
+                          {guide.state === "planning"
+                            ? "Planning"
+                            : guide.state === "ongoing"
+                              ? "Ongoing"
+                              : guide.state === "completed"
+                                ? "Completed"
+                                : "Cancelled"}
+                        </span>
+                        {guide.startDate && guide.endDate && <span>•</span>}
+                        {guide.startDate && guide.endDate && (
+                          <span>
+                            {moment(guide?.startDate).format("DD MMM")} -{" "}
+                            {moment(guide?.endDate).format("DD MMM")}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-1 justify-end">
+                  <Button className="" size={"icon"} variant="ghost">
+                    <GoKebabHorizontal />
+                  </Button>
+                </div>
+              </Link>
+            ))}
+
+          {guidesSuccess && guidesData?.guides?.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              <p>You haven't created any guides yet</p>
+              <Button variant="outline" className="mt-4" asChild>
+                <Link href="/guides/create">
+                  <Plus className="mr-2" /> Create your first guide
+                </Link>
+              </Button>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

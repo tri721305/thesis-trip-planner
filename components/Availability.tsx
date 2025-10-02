@@ -65,6 +65,7 @@ const Availability = ({ data }: { data: any }) => {
 
   // Sử dụng useRef để theo dõi các trạng thái mà không gây re-render
   const toastShown = useRef(false);
+  const autoCheckExecuted = useRef(false);
   const prevDatesRef = useRef({
     from: selectedDates.from,
     to: selectedDates.to,
@@ -128,7 +129,6 @@ const Availability = ({ data }: { data: any }) => {
       if (result.success && result.data) {
         try {
           // Sử dụng cách đảm bảo an toàn hơn khi cập nhật state
-          // Tạo một object mới hoàn toàn thay vì clone đối tượng cũ
           if (offers?.offers?.data) {
             // Lọc và xử lý danh sách phòng một cách an toàn
             const processedRooms = result.data.availableRooms
@@ -171,10 +171,7 @@ const Availability = ({ data }: { data: any }) => {
               },
             };
 
-            // Cập nhật state một lần duy nhất
-            setOffers(newOffers);
-
-            // Cập nhật trạng thái có phòng khả dụng hay không
+            // Cập nhật trạng thái có phòng khả dụng hay không trước khi cập nhật offers
             const hasAvailableRooms = processedRooms.some(
               (room) => room.isAvailable
             );
@@ -187,8 +184,15 @@ const Availability = ({ data }: { data: any }) => {
             };
             prevTravelerInfoRef.current = { ...travelerInfo };
 
-            // Đánh dấu đã kiểm tra
+            // Đánh dấu đã kiểm tra và đảm bảo autoCheckExecuted cũng được đánh dấu
+            // để tránh kiểm tra lại tự động
             initialCheckDone.current = true;
+            if (typeof autoCheckExecuted !== "undefined") {
+              autoCheckExecuted.current = true;
+            }
+
+            // Cập nhật state một lần duy nhất sau khi các tham chiếu đã được cập nhật
+            setOffers(newOffers);
           }
         } catch (jsonError) {
           console.error("Error processing room data:", jsonError);
@@ -236,6 +240,15 @@ const Availability = ({ data }: { data: any }) => {
     const adults = url.searchParams.get("adults");
     const children = url.searchParams.get("children");
 
+    console.log("URL parameters detected:", {
+      checkIn,
+      checkOut,
+      rooms,
+      adults,
+      children,
+    });
+    let hasUrlParams = false;
+
     // Cập nhật ngày đặt phòng nếu có trong URL
     if (checkIn && checkOut) {
       try {
@@ -244,10 +257,15 @@ const Availability = ({ data }: { data: any }) => {
 
         // Kiểm tra xem ngày có hợp lệ không
         if (!isNaN(checkInDate.getTime()) && !isNaN(checkOutDate.getTime())) {
+          console.log("Setting dates from URL parameters:", {
+            checkInDate,
+            checkOutDate,
+          });
           setSelectedDates({
             from: checkInDate,
             to: checkOutDate,
           });
+          hasUrlParams = true;
         }
       } catch (error) {
         console.error("Error parsing date from URL parameters:", error);
@@ -258,20 +276,34 @@ const Availability = ({ data }: { data: any }) => {
     const travelerUpdates: any = {};
     if (rooms && !isNaN(Number(rooms))) {
       travelerUpdates.rooms = Number(rooms);
+      hasUrlParams = true;
     }
     if (adults && !isNaN(Number(adults))) {
       travelerUpdates.adults = Number(adults);
+      hasUrlParams = true;
     }
     if (children && !isNaN(Number(children))) {
       travelerUpdates.children = Number(children);
+      hasUrlParams = true;
     }
 
     // Chỉ cập nhật nếu có ít nhất một thông tin
     if (Object.keys(travelerUpdates).length > 0) {
+      console.log(
+        "Setting traveler info from URL parameters:",
+        travelerUpdates
+      );
       setTravelerInfo((prevState) => ({
         ...prevState,
         ...travelerUpdates,
       }));
+    }
+
+    // Đánh dấu nếu có tham số URL để biết cần tự động kiểm tra phòng
+    if (hasUrlParams) {
+      console.log(
+        "URL parameters found, will trigger auto-check for room availability"
+      );
     }
   }, []); // Chỉ chạy một lần khi component mount
 
@@ -280,28 +312,55 @@ const Availability = ({ data }: { data: any }) => {
     handleGetHotelOffer();
   }, [handleGetHotelOffer]); // Đã dùng useCallback nên không cần lo lắng về re-render
 
-  // Chỉ chạy một lần khi component được mount
+  // Auto-check room availability only once after initial data load or when URL parameters change
   useEffect(() => {
-    // Chỉ chạy một lần duy nhất khi component mount
-    if (isFirstRender.current) {
-      isFirstRender.current = false;
+    // Đảm bảo có dữ liệu cần thiết trước khi kiểm tra và chưa thực hiện kiểm tra tự động
+    if (
+      offers?.offers?.data &&
+      selectedDates.from &&
+      selectedDates.to &&
+      data?.hotel?.hotel_id &&
+      !autoCheckExecuted.current
+    ) {
+      console.log("Data available for auto-checking rooms:", {
+        hotelId: data?.hotel?.hotel_id,
+        checkIn: selectedDates.from.toISOString(),
+        checkOut: selectedDates.to.toISOString(),
+        rooms: travelerInfo.rooms,
+        adults: travelerInfo.adults,
+        children: travelerInfo.children,
+      });
 
-      // Đợi một chút cho dữ liệu offers load xong
+      // Đánh dấu đã thực hiện kiểm tra tự động
+      autoCheckExecuted.current = true;
+
+      // Sử dụng setTimeout để đảm bảo React đã render UI hoàn chỉnh trước
       const timer = setTimeout(() => {
-        if (
-          offers &&
-          selectedDates.from &&
-          selectedDates.to &&
-          !initialCheckDone.current
-        ) {
-          initialCheckDone.current = true;
-          checkAvailableRooms();
-        }
+        console.log("Auto-executing room availability check");
+        checkAvailableRooms();
       }, 500);
 
       return () => clearTimeout(timer);
+    } else {
+      console.log(
+        "Cannot auto-check rooms, missing required data or already executed:",
+        {
+          hasOffers: !!offers?.offers?.data,
+          hasHotelId: !!data?.hotel?.hotel_id,
+          hasSelectedDates: !!(selectedDates.from && selectedDates.to),
+          alreadyExecuted: autoCheckExecuted.current,
+        }
+      );
     }
-  }, [offers]); // Chỉ phụ thuộc vào offers để tránh infinite loop
+  }, [
+    offers,
+    data?.hotel?.hotel_id,
+    selectedDates.from,
+    selectedDates.to,
+    travelerInfo.rooms,
+    travelerInfo.adults,
+    travelerInfo.children,
+  ]);
 
   // Theo dõi thay đổi ngày và số người để hiển thị thông báo
   // Sử dụng useCallback để tối ưu hóa callback
@@ -707,7 +766,9 @@ const Availability = ({ data }: { data: any }) => {
 
       // Delay slightly to show toast
       setTimeout(() => {
-        router.push(`/stripe-simple-test?booking=${bookingId}`);
+        router.push(
+          `/stripe-simple-test?booking=${bookingId}&redirectUrl=${encodeURIComponent(`/bookings/stats?bookingId=${bookingId}&success=true`)}`
+        );
       }, 1500);
     } catch (error: any) {
       console.error("Booking error:", error);
@@ -741,7 +802,7 @@ const Availability = ({ data }: { data: any }) => {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex gap-2">
+      <div className="flex items-end gap-2">
         <div>
           <Label className="font-bold">Checkin - Checkout</Label>
           <CalendarDatePicker
@@ -838,17 +899,24 @@ const Availability = ({ data }: { data: any }) => {
             </PopoverContent>
           </Popover>
         </div>
+        <Button
+          className="bg-primary-500 h-[56px] hover:bg-orange-500 text-white"
+          onClick={checkAvailableRooms}
+          disabled={isLoading || !selectedDates.from || !selectedDates.to}
+        >
+          {isLoading ? "Checking Availability..." : "Check Available Rooms"}
+        </Button>
       </div>
       <div className="flex flex-col gap-2">
         {/* Button để kiểm tra phòng khả dụng */}
         <div className="flex justify-between items-center mb-2">
-          <Button
+          {/* <Button
             className="bg-primary-500 hover:bg-orange-500 text-white"
             onClick={checkAvailableRooms}
             disabled={isLoading || !selectedDates.from || !selectedDates.to}
           >
             {isLoading ? "Checking Availability..." : "Check Available Rooms"}
-          </Button>
+          </Button> */}
 
           {/* Hiển thị số lượng phòng khả dụng */}
           {!isLoading && availableRooms.length > 0 && (

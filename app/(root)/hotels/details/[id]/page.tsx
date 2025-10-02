@@ -179,31 +179,12 @@ const HotelDetail = async ({ params, searchParams }: RouteParams) => {
           Availability
         </h1>
         <div className="">
-          <Availability data={data} />
+          <Availability data={data} autoCheckAvailability={true} />
         </div>
       </section>
 
       {/* Log hotel data for debugging */}
-      {process.env.NODE_ENV === "development" && (
-        <div className="hidden">
-          {console.log("Hotel data for Map:", {
-            original_hotel: data?.hotel?.original_hotel,
-            details_location: data?.hotel?.details?.data?.location,
-            details_data: data?.hotel?.details?.data,
-            coordinates_used: [
-              data?.hotel?.original_hotel?.location?.longitude ||
-                data?.hotel?.details?.data?.location?.coordinates?.[0] ||
-                data?.hotel?.details?.data?.longitude ||
-                106.6297,
-              data?.hotel?.original_hotel?.location?.latitude ||
-                data?.hotel?.details?.data?.location?.coordinates?.[1] ||
-                data?.hotel?.details?.data?.latitude ||
-                10.8231,
-            ],
-            offers: data?.hotel?.offers,
-          })}
-        </div>
-      )}
+
       <section>
         <h1 className="font-bold text-[24px] mb-[16px] text-[#2c365d] leading-none">
           Reviews

@@ -686,3 +686,89 @@ export async function incrementGuideViews(
     return handleError(error) as ErrorResponse;
   }
 }
+
+/**
+ * Get guides created by a user
+ * @param params - Parameters for fetching user guides
+ * @returns List of guides created by the user
+ */
+export async function getGuideByUserId(params?: {
+  limit?: number;
+  page?: number;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  state?: "planning" | "ongoing" | "completed" | "cancelled";
+}): Promise<
+  ActionResponse<{ guides: any[]; isNext: boolean; totalCount: number }>
+> {
+  const validationResult = await action({
+    params: {},
+    authorize: true,
+  });
+
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  const userId = validationResult?.session?.user?.id;
+
+  if (!userId) {
+    return handleError(new Error("User not authenticated")) as ErrorResponse;
+  }
+
+  const {
+    limit = 10,
+    page = 1,
+    sortBy = "createdAt",
+    sortOrder = "desc",
+    state,
+  } = params || {};
+
+  try {
+    // Build query to find guides authored by the user
+    const query: any = {
+      author: new mongoose.Types.ObjectId(userId),
+    };
+
+    // Add state filter if provided
+    if (state) {
+      query.state = state;
+    }
+
+    // Set up pagination
+    const skipAmount = (page - 1) * limit;
+
+    // Sort options
+    const sortOptions: Record<string, 1 | -1> = {};
+    sortOptions[sortBy] = sortOrder === "asc" ? 1 : -1;
+
+    // Get total count for pagination
+    const totalCount = await Guide.countDocuments(query);
+
+    // Fetch guides
+    const guides = await Guide.find(query)
+      .sort(sortOptions)
+      .skip(skipAmount)
+      .limit(limit)
+      .populate({
+        path: "author",
+        model: "User",
+        select: "username image name",
+      });
+
+    // Check if there are more guides
+    const isNext = totalCount > skipAmount + guides.length;
+
+    return {
+      success: true,
+      data: {
+        guides: JSON.parse(JSON.stringify(guides)),
+        isNext,
+        totalCount,
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching user guides:", error);
+    return handleError(error) as ErrorResponse;
+  }
+}

@@ -55,11 +55,21 @@ function SimpleCheckoutForm({
 
     setIsLoading(true);
 
+    // Lấy redirectUrl từ URL (nếu có)
+    const urlParams = new URLSearchParams(window.location.search);
+    const redirectUrl = urlParams.get("redirectUrl");
+
+    // Xây dựng URL return có chứa redirectUrl
+    let returnUrl = window.location.origin + "/stripe-simple-test";
+    if (redirectUrl) {
+      returnUrl += `?redirectUrl=${encodeURIComponent(redirectUrl)}`;
+    }
+
     const { error, paymentIntent } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        // URL trở về sau khi thanh toán (có thể là trang hiện tại)
-        return_url: window.location.origin + "/stripe-simple-test",
+        // URL trở về sau khi thanh toán với tham số redirectUrl
+        return_url: returnUrl,
       },
       redirect: "if_required",
     });
@@ -87,6 +97,22 @@ function SimpleCheckoutForm({
             );
           } else if (updateResult.success) {
             setUpdateStatus("Payment status updated successfully in database!");
+
+            // Kiểm tra xem có URL chuyển hướng không và chuyển hướng sau khi thanh toán thành công
+            const urlParams = new URLSearchParams(window.location.search);
+            const redirectUrl = urlParams.get("redirectUrl");
+
+            if (redirectUrl) {
+              // Hiển thị thông báo chuyển hướng
+              setUpdateStatus(
+                "Payment successful! Redirecting to booking details..."
+              );
+
+              // Chuyển hướng sau 2 giây
+              setTimeout(() => {
+                window.location.href = redirectUrl;
+              }, 2000);
+            }
           } else {
             const errorMsg =
               typeof updateResult.error === "object"
@@ -129,7 +155,7 @@ function SimpleCheckoutForm({
       )}
 
       <Button type="submit" disabled={!stripe || isLoading} className="w-full">
-        {isLoading ? "Đang xử lý..." : "Thanh toán"}
+        {isLoading ? "Paying..." : "Pay"}
       </Button>
     </form>
   );
@@ -145,10 +171,22 @@ export default function StripeSimpleTestPage() {
   const [bookingData, setBookingData] = useState<any>(null);
   const [isLoadingBooking, setIsLoadingBooking] = useState(false);
 
-  // Check for booking ID in URL when component mounts and fetch booking data
+  // Check for booking ID and redirect URL in URL when component mounts and fetch booking data
   React.useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const bookingParam = urlParams.get("booking");
+    const redirectParam = urlParams.get("redirectUrl");
+
+    // Kiểm tra PaymentIntent từ Stripe khi quay lại
+    const paymentIntent = urlParams.get("payment_intent");
+    const paymentIntentStatus = urlParams.get("redirect_status");
+
+    // Nếu đây là redirect từ Stripe và thanh toán thành công
+    if (paymentIntent && paymentIntentStatus === "succeeded" && redirectParam) {
+      window.location.href = redirectParam;
+      return;
+    }
+
     if (bookingParam) {
       setBookingId(bookingParam);
 

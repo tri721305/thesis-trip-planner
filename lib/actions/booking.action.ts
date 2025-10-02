@@ -243,6 +243,36 @@ export async function getHotelBookings(params: GetHotelBookingsParams): Promise<
 }
 
 /**
+ * Get all bookings for a user without pagination
+ */
+export async function getUserBookings(params: {
+  userId: string;
+}): Promise<ActionResponse<HotelBooking[]>> {
+  try {
+    if (!params.userId) {
+      throw new Error("User ID is required");
+    }
+
+    await dbConnect();
+
+    const bookings = await HotelBooking.find({ userId: params.userId })
+      .sort({ createdAt: -1 })
+      .populate("paymentId");
+
+    // Convert to plain JavaScript objects to avoid any serialization issues
+    const plainBookings = JSON.parse(JSON.stringify(bookings));
+
+    return {
+      success: true,
+      data: plainBookings,
+    };
+  } catch (error) {
+    console.error("Error in getUserBookings:", error);
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+/**
  * Get booking by ID
  */
 export async function getBookingById(
@@ -264,6 +294,74 @@ export async function getBookingById(
       data: booking,
     };
   } catch (error) {
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+/**
+ * Get hotel booking by ID for details page
+ */
+export async function getHotelBookingById(
+  bookingId: string
+): Promise<ActionResponse<HotelBooking>> {
+  try {
+    console.log("getHotelBookingById called with ID:", bookingId);
+    if (!bookingId) {
+      console.error("getHotelBookingById: No booking ID provided");
+      throw new Error("Booking ID is required");
+    }
+
+    await dbConnect();
+    console.log("MongoDB connection established");
+
+    // Tìm kiếm booking bằng bookingId (chuỗi)
+    console.log("Searching for booking with ID:", bookingId);
+    const booking = await HotelBooking.findOne({ bookingId })
+      .populate("userId", "name email image")
+      .populate("paymentId");
+
+    console.log("Booking search result:", booking ? "Found" : "Not found");
+
+    if (!booking) {
+      // Thử tìm bằng _id nếu không tìm thấy bằng bookingId
+      console.log(
+        "Booking not found by bookingId, trying alternative search methods"
+      );
+
+      let alternativeBooking = null;
+
+      // Kiểm tra nếu bookingId có thể là ObjectId
+      if (bookingId.match(/^[0-9a-fA-F]{24}$/)) {
+        console.log(
+          "bookingId looks like an ObjectId, trying to search by _id"
+        );
+        alternativeBooking = await HotelBooking.findById(bookingId)
+          .populate("userId", "name email image")
+          .populate("paymentId");
+      }
+
+      if (!alternativeBooking) {
+        console.error("Booking not found by any search method");
+        throw new Error(`Booking not found with ID: ${bookingId}`);
+      }
+
+      console.log("Booking found by alternative method");
+      return {
+        success: true,
+        data: alternativeBooking,
+      };
+    }
+
+    // Convert to a plain JavaScript object to avoid any serialization issues
+    const plainBooking = JSON.parse(JSON.stringify(booking));
+
+    console.log("Successfully returning booking data");
+    return {
+      success: true,
+      data: plainBooking,
+    };
+  } catch (error) {
+    console.error("Error in getHotelBookingById:", error);
     return handleError(error) as ErrorResponse;
   }
 }
