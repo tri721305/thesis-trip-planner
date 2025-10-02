@@ -373,7 +373,7 @@ export default function StripeSimpleTestPage() {
         </CardContent>
 
         <CardFooter className="text-xs text-gray-500">
-          <p>This is a simple test for Stripe integration.</p>
+          {/* <p>This is a simple test for Stripe integration.</p> */}
         </CardFooter>
       </Card>
     </div>

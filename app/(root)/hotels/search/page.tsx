@@ -57,9 +57,11 @@ const HotelSearchPage = () => {
       setIsLoading(true);
       setError(null);
 
-      // Nếu có offerId, chuyển hướng đến trang chi tiết sử dụng router
+      // Nếu có offerId, chuyển hướng đến trang chi tiết sử dụng router và truyền thông tin check-in/check-out
       if (offerId) {
-        router.push(`/hotels/details/offer-${offerId}`);
+        router.push(
+          `/hotels/details/offer-${offerId}?checkIn=${selectedDateRange.from.toISOString()}&checkOut=${selectedDateRange.to.toISOString()}&rooms=${roomCount}&adults=${adults}&children=${children}`
+        );
         return;
       }
 
@@ -656,7 +658,9 @@ const HotelSearchPage = () => {
                       onClick={() => {
                         if (hotel?.offerId) {
                           saveToRecentlyViewed(hotel, hotel.offerId);
-                          router.push(`/hotels/details/${hotel.offerId}`);
+                          router.push(
+                            `/hotels/details/${hotel.offerId}?checkIn=${selectedDateRange.from.toISOString()}&checkOut=${selectedDateRange.to.toISOString()}&rooms=${roomCount}&adults=${adults}&children=${children}`
+                          );
                         }
                       }}
                     >
@@ -771,7 +775,10 @@ const HotelSearchPage = () => {
                       <span className="text-xs text-gray-500">/ đêm</span>
                       <div className="flex gap-2">
                         {hotel?.offerId ? (
-                          <Link href={`/hotels/details/${hotel.offerId}`} passHref>
+                          <Link
+                            href={`/hotels/details/${hotel.offerId}?checkIn=${selectedDateRange.from.toISOString()}&checkOut=${selectedDateRange.to.toISOString()}&rooms=${roomCount}&adults=${adults}&children=${children}`}
+                            passHref
+                          >
                             <Button
                               variant="outline"
                               className="flex-1 bg-primary-500 hover:bg-primary-600 text-white hover:text-white w-full"

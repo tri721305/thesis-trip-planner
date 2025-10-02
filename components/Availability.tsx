@@ -27,7 +27,9 @@ import BookingConfirmation from "./BookingConfirmation";
 
 const Availability = ({ data }: { data: any }) => {
   console.log("Rendering Availability component with data:", data);
+  const router = useRouter();
 
+  // Lấy tham số từ URL nếu có
   const [offers, setOffers] = useState<any>(null);
   const [selectedDates, setSelectedDates] = useState({
     from: new Date(),
@@ -55,7 +57,6 @@ const Availability = ({ data }: { data: any }) => {
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [selectedOffer, setSelectedOffer] = useState<any>(null);
   const { data: session } = useSession();
-  const router = useRouter();
 
   // State để hiển thị trạng thái khi đang tìm phòng
   const [isLoading, setIsLoading] = useState(false);
@@ -224,6 +225,55 @@ const Availability = ({ data }: { data: any }) => {
   // Sử dụng useRef để theo dõi việc đã kiểm tra hay chưa
   const initialCheckDone = useRef(false);
   const isFirstRender = useRef(true);
+
+  // Đọc tham số URL và thiết lập ngày đặt phòng và thông tin khách
+  useEffect(() => {
+    // Lấy tham số từ URL khi component được mount
+    const url = new URL(window.location.href);
+    const checkIn = url.searchParams.get("checkIn");
+    const checkOut = url.searchParams.get("checkOut");
+    const rooms = url.searchParams.get("rooms");
+    const adults = url.searchParams.get("adults");
+    const children = url.searchParams.get("children");
+
+    // Cập nhật ngày đặt phòng nếu có trong URL
+    if (checkIn && checkOut) {
+      try {
+        const checkInDate = new Date(checkIn);
+        const checkOutDate = new Date(checkOut);
+
+        // Kiểm tra xem ngày có hợp lệ không
+        if (!isNaN(checkInDate.getTime()) && !isNaN(checkOutDate.getTime())) {
+          setSelectedDates({
+            from: checkInDate,
+            to: checkOutDate,
+          });
+        }
+      } catch (error) {
+        console.error("Error parsing date from URL parameters:", error);
+      }
+    }
+
+    // Cập nhật thông tin khách nếu có trong URL
+    const travelerUpdates: any = {};
+    if (rooms && !isNaN(Number(rooms))) {
+      travelerUpdates.rooms = Number(rooms);
+    }
+    if (adults && !isNaN(Number(adults))) {
+      travelerUpdates.adults = Number(adults);
+    }
+    if (children && !isNaN(Number(children))) {
+      travelerUpdates.children = Number(children);
+    }
+
+    // Chỉ cập nhật nếu có ít nhất một thông tin
+    if (Object.keys(travelerUpdates).length > 0) {
+      setTravelerInfo((prevState) => ({
+        ...prevState,
+        ...travelerUpdates,
+      }));
+    }
+  }, []); // Chỉ chạy một lần khi component mount
 
   // Gọi API lấy thông tin khách sạn chỉ một lần khi component mount
   useEffect(() => {
@@ -450,9 +500,16 @@ const Availability = ({ data }: { data: any }) => {
       const bookingResult = await createHotelBooking({
         bookingId: generatedBookingId, // Add bookingId field
         hotelId: hotelIdValue, // Use hotel_id not MongoDB _id
-        hotelName: data.hotel.original_hotel.name,
-        hotelLocation: data.hotel.original_hotel.location,
-        hotelAddress: data.hotel?.details?.data?.address || "",
+        hotelName:
+          data?.hotel?.original_hotel?.name ||
+          data?.hotel?.details?.data?.name ||
+          "Hotel",
+        hotelLocation: data?.hotel?.original_hotel?.location ||
+          data?.hotel?.details?.data?.location || {
+            latitude: 10.8231,
+            longitude: 106.6297,
+          },
+        hotelAddress: data?.hotel?.details?.data?.address || "",
         hotelImages: [
           {
             url:
@@ -550,7 +607,7 @@ const Availability = ({ data }: { data: any }) => {
           email: session.user.email || "guest@example.com",
           phone: "0123456789",
         },
-        description: `Payment for ${selectedOffer.name} at ${data.hotel.original_hotel.name}`,
+        description: `Payment for ${selectedOffer.name} at ${data?.hotel?.original_hotel?.name || data?.hotel?.details?.data?.name || "Hotel"}`,
       });
 
       if (!paymentResult.success) {
@@ -620,7 +677,7 @@ const Availability = ({ data }: { data: any }) => {
         paymentId,
         amount: stripeAmount,
         currency: stripeCurrency,
-        description: `Payment for ${selectedOffer.name || "Room"} at ${data.hotel.original_hotel.name}`,
+        description: `Payment for ${selectedOffer.name || "Room"} at ${data?.hotel?.original_hotel?.name || data?.hotel?.details?.data?.name || "Hotel"}`,
       });
 
       if (!intentResult.success) {
@@ -1063,7 +1120,11 @@ const Availability = ({ data }: { data: any }) => {
           isOpen={showConfirmation}
           onClose={() => setShowConfirmation(false)}
           onConfirm={processBooking}
-          hotelName={data.hotel.original_hotel.name}
+          hotelName={
+            data?.hotel?.original_hotel?.name ||
+            data?.hotel?.details?.data?.name ||
+            "Hotel"
+          }
           roomName={selectedOffer.name || "Standard Room"}
           checkInDate={selectedOffer.checkInDate}
           checkOutDate={selectedOffer.checkOutDate}
