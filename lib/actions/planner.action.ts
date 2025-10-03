@@ -1273,3 +1273,108 @@ export async function updatePlannerImagesFromFormData(
     return handleError(error) as ErrorResponse;
   }
 }
+
+/**
+ * Delete planner by ID
+ * @param params - The planner ID to delete
+ * @returns Success or error response
+ */
+export async function deletePlanner(params: {
+  plannerId: string;
+}): Promise<ActionResponse<void>> {
+  const validationResult = await action({
+    params,
+    authorize: true,
+  });
+
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  const { plannerId } = validationResult.params!;
+  const userId = validationResult?.session?.user?.id;
+
+  try {
+    // Start MongoDB transaction
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      // Check if planner exists and user has permission to delete
+      const existingPlanner =
+        await TravelPlan.findById(plannerId).session(session);
+
+      if (!existingPlanner) {
+        throw new Error("Planner not found");
+      }
+
+      // Only the author can delete the planner
+      const isAuthor = existingPlanner.author.toString() === userId;
+      if (!isAuthor) {
+        throw new Error(
+          "Permission denied: Only the planner author can delete this planner"
+        );
+      }
+
+      // Delete the planner
+      await TravelPlan.findByIdAndDelete(plannerId).session(session);
+
+      // If the planner has images, we could also delete them from S3
+      // This is optional but good for cleaning up storage
+      const imagesToDelete = [];
+      if (existingPlanner.image) {
+        imagesToDelete.push(existingPlanner.image);
+      }
+      if (existingPlanner.images && existingPlanner.images.length > 0) {
+        imagesToDelete.push(...existingPlanner.images);
+      }
+
+      // Check for place images in details
+      if (existingPlanner.details && existingPlanner.details.length > 0) {
+        for (const detail of existingPlanner.details) {
+          if (detail.data && detail.data.length > 0) {
+            for (const item of detail.data) {
+              if (
+                item.type === "place" &&
+                item.images &&
+                item.images.length > 0
+              ) {
+                imagesToDelete.push(...item.images);
+              }
+            }
+          }
+        }
+      }
+
+      // Delete images from S3 if there are any
+      if (imagesToDelete.length > 0) {
+        try {
+          await deleteMultipleImagesFromS3(imagesToDelete);
+          console.log(`Deleted ${imagesToDelete.length} images from S3`);
+        } catch (s3Error) {
+          console.error("Error deleting images from S3:", s3Error);
+          // Continue with transaction even if S3 deletion fails
+        }
+      }
+
+      // Commit transaction
+      await session.commitTransaction();
+      console.log("Planner deleted successfully:", plannerId);
+
+      return {
+        success: true,
+        data: undefined,
+      };
+    } catch (mongoError) {
+      // Rollback MongoDB transaction
+      await session.abortTransaction();
+      console.error("MongoDB transaction failed:", mongoError);
+      throw mongoError;
+    } finally {
+      session.endSession();
+    }
+  } catch (error) {
+    console.error("Error deleting planner:", error);
+    return handleError(error) as ErrorResponse;
+  }
+}

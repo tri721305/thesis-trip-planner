@@ -28,7 +28,12 @@ const MyGuideAndPlan = async () => {
     <div className="px-40 flex gap-2 py-4 ">
       <div className="flex-1 rounded-lg p-4 px-6 bg-gray-100">
         <div className="flex justify-between pb-4 items-center">
-          <h1 className="text-2xl font-bold">Your Trips</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">Your Trips</h1>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/planners/manage">Manage All</Link>
+            </Button>
+          </div>
           <Button asChild>
             <Link href="/planners/create">
               <Plus className="mr-1" /> Plan new trip
@@ -95,7 +100,12 @@ const MyGuideAndPlan = async () => {
       </div>
       <div className="flex-1 rounded-lg p-4 px-6 bg-gray-100">
         <div className="flex justify-between pb-4 items-center">
-          <h1 className="text-2xl font-bold">Your Guides</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-2xl font-bold">Your Guides</h1>
+            <Button variant="outline" size="sm" asChild>
+              <Link href="/guides">Manage All</Link>
+            </Button>
+          </div>
           <Button asChild>
             <Link href="/guides/create">
               <Plus className="mr-1" /> Create new guide
@@ -129,24 +139,6 @@ const MyGuideAndPlan = async () => {
                       <span className="font-medium">
                         {guide?.destination?.name || "Unknown location"}
                       </span>
-                      <div className="flex items-center gap-2">
-                        <span>
-                          {guide.state === "planning"
-                            ? "Planning"
-                            : guide.state === "ongoing"
-                              ? "Ongoing"
-                              : guide.state === "completed"
-                                ? "Completed"
-                                : "Cancelled"}
-                        </span>
-                        {guide.startDate && guide.endDate && <span>•</span>}
-                        {guide.startDate && guide.endDate && (
-                          <span>
-                            {moment(guide?.startDate).format("DD MMM")} -{" "}
-                            {moment(guide?.endDate).format("DD MMM")}
-                          </span>
-                        )}
-                      </div>
                     </div>
                   </div>
                 </div>
@@ -157,17 +149,6 @@ const MyGuideAndPlan = async () => {
                 </div>
               </Link>
             ))}
-
-          {guidesSuccess && guidesData?.guides?.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              <p>You haven't created any guides yet</p>
-              <Button variant="outline" className="mt-4" asChild>
-                <Link href="/guides/create">
-                  <Plus className="mr-2" /> Create your first guide
-                </Link>
-              </Button>
-            </div>
-          )}
         </div>
       </div>
     </div>

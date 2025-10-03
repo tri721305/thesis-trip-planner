@@ -688,6 +688,151 @@ export async function incrementGuideViews(
 }
 
 /**
+ * Delete a guide by ID
+ * @param params - Guide ID to delete
+ * @returns Success response
+ */
+export async function deleteGuide(params: {
+  guideId: string;
+}): Promise<ActionResponse> {
+  const validationResult = await action({
+    params,
+    authorize: true,
+  });
+
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  const { guideId } = validationResult.params!;
+  const userId = validationResult?.session?.user?.id;
+
+  try {
+    // Start transaction
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      // Check if guide exists and user has permission
+      const existingGuide = await Guide.findById(guideId).session(session);
+
+      if (!existingGuide) {
+        throw new Error("Guide not found");
+      }
+
+      // Check if user is the author (only author can delete)
+      const isAuthor = existingGuide.author?.toString() === userId;
+
+      if (!isAuthor) {
+        throw new Error(
+          "Permission denied: Only the author can delete this guide"
+        );
+      }
+
+      // Delete the guide
+      await Guide.findByIdAndDelete(guideId).session(session);
+
+      // Commit transaction
+      await session.commitTransaction();
+      console.log("Guide deleted successfully:", guideId);
+
+      return { success: true };
+    } catch (mongoError) {
+      // Rollback transaction
+      await session.abortTransaction();
+      throw mongoError;
+    } finally {
+      session.endSession();
+    }
+  } catch (error) {
+    console.error("Error deleting guide:", error);
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+/**
+ * Search public guides
+ * @param params - Parameters for searching public guides
+ * @returns List of matching public guides
+ */
+export async function searchPublicGuides(params?: {
+  searchQuery?: string;
+  limit?: number;
+  page?: number;
+  sortBy?: string;
+  sortOrder?: "asc" | "desc";
+  state?: "planning" | "ongoing" | "completed" | "cancelled";
+}): Promise<
+  ActionResponse<{ guides: any[]; isNext: boolean; totalCount: number }>
+> {
+  // No auth required since these are public guides
+  const {
+    searchQuery = "",
+    limit = 10,
+    page = 1,
+    sortBy = "createdAt",
+    sortOrder = "desc",
+    state,
+  } = params || {};
+
+  try {
+    // Build query for public guides
+    const query: any = {
+      type: "public", // Only public guides
+    };
+
+    // Add state filter if provided
+    if (state) {
+      query.state = state;
+    }
+
+    // Add text search if query provided
+    if (searchQuery && searchQuery.trim() !== '') {
+      query.$or = [
+        { title: { $regex: searchQuery, $options: "i" } },
+        { "destination.name": { $regex: searchQuery, $options: "i" } },
+      ];
+    }
+
+    // Set up pagination
+    const skipAmount = (page - 1) * limit;
+
+    // Sort options
+    const sortOptions: Record<string, 1 | -1> = {};
+    sortOptions[sortBy] = sortOrder === "asc" ? 1 : -1;
+
+    // Get total count for pagination
+    const totalCount = await Guide.countDocuments(query);
+
+    // Fetch guides
+    const guides = await Guide.find(query)
+      .sort(sortOptions)
+      .skip(skipAmount)
+      .limit(limit)
+      .populate({
+        path: "author",
+        model: "User",
+        select: "username image name",
+      });
+
+    // Check if there are more guides
+    const isNext = totalCount > skipAmount + guides.length;
+
+    return {
+      success: true,
+      data: {
+        guides: JSON.parse(JSON.stringify(guides)),
+        isNext,
+        totalCount,
+      },
+    };
+  } catch (error) {
+    console.error("Error searching public guides:", error);
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+/**
  * Get guides created by a user
  * @param params - Parameters for fetching user guides
  * @returns List of guides created by the user

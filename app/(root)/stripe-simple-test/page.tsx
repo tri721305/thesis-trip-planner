@@ -198,8 +198,28 @@ export default function StripeSimpleTestPage() {
           if (!response.ok) {
             throw new Error(`Failed to fetch booking: ${response.statusText}`);
           }
-          const data = await response.json();
-          setBookingData(data);
+          const bookingData = await response.json();
+          console.log("Received booking data:", bookingData);
+
+          // Validate the essential booking fields are present
+          if (
+            !bookingData.bookingId ||
+            !bookingData.hotelName ||
+            !bookingData.checkInDate ||
+            !bookingData.checkOutDate
+          ) {
+            console.error(
+              "Missing essential booking information:",
+              bookingData
+            );
+          }
+
+          // Validate pricing data
+          if (!bookingData.pricing) {
+            console.error("Booking is missing pricing information");
+          }
+
+          setBookingData(bookingData);
         } catch (err: any) {
           console.error("Error fetching booking:", err);
           setError(err.message || "Failed to load booking information");
@@ -225,38 +245,69 @@ export default function StripeSimpleTestPage() {
 
       console.log("Creating payment with bookingId:", bookingId);
 
-      // Đầu tiên, lấy thông tin booking để có giá chính xác
-      const response = await fetch(`/api/bookings/${bookingId}`);
-      if (!response.ok) {
+      // Don't refetch if we already have bookingData with pricing
+      let paymentBookingData = bookingData;
+
+      if (!bookingData?.pricing) {
+        console.log("Fetching fresh booking data to ensure we have pricing...");
+        // Đầu tiên, lấy thông tin booking để có giá chính xác
+        const response = await fetch(`/api/bookings/${bookingId}`);
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch booking information: ${response.statusText}`
+          );
+        }
+
+        paymentBookingData = await response.json();
+        console.log("Retrieved fresh booking data:", paymentBookingData);
+      }
+
+      // Verify booking contains pricing information
+      if (
+        !paymentBookingData?.pricing?.total ||
+        !paymentBookingData?.pricing?.currency
+      ) {
+        console.error("Incomplete booking data:", paymentBookingData);
         throw new Error(
-          `Failed to fetch booking information: ${response.statusText}`
+          "Booking is missing required pricing information. Please check the booking details and try again."
         );
       }
 
-      const bookingData = await response.json();
-      console.log("Retrieved booking data:", bookingData);
-
       // Sử dụng giá và loại tiền tệ từ booking
-      const bookingAmount = bookingData.pricing.total;
-      const bookingCurrency = bookingData.pricing.currency.toLowerCase();
+      const bookingAmount = paymentBookingData.pricing.total;
+      const bookingCurrency = paymentBookingData.pricing.currency.toLowerCase();
 
       // Bước 1: Tạo payment document
       console.log(
         `Calling createPayment with amount: ${bookingAmount} ${bookingCurrency}...`
       );
+
+      // Prepare breakdown object - ensure it has all required fields
+      const breakdown = {
+        subtotal: paymentBookingData.pricing.subtotal || bookingAmount,
+        taxes: paymentBookingData.pricing.taxes || 0,
+        fees: paymentBookingData.pricing.fees || 0,
+        total: bookingAmount,
+        currency: bookingCurrency,
+      };
+
+      // Prepare guest info
+      const guestInfo = paymentBookingData.guestInfo || {};
+      const guestName =
+        guestInfo.firstName && guestInfo.lastName
+          ? `${guestInfo.firstName} ${guestInfo.lastName}`
+          : "Test User";
+
       const paymentResult = await createPayment({
-        bookingId: bookingId, // Sử dụng booking ID từ URL (sẽ được chuyển đổi đúng trong server action)
+        bookingId: bookingId,
         amount: bookingAmount,
         currency: bookingCurrency,
         paymentMethod: "stripe",
-        breakdown: bookingData.pricing, // Sử dụng breakdown từ dữ liệu booking
+        breakdown: breakdown,
         billingDetails: {
-          name:
-            bookingData.guestInfo?.firstName +
-              " " +
-              bookingData.guestInfo?.lastName || "Test User",
-          email: bookingData.guestInfo?.email || "test@example.com",
-          phone: bookingData.guestInfo?.phone || "1234567890",
+          name: guestName,
+          email: guestInfo.email || "test@example.com",
+          phone: guestInfo.phone || "1234567890",
         },
         description: "Payment for booking " + bookingId,
       });
@@ -353,7 +404,26 @@ export default function StripeSimpleTestPage() {
                       Loading booking details...
                     </div>
                   ) : bookingData ? (
-                    <BookingSummary booking={bookingData} />
+                    <>
+                      {/* Add debug info if pricing data is missing */}
+                      {!bookingData.pricing && (
+                        <div className="p-3 mb-4 bg-orange-50 text-orange-700 rounded-md">
+                          <p className="font-semibold">
+                            Warning: Incomplete booking data
+                          </p>
+                          <p className="text-xs mt-1">
+                            Missing pricing information needed for payment
+                          </p>
+                          <details className="mt-2 text-xs">
+                            <summary>Show booking data</summary>
+                            <pre className="mt-2 p-2 bg-gray-100 rounded overflow-auto max-h-40">
+                              {JSON.stringify(bookingData, null, 2)}
+                            </pre>
+                          </details>
+                        </div>
+                      )}
+                      <BookingSummary booking={bookingData} />
+                    </>
                   ) : null}
 
                   <p>
@@ -385,13 +455,19 @@ export default function StripeSimpleTestPage() {
               <Button
                 onClick={handleInitiatePayment}
                 disabled={
-                  isInitiating || !bookingId || isLoadingBooking || !bookingData
+                  isInitiating ||
+                  !bookingId ||
+                  isLoadingBooking ||
+                  !bookingData ||
+                  !bookingData.pricing
                 }
                 className="w-full mt-4"
               >
                 {isInitiating
                   ? "Creating payment..."
-                  : `Pay ${bookingData?.pricing?.total || ""} ${bookingData?.pricing?.currency || ""}`}
+                  : bookingData?.pricing
+                    ? `Pay ${bookingData.pricing.total} ${bookingData.pricing.currency.toUpperCase()}`
+                    : "Missing pricing data"}
               </Button>
             </>
           ) : (

@@ -67,10 +67,11 @@ export async function GET(
     const bookingData = JSON.parse(JSON.stringify(booking));
 
     console.log("API route: Successfully returning booking data");
-    return NextResponse.json({
-      success: true,
-      data: bookingData,
-    });
+    console.log("Pricing data available:", !!bookingData.pricing);
+
+    // Return the booking data directly, not nested in a data property
+    // This is what the BookingSummary component expects
+    return NextResponse.json(bookingData);
   } catch (error: any) {
     console.error("API route: Error fetching booking:", error);
     return NextResponse.json(

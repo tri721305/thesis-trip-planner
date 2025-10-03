@@ -529,7 +529,7 @@ const BookingStats = () => {
                 )}
               </CardHeader>
               <CardContent className="space-y-3">
-                {payment ? (
+                {/* {payment ? (
                   <>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Payment Method</span>
@@ -551,7 +551,7 @@ const BookingStats = () => {
                       <Clock className="w-4 h-4 mr-1" /> Payment Pending
                     </Badge>
                   </div>
-                )}
+                )} */}
 
                 <div className="flex justify-between">
                   <span className="text-gray-600">Room Price</span>

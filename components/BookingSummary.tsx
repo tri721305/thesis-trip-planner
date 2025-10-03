@@ -94,35 +94,55 @@ export default function BookingSummary({ booking }: BookingSummaryProps) {
 
         <hr className="my-2" />
 
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Subtotal</span>
-          <span>
-            {formatCurrency(booking.pricing.subtotal, booking.pricing.currency)}
-          </span>
-        </div>
+        {booking.pricing && (
+          <>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Subtotal</span>
+              <span>
+                {formatCurrency(
+                  booking.pricing.subtotal,
+                  booking.pricing.currency
+                )}
+              </span>
+            </div>
 
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Taxes</span>
-          <span>
-            {formatCurrency(booking.pricing.taxes, booking.pricing.currency)}
-          </span>
-        </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Taxes</span>
+              <span>
+                {formatCurrency(
+                  booking.pricing.taxes,
+                  booking.pricing.currency
+                )}
+              </span>
+            </div>
 
-        <div className="flex justify-between">
-          <span className="text-muted-foreground">Fees</span>
-          <span>
-            {formatCurrency(booking.pricing.fees, booking.pricing.currency)}
-          </span>
-        </div>
+            <div className="flex justify-between">
+              <span className="text-muted-foreground">Fees</span>
+              <span>
+                {formatCurrency(booking.pricing.fees, booking.pricing.currency)}
+              </span>
+            </div>
 
-        <hr className="my-2" />
+            <hr className="my-2" />
 
-        <div className="flex justify-between font-semibold">
-          <span>Total</span>
-          <span>
-            {formatCurrency(booking.pricing.total, booking.pricing.currency)}
-          </span>
-        </div>
+            <div className="flex justify-between font-semibold">
+              <span>Total</span>
+              <span>
+                {formatCurrency(
+                  booking.pricing.total,
+                  booking.pricing.currency
+                )}
+              </span>
+            </div>
+          </>
+        )}
+
+        {!booking.pricing && (
+          <div className="flex justify-between font-semibold">
+            <span>Total</span>
+            <span>Pricing information unavailable</span>
+          </div>
+        )}
       </div>
     </div>
   );
