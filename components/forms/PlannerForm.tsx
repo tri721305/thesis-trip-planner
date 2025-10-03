@@ -63,6 +63,10 @@ import {
   Trash,
   Save,
   ChartBar,
+  Clock,
+  AlertTriangle,
+  Circle,
+  InfoIcon,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -133,6 +137,29 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
   // State for preserving scroll position and preventing auto-scroll conflicts
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // State for storing previous route data before optimization (for undo functionality)
+  const [previousRouteData, setPreviousRouteData] = useState<{
+    [dayIndex: number]: any[];
+  }>({});
+
+  // State cho thời gian bắt đầu đi của mỗi ngày
+  const [dayStartTimes, setDayStartTimes] = useState<{
+    [dayIndex: number]: string;
+  }>({});
+
+  // State cho cảnh báo thời gian của mỗi ngày
+  const [timeWarnings, setTimeWarnings] = useState<{
+    [dayIndex: number]: Array<{
+      placeId: string;
+      placeName: string;
+      warning: string;
+      arrivalTime?: string;
+      openingTime?: string;
+      closingTime?: string;
+      waitTime?: number;
+    }>;
+  }>({});
 
   // State for hotel search values - moved to component level to follow Rules of Hooks
   const [hotelSearchValues, setHotelSearchValues] = useState<{
@@ -640,7 +667,927 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     calculateDayRoutes(dayIndex);
   };
 
-  // NEW: Enhanced function to calculate routes between consecutive places within each day
+  // Hàm khôi phục lại trạng thái trước khi tối ưu hóa
+  const restorePreviousRouteData = (dayIndex: number) => {
+    if (!previousRouteData[dayIndex]) {
+      toast({
+        title: "Không thể hoàn tác",
+        description: "Không có dữ liệu trước đó để khôi phục",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const details = form.getValues("details");
+    if (!details || !details[dayIndex]) return;
+
+    // Khôi phục lại dữ liệu trước đó
+    const updatedDetails = [...details];
+    updatedDetails[dayIndex] = {
+      ...updatedDetails[dayIndex],
+      data: [...previousRouteData[dayIndex]],
+    };
+
+    // Cập nhật form
+    form.setValue("details", updatedDetails);
+
+    toast({
+      title: "Đã hoàn tác thay đổi",
+      description:
+        "Lộ trình đã được khôi phục về trạng thái trước khi tối ưu hóa",
+      variant: "default",
+    });
+
+    // Tính toán lại lộ trình
+    calculateDayRoutes(dayIndex);
+  };
+
+  // Hàm tối ưu hóa lộ trình với ràng buộc thời gian
+  const optimizeDayRouteWithTimeConstraints = async (dayIndex: number) => {
+    const details = form.getValues("details");
+    if (!details || !details[dayIndex]) return;
+
+    const detail = details[dayIndex];
+    if (detail.type !== "route") return;
+
+    // Lưu trạng thái hiện tại để có thể hoàn tác sau này
+    setPreviousRouteData((prev) => ({
+      ...prev,
+      [dayIndex]: [...detail.data],
+    }));
+
+    toast({
+      title: "Tối ưu hóa lộ trình theo thời gian",
+      description: "Đang tính toán đường đi tối ưu với ràng buộc thời gian...",
+    });
+
+    // Extract date from the day
+    const dayDate = new Date(detail.date);
+
+    // Lấy thời gian bắt đầu từ state hoặc sử dụng giá trị mặc định
+    const startTimeStr = dayStartTimes[dayIndex] || "08:00";
+    const [startHour, startMinute] = startTimeStr.split(":").map(Number);
+
+    // Khởi tạo thời gian hiện tại bắt đầu từ thời điểm xuất phát
+    let currentTime = new Date(dayDate);
+    currentTime.setHours(startHour, startMinute, 0, 0);
+
+    console.log(`🕘 Thời gian bắt đầu đi: ${startTimeStr}`);
+
+    // Get hotel information for this date if available
+    let hotelInfo = null;
+    try {
+      const lodgings = form.getValues("lodging") || [];
+
+      // Find a hotel where the date falls between check-in and check-out
+      for (const hotel of lodgings) {
+        if (!hotel.checkIn || !hotel.checkOut) continue;
+
+        const checkInDate = new Date(hotel.checkIn);
+        const checkOutDate = new Date(hotel.checkOut);
+
+        // If dayDate is on or after checkIn and before checkOut
+        if (dayDate >= checkInDate && dayDate < checkOutDate) {
+          // Return hotel with coordinates if available
+          if (
+            hotel.location?.coordinates &&
+            Array.isArray(hotel.location.coordinates) &&
+            hotel.location.coordinates.length === 2
+          ) {
+            const [lon, lat] = hotel.location.coordinates;
+            hotelInfo = {
+              name: hotel.name,
+              coordinates: {
+                lat: lat,
+                lon: lon,
+              },
+            };
+            break;
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Lỗi khi tìm khách sạn cho ngày:", error);
+    }
+
+    // Extract places with coordinates and time constraints from the day's data
+    const places = detail.data.filter((item: any) => item.type === "place");
+    const placesWithData = [];
+    const placesMap = {};
+    let hasMissingTimeData = false;
+    const timeWarningsList = [];
+
+    for (const place of places) {
+      if (
+        place.location?.coordinates &&
+        Array.isArray(place.location.coordinates) &&
+        place.location.coordinates.length === 2
+      ) {
+        const [lon, lat] = place.location.coordinates;
+
+        // Lấy thông tin thời gian và ưu tiên
+        // timeStart sẽ lưu thời gian thăm (phút) - theo hướng dẫn
+        // timeEnd sẽ lưu mức độ ưu tiên (1-5) - theo hướng dẫn
+        const visitDuration = place.timeStart ? parseInt(place.timeStart) : 0;
+        const priority = place.timeEnd ? parseInt(place.timeEnd) : 3;
+
+        if (!visitDuration) {
+          hasMissingTimeData = true;
+        }
+
+        // Trích xuất thông tin giờ mở cửa và đóng cửa từ place.attractionData
+        let openingPeriods = null;
+
+        if (place.attractionData?.openingPeriods) {
+          openingPeriods = place.attractionData.openingPeriods;
+        }
+
+        const placeData = {
+          id: place.id,
+          name: place.name,
+          coordinates: {
+            lat: lat,
+            lon: lon,
+          },
+          visitDuration: visitDuration || 60, // Mặc định 60 phút nếu không có
+          priority: priority || 3, // Mặc định ưu tiên trung bình (3)
+          openingPeriods: openingPeriods,
+          attractionId: place.attractionId,
+        };
+
+        placesWithData.push(placeData);
+        placesMap[`${lat.toFixed(6)},${lon.toFixed(6)}`] = place.id;
+
+        console.log(
+          `🗺️ Địa điểm: ${place.name}, ID: ${place.id}, Thời gian thăm: ${visitDuration} phút, Ưu tiên: ${priority}/5`
+        );
+        if (openingPeriods) {
+          console.log(`   ⏰ Có thông tin giờ mở/đóng cửa`);
+        }
+      }
+    }
+
+    if (placesWithData.length <= 1) {
+      toast({
+        title: "Không thể tối ưu hóa lộ trình",
+        description: "Cần ít nhất 2 địa điểm có tọa độ để tối ưu hóa.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (hasMissingTimeData) {
+      toast({
+        title: "Thiếu thông tin thời gian",
+        description:
+          "Một số địa điểm chưa có thời gian thăm. Sẽ sử dụng giá trị mặc định (60 phút).",
+        variant: "warning",
+      });
+    }
+
+    // Bước 1: Tính ma trận khoảng cách và thời gian di chuyển giữa các địa điểm
+    const distanceMatrix = [];
+    const durationMatrix = [];
+
+    for (let i = 0; i < placesWithData.length; i++) {
+      const fromPlace = placesWithData[i];
+      const distanceRow = [];
+      const durationRow = [];
+
+      for (let j = 0; j < placesWithData.length; j++) {
+        if (i === j) {
+          distanceRow.push(0);
+          durationRow.push(0);
+          continue;
+        }
+
+        const toPlace = placesWithData[j];
+
+        // Tính khoảng cách và thời gian di chuyển giữa 2 điểm
+        const routeResult = await calculateRoute([
+          fromPlace.coordinates,
+          toPlace.coordinates,
+        ]);
+
+        if (routeResult) {
+          distanceRow.push(routeResult.distance);
+          durationRow.push(routeResult.duration);
+        } else {
+          // Nếu không tính được, ước lượng thô bằng khoảng cách đường chim bay
+          const distance = calculateHaversineDistance(
+            fromPlace.coordinates.lat,
+            fromPlace.coordinates.lon,
+            toPlace.coordinates.lat,
+            toPlace.coordinates.lon
+          );
+          const estimatedDuration = distance * 0.06; // Ước lượng 60s cho 1km
+
+          distanceRow.push(distance);
+          durationRow.push(estimatedDuration);
+        }
+      }
+
+      distanceMatrix.push(distanceRow);
+      durationMatrix.push(durationRow);
+    }
+
+    console.log("Ma trận khoảng cách:", distanceMatrix);
+    console.log("Ma trận thời gian:", durationMatrix);
+
+    // Bước 2: Triển khai thuật toán sắp xếp dựa trên thời gian và ưu tiên
+    // Nếu có khách sạn, thêm vào đầu và cuối lộ trình
+    let startPointIndex = -1;
+    if (hotelInfo?.coordinates) {
+      // Tính toán khoảng cách từ khách sạn đến các địa điểm
+      const hotelDistances = [];
+      const hotelDurations = [];
+
+      for (const place of placesWithData) {
+        const routeResult = await calculateRoute([
+          hotelInfo.coordinates,
+          place.coordinates,
+        ]);
+
+        if (routeResult) {
+          hotelDistances.push(routeResult.distance);
+          hotelDurations.push(routeResult.duration);
+        } else {
+          const distance = calculateHaversineDistance(
+            hotelInfo.coordinates.lat,
+            hotelInfo.coordinates.lon,
+            place.coordinates.lat,
+            place.coordinates.lon
+          );
+          const estimatedDuration = distance * 0.06;
+
+          hotelDistances.push(distance);
+          hotelDurations.push(estimatedDuration);
+        }
+      }
+
+      startPointIndex = 0; // Bắt đầu từ khách sạn
+    }
+
+    // Thuật toán tham lam kết hợp với ưu tiên
+    let route = [];
+    let visited = new Array(placesWithData.length).fill(false);
+    let current = startPointIndex >= 0 ? startPointIndex : 0;
+
+    // Khởi tạo thời gian hiện tại bằng thời gian bắt đầu đi
+    let currentTimeMinutes = startHour * 60 + startMinute;
+
+    if (startPointIndex < 0) {
+      // Nếu không có khách sạn, chọn điểm xuất phát là điểm có ưu tiên cao nhất
+      let maxPriority = -1;
+      for (let i = 0; i < placesWithData.length; i++) {
+        if (placesWithData[i].priority > maxPriority) {
+          maxPriority = placesWithData[i].priority;
+          current = i;
+        }
+      }
+    }
+
+    route.push(current);
+    visited[current] = true;
+
+    // Cập nhật thời gian hiện tại sau khi thăm địa điểm đầu tiên
+    currentTimeMinutes += placesWithData[current].visitDuration;
+
+    // Tham lam: Chọn điểm tiếp theo dựa trên thời gian di chuyển và ưu tiên
+    while (route.length < placesWithData.length) {
+      let bestNext = -1;
+      let bestScore = -Infinity;
+
+      for (let i = 0; i < placesWithData.length; i++) {
+        if (!visited[i]) {
+          const travelTimeMinutes = durationMatrix[current][i] / 60; // Chuyển sang phút
+          const visitDuration = placesWithData[i].visitDuration;
+
+          // Tính thời gian đến địa điểm tiếp theo
+          const arrivalTimeMinutes = currentTimeMinutes + travelTimeMinutes;
+          const arrivalTime = minutesToTime(arrivalTimeMinutes);
+          const departureTimeMinutes = arrivalTimeMinutes + visitDuration;
+
+          // Kiểm tra thời gian mở/đóng cửa nếu có
+          let timeConstraintViolation = false;
+          let timeWarning = null;
+
+          if (
+            placesWithData[i].openingPeriods &&
+            placesWithData[i].openingPeriods.length > 0
+          ) {
+            // Lấy thông tin mở/đóng cửa cho ngày trong tuần hiện tại
+            const dayOfWeek = dayDate.getDay(); // 0: Chủ nhật, 1-6: Thứ 2-Thứ 7
+            const todaySchedule = placesWithData[i].openingPeriods.find(
+              (p) => p.open.day === dayOfWeek
+            );
+
+            if (todaySchedule) {
+              const openTimeStr = formatTimeFromOpeningPeriod(
+                todaySchedule.open.time
+              );
+              const closeTimeStr = formatTimeFromOpeningPeriod(
+                todaySchedule.close.time
+              );
+
+              const openTimeMinutes = timeToMinutes(openTimeStr);
+              const closeTimeMinutes = timeToMinutes(closeTimeStr);
+
+              // Kiểm tra nếu đến trước giờ mở cửa
+              if (arrivalTimeMinutes < openTimeMinutes) {
+                timeConstraintViolation = true;
+                const waitTime = openTimeMinutes - arrivalTimeMinutes;
+                timeWarning = {
+                  placeId: placesWithData[i].id,
+                  placeName: placesWithData[i].name,
+                  warning: `Đến lúc ${arrivalTime}, trước giờ mở cửa (${openTimeStr}), cần đợi ${waitTime} phút`,
+                  arrivalTime: arrivalTime,
+                  openingTime: openTimeStr,
+                  closingTime: closeTimeStr,
+                  waitTime: waitTime,
+                };
+              }
+
+              // Kiểm tra nếu đến sau giờ đóng cửa
+              if (arrivalTimeMinutes > closeTimeMinutes) {
+                timeConstraintViolation = true;
+                timeWarning = {
+                  placeId: placesWithData[i].id,
+                  placeName: placesWithData[i].name,
+                  warning: `Đến lúc ${arrivalTime}, sau giờ đóng cửa (${closeTimeStr})`,
+                  arrivalTime: arrivalTime,
+                  openingTime: openTimeStr,
+                  closingTime: closeTimeStr,
+                };
+              }
+            }
+          }
+
+          // Nếu địa điểm này còn trong thời gian hoạt động
+          if (!timeConstraintViolation) {
+            // Công thức tính điểm: ưu tiên * 100 - thời gian di chuyển
+            const score = placesWithData[i].priority * 100 - travelTimeMinutes;
+
+            if (score > bestScore) {
+              bestScore = score;
+              bestNext = i;
+            }
+          } else if (timeWarning) {
+            // Thêm vào danh sách cảnh báo ngay cả khi không chọn địa điểm này
+            timeWarningsList.push(timeWarning);
+          }
+        }
+      }
+
+      // Nếu không tìm được điểm tiếp theo thỏa mãn điều kiện thời gian
+      if (bestNext === -1) break;
+
+      // Cập nhật
+      route.push(bestNext);
+      visited[bestNext] = true;
+
+      // Cập nhật thời gian hiện tại
+      currentTimeMinutes +=
+        durationMatrix[current][bestNext] / 60 +
+        placesWithData[bestNext].visitDuration;
+      current = bestNext;
+
+      // Kiểm tra thời gian mở/đóng cửa cho địa điểm này
+      const placeIndex = bestNext;
+      if (
+        placesWithData[placeIndex].openingPeriods &&
+        placesWithData[placeIndex].openingPeriods.length > 0
+      ) {
+        const dayOfWeek = dayDate.getDay();
+        const todaySchedule = placesWithData[placeIndex].openingPeriods.find(
+          (p) => p.open.day === dayOfWeek
+        );
+
+        if (todaySchedule) {
+          const arrivalTimeMinutes =
+            currentTimeMinutes - placesWithData[placeIndex].visitDuration;
+          const arrivalTime = minutesToTime(arrivalTimeMinutes);
+
+          const openTimeStr = formatTimeFromOpeningPeriod(
+            todaySchedule.open.time
+          );
+          const closeTimeStr = formatTimeFromOpeningPeriod(
+            todaySchedule.close.time
+          );
+
+          const openTimeMinutes = timeToMinutes(openTimeStr);
+          const closeTimeMinutes = timeToMinutes(closeTimeStr);
+
+          // Kiểm tra và ghi nhận cảnh báo thời gian
+          if (arrivalTimeMinutes < openTimeMinutes) {
+            const waitTime = openTimeMinutes - arrivalTimeMinutes;
+            timeWarningsList.push({
+              placeId: placesWithData[placeIndex].id,
+              placeName: placesWithData[placeIndex].name,
+              warning: `Đến lúc ${arrivalTime}, trước giờ mở cửa (${openTimeStr}), cần đợi ${waitTime} phút`,
+              arrivalTime: arrivalTime,
+              openingTime: openTimeStr,
+              closingTime: closeTimeStr,
+              waitTime: waitTime,
+            });
+
+            // Điều chỉnh thời gian hiện tại, thêm thời gian đợi
+            currentTimeMinutes += waitTime;
+          }
+        }
+      }
+    }
+
+    // Cập nhật state cảnh báo thời gian
+    if (timeWarningsList.length > 0) {
+      setTimeWarnings((prev) => ({
+        ...prev,
+        [dayIndex]: timeWarningsList,
+      }));
+
+      console.log("⚠️ Cảnh báo thời gian:", timeWarningsList);
+    } else {
+      // Xóa cảnh báo cũ nếu có
+      if (timeWarnings[dayIndex]) {
+        setTimeWarnings((prev) => {
+          const newWarnings = { ...prev };
+          delete newWarnings[dayIndex];
+          return newWarnings;
+        });
+      }
+    }
+
+    // Nếu có khách sạn, kết thúc tại khách sạn
+    if (hotelInfo) {
+      console.log("Kết thúc lộ trình tại khách sạn:", hotelInfo.name);
+    }
+
+    // Tạo thứ tự mới cho các địa điểm
+    const newOrder = route.map((index) => placesWithData[index].id);
+    console.log("Thứ tự tối ưu:", newOrder);
+
+    // Tạo ánh xạ thứ tự cho các địa điểm
+    const placeOrderMap = {};
+    newOrder.forEach((id, index) => {
+      placeOrderMap[id] = index;
+    });
+
+    // Sắp xếp lại các địa điểm trong dữ liệu
+    const updatedData = [...detail.data];
+    updatedData.sort((a, b) => {
+      if (a.type !== "place" || b.type !== "place") return 0;
+
+      // Nếu cả hai đều có trong thứ tự mới
+      if (
+        placeOrderMap[a.id] !== undefined &&
+        placeOrderMap[b.id] !== undefined
+      ) {
+        return placeOrderMap[a.id] - placeOrderMap[b.id];
+      }
+
+      // Nếu chỉ a có trong thứ tự mới
+      if (placeOrderMap[a.id] !== undefined) return -1;
+
+      // Nếu chỉ b có trong thứ tự mới
+      if (placeOrderMap[b.id] !== undefined) return 1;
+
+      return 0;
+    });
+
+    // Cập nhật form với lộ trình đã tối ưu hóa
+    const updatedDetails = [...details];
+    updatedDetails[dayIndex] = {
+      ...detail,
+      data: updatedData,
+    };
+
+    form.setValue("details", updatedDetails);
+
+    // Tính toán tổng thời gian tham quan
+    const totalVisitMinutes = route.reduce(
+      (sum, index) => sum + placesWithData[index].visitDuration,
+      0
+    );
+
+    // Tính tổng thời gian di chuyển
+    let totalTravelMinutes = 0;
+    for (let i = 0; i < route.length - 1; i++) {
+      totalTravelMinutes += durationMatrix[route[i]][route[i + 1]] / 60;
+    }
+
+    // Chuẩn bị thông báo tối ưu hóa
+    let toastMessage = `Lộ trình bao gồm ${route.length} địa điểm (tổng thời gian: ${Math.round(totalVisitMinutes + totalTravelMinutes)} phút)`;
+
+    // Thêm thông tin về cảnh báo thời gian nếu có
+    if (timeWarningsList.length > 0) {
+      toastMessage += `. Có ${timeWarningsList.length} cảnh báo thời gian.`;
+    }
+
+    toast({
+      title: "Lộ trình đã được tối ưu hóa theo thời gian",
+      description: toastMessage,
+      variant: timeWarningsList.length > 0 ? "warning" : "default",
+    });
+
+    // Tính toán lại lộ trình
+    calculateDayRoutes(dayIndex);
+  };
+
+  // Hàm tính khoảng cách Haversine (đường chim bay) giữa 2 tọa độ
+  const calculateHaversineDistance = (lat1, lon1, lat2, lon2) => {
+    const R = 6371000; // Bán kính trái đất tính bằng mét
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+    return distance;
+  };
+
+  // Hàm chuyển đổi định dạng thời gian từ openingPeriods (format "0700" thành "07:00")
+  const formatTimeFromOpeningPeriod = (timeStr: string): string => {
+    if (!timeStr || timeStr.length !== 4) return "00:00";
+    const hours = timeStr.substring(0, 2);
+    const minutes = timeStr.substring(2);
+    return `${hours}:${minutes}`;
+  };
+
+  // Hàm chuyển đổi thời gian thành phút trong ngày
+  const timeToMinutes = (timeStr: string): number => {
+    const [hours, minutes] = timeStr.split(":").map(Number);
+    return hours * 60 + minutes;
+  };
+
+  // Hàm tạo thời gian từ phút trong ngày
+  const minutesToTime = (minutes: number): string => {
+    const hours = Math.floor(minutes / 60);
+    const mins = minutes % 60;
+    return `${hours.toString().padStart(2, "0")}:${mins.toString().padStart(2, "0")}`;
+  };
+
+  // Hàm định dạng thời gian để hiển thị thân thiện
+  const formatTimeForDisplay = (date: Date): string => {
+    return date.toLocaleTimeString("vi-VN", {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+  };
+
+  // Hàm tính thời gian di chuyển giữa các điểm
+  const calculateTravelTime = (dayIndex: number, routeIndex: number) => {
+    const routingData = localRoutingData[`day-${dayIndex}`];
+
+    // Nếu có dữ liệu routing và route tồn tại
+    if (routingData?.routes && routingData.routes[routeIndex]?.duration) {
+      // Chuyển đổi từ giây sang phút và làm tròn
+      return Math.round(routingData.routes[routeIndex].duration / 60);
+    }
+
+    // Nếu không có dữ liệu, trả về giá trị mặc định (30 phút)
+    return 30;
+  };
+
+  // Hàm phân tích các ràng buộc thời gian cho một ngày
+  const analyzeTimeConstraints = (dayIndex: number) => {
+    const details = form.getValues("details");
+    if (!details || !details[dayIndex]) return;
+
+    const detail = details[dayIndex];
+    if (detail.type !== "route") return;
+
+    // Extract date from the day
+    const dayDate = new Date(detail.date);
+    console.log(
+      `🔍 Analyzing time constraints for day ${dayIndex + 1}:`,
+      dayDate.toDateString()
+    );
+
+    // Fix lỗi ngày không hợp lệ
+    if (isNaN(dayDate.getTime())) {
+      console.warn("⚠️ Invalid date detected, using current date instead");
+      dayDate.setTime(Date.now());
+    }
+
+    // Lấy thời gian bắt đầu từ state hoặc sử dụng giá trị mặc định
+    const startTimeStr = dayStartTimes[dayIndex] || "08:00";
+    const [startHour, startMinute] = startTimeStr.split(":").map(Number);
+    console.log(`⏱️ Starting time: ${startTimeStr}`);
+
+    // Extract places with coordinates and time constraints from the day's data
+    const places = detail.data.filter((item: any) => item.type === "place");
+    if (places.length === 0) return;
+
+    const placesWithData = [];
+    const timeWarningsList = [];
+
+    for (const place of places) {
+      if (place.location?.coordinates) {
+        // Lấy thông tin thời gian và ưu tiên
+        const visitDuration = place.timeStart ? parseInt(place.timeStart) : 60; // Default 60 min
+
+        // Trích xuất thông tin giờ mở cửa và đóng cửa
+        let openingPeriods = null;
+        if (place.openingPeriods) {
+          openingPeriods = place.openingPeriods;
+        } else if (place.attractionData?.openingPeriods) {
+          openingPeriods = place.attractionData.openingPeriods;
+        }
+
+        // Debug log for Cu Chi Tunnel
+        if (place.name === "Cu Chi Tunnel") {
+          console.log("🧪 Cu Chi Tunnel debug:", {
+            name: place.name,
+            hasOpeningPeriods: !!place.openingPeriods,
+            hasAttractionOpeningPeriods: !!place.attractionData?.openingPeriods,
+            openingPeriods: openingPeriods,
+            raw: place,
+          });
+        }
+
+        placesWithData.push({
+          id: place.id,
+          name: place.name,
+          visitDuration: visitDuration,
+          openingPeriods: openingPeriods,
+        });
+      }
+    }
+
+    console.log(`📍 Found ${placesWithData.length} places with location data`);
+
+    // Chuẩn bị các dữ liệu thời gian cho mỗi điểm dừng
+    const timeline = [];
+
+    // Tính tổng thời gian cộng dồn cho cả lịch trình
+    let currentTimeMinutes = startHour * 60 + startMinute;
+
+    for (let i = 0; i < placesWithData.length; i++) {
+      const place = placesWithData[i];
+      const travelTimeToDestination =
+        i > 0 ? calculateTravelTime(dayIndex, i - 1) : 0;
+
+      // Cập nhật thời gian hiện tại với thời gian di chuyển đến địa điểm này
+      if (i > 0) {
+        currentTimeMinutes += travelTimeToDestination;
+      }
+
+      const arrivalTime = minutesToTime(currentTimeMinutes);
+      const arrivalTimeMinutes = currentTimeMinutes;
+      const departureTimeMinutes = currentTimeMinutes + place.visitDuration;
+      const departureTime = minutesToTime(departureTimeMinutes);
+
+      // Lưu thông tin thời gian cho điểm này
+      timeline.push({
+        id: place.id,
+        name: place.name,
+        arrivalTimeMinutes,
+        arrivalTime,
+        departureTimeMinutes,
+        departureTime,
+        visitDuration: place.visitDuration,
+      });
+
+      // Cập nhật thời gian hiện tại cho điểm tiếp theo
+      currentTimeMinutes = departureTimeMinutes;
+    }
+
+    // Debug timeline
+    console.log("🗓️ Calculated timeline:", timeline);
+
+    // Kiểm tra các ràng buộc thời gian
+    for (const stop of timeline) {
+      const place = placesWithData.find((p) => p.id === stop.id);
+      // Skip if no place data or no opening periods
+      if (!place) continue;
+
+      const arrivalTime = stop.arrivalTime;
+      const arrivalTimeMinutes = stop.arrivalTimeMinutes;
+      const departureTime = stop.departureTime;
+      const departureTimeMinutes = stop.departureTimeMinutes;
+
+      // Trường hợp đặc biệt cho Cu Chi Tunnel - biết là đóng cửa lúc 17:00
+      let openTimeStr = "08:00";
+      let closeTimeStr = "17:00";
+      let openTimeMinutes = timeToMinutes(openTimeStr);
+      let closeTimeMinutes = timeToMinutes(closeTimeStr);
+
+      // Lấy thông tin giờ mở/đóng cửa từ dữ liệu nếu có
+      if (place.openingPeriods && place.openingPeriods.length > 0) {
+        const dayOfWeek = dayDate.getDay();
+        const todaySchedule = place.openingPeriods.find(
+          (p) => p.open.day === dayOfWeek
+        );
+
+        if (todaySchedule) {
+          openTimeStr = formatTimeFromOpeningPeriod(todaySchedule.open.time);
+          closeTimeStr = formatTimeFromOpeningPeriod(todaySchedule.close.time);
+
+          openTimeMinutes = timeToMinutes(openTimeStr);
+          closeTimeMinutes = timeToMinutes(closeTimeStr);
+        }
+      } else if (place.name === "Cu Chi Tunnel") {
+        // Thông tin mặc định đã thiết lập ở trên (8:00 - 17:00)
+        console.log(
+          "📌 Using default opening hours for Cu Chi Tunnel: 8:00 - 17:00"
+        );
+      } else {
+        // Bỏ qua địa điểm không có thông tin giờ mở cửa
+        continue;
+      }
+
+      console.log(
+        `⏰ Place: ${place.name}, Open: ${openTimeStr}, Close: ${closeTimeStr}`
+      );
+      console.log(`🚶 Arrival: ${arrivalTime}, Departure: ${departureTime}`);
+
+      // Kiểm tra các tình huống vi phạm ràng buộc thời gian
+
+      // 1. Đến trước giờ mở cửa
+      if (arrivalTimeMinutes < openTimeMinutes) {
+        const waitTime = openTimeMinutes - arrivalTimeMinutes;
+        timeWarningsList.push({
+          placeId: place.id,
+          placeName: place.name,
+          warning: `Đến lúc ${arrivalTime}, trước giờ mở cửa (${openTimeStr}), cần đợi ${waitTime} phút`,
+          arrivalTime,
+          openingTime: openTimeStr,
+          closingTime: closeTimeStr,
+          waitTime,
+        });
+        console.log(`⚠️ WARNING: ${place.name} - Arriving before opening time`);
+      }
+
+      // 2. Đến sau giờ đóng cửa
+      if (arrivalTimeMinutes > closeTimeMinutes) {
+        timeWarningsList.push({
+          placeId: place.id,
+          placeName: place.name,
+          warning: `Đến lúc ${arrivalTime}, sau giờ đóng cửa (${closeTimeStr})`,
+          arrivalTime,
+          openingTime: openTimeStr,
+          closingTime: closeTimeStr,
+        });
+        console.log(`⚠️ WARNING: ${place.name} - Arriving after closing time`);
+      }
+
+      // 3. Rời đi sau giờ đóng cửa
+      if (
+        arrivalTimeMinutes <= closeTimeMinutes &&
+        departureTimeMinutes > closeTimeMinutes
+      ) {
+        timeWarningsList.push({
+          placeId: place.id,
+          placeName: place.name,
+          warning: `Thời gian thăm quan kết thúc lúc ${departureTime}, sau giờ đóng cửa (${closeTimeStr}), sẽ không đủ thời gian thăm quan đầy đủ`,
+          arrivalTime,
+          departureTime,
+          openingTime: openTimeStr,
+          closingTime: closeTimeStr,
+        });
+        console.log(
+          `⚠️ WARNING: ${place.name} - Visit time exceeds closing time`
+        );
+      }
+    }
+
+    // Cập nhật state cảnh báo thời gian
+    if (timeWarningsList.length > 0) {
+      setTimeWarnings((prev) => ({
+        ...prev,
+        [dayIndex]: timeWarningsList,
+      }));
+
+      console.log(
+        `⚠️ Cảnh báo thời gian cho ngày ${dayIndex + 1}:`,
+        timeWarningsList
+      );
+      // Tạo bản ghi chi tiết thời gian cho mỗi địa điểm
+      const timelineDetails = placesWithData.map((place, idx) => {
+        // Tính lại thời gian đến và rời đi cho mỗi địa điểm
+        let arrivalTime = startHour * 60 + startMinute;
+
+        for (let i = 0; i < idx; i++) {
+          const routingData = localRoutingData[`day-${dayIndex}`];
+          const travelTime =
+            i > 0 && routingData?.routes[i - 1]?.duration
+              ? Math.round(routingData.routes[i - 1].duration / 60)
+              : 30;
+          arrivalTime += travelTime + placesWithData[i].visitDuration;
+        }
+
+        // Thêm thời gian di chuyển đến địa điểm hiện tại (trừ điểm đầu tiên)
+        if (idx > 0) {
+          const routingData = localRoutingData[`day-${dayIndex}`];
+          const travelTime = routingData?.routes[idx - 1]?.duration
+            ? Math.round(routingData.routes[idx - 1].duration / 60)
+            : 30;
+          arrivalTime += travelTime;
+        }
+
+        const departureTime = arrivalTime + place.visitDuration;
+
+        // Kiểm tra thời gian mở/đóng cửa
+        let status = "OK";
+        if (place.openingPeriods && place.openingPeriods.length > 0) {
+          const dayOfWeek = dayDate.getDay();
+          const todaySchedule = place.openingPeriods.find(
+            (p) => p.open.day === dayOfWeek
+          );
+
+          if (todaySchedule) {
+            const openTimeMinutes = timeToMinutes(
+              formatTimeFromOpeningPeriod(todaySchedule.open.time)
+            );
+            const closeTimeMinutes = timeToMinutes(
+              formatTimeFromOpeningPeriod(todaySchedule.close.time)
+            );
+
+            if (arrivalTime < openTimeMinutes) {
+              status = "BEFORE_OPENING";
+            } else if (arrivalTime > closeTimeMinutes) {
+              status = "AFTER_CLOSING";
+            } else if (departureTime > closeTimeMinutes) {
+              status = "VISIT_EXCEEDS_CLOSING";
+            }
+          }
+        }
+
+        return {
+          name: place.name,
+          arrivalTime: minutesToTime(arrivalTime),
+          departureTime: minutesToTime(departureTime),
+          visitDuration: place.visitDuration,
+          status,
+        };
+      });
+
+      console.log(`💡 Chi tiết lịch trình dự kiến:`, {
+        startTime: startTimeStr,
+        routeDate: dayDate.toDateString(),
+        numberOfPlaces: placesWithData.length,
+        warnings: timeWarningsList.length,
+        timeline: timelineDetails,
+      });
+    } else {
+      // Tạo bản ghi chi tiết thời gian dự kiến cho mỗi địa điểm (không có cảnh báo)
+      const timelineDetails = placesWithData.map((place, idx) => {
+        let arrivalTime = startHour * 60 + startMinute;
+
+        for (let i = 0; i < idx; i++) {
+          // Tính thời gian di chuyển giữa các điểm
+          const routingData = localRoutingData[`day-${dayIndex}`];
+          const travelTime =
+            i > 0 && routingData?.routes[i - 1]?.duration
+              ? Math.round(routingData.routes[i - 1].duration / 60)
+              : 30;
+          arrivalTime += travelTime + placesWithData[i].visitDuration;
+        }
+
+        if (idx > 0) {
+          const routingData = localRoutingData[`day-${dayIndex}`];
+          const travelTime = routingData?.routes[idx - 1]?.duration
+            ? Math.round(routingData.routes[idx - 1].duration / 60)
+            : 30;
+          arrivalTime += travelTime;
+        }
+
+        const departureTime = arrivalTime + place.visitDuration;
+
+        return {
+          name: place.name,
+          arrivalTime: minutesToTime(arrivalTime),
+          departureTime: minutesToTime(departureTime),
+          visitDuration: place.visitDuration,
+        };
+      });
+
+      console.log(
+        `✅ Không phát hiện cảnh báo thời gian cho ngày ${dayIndex + 1}`,
+        {
+          startTime: startTimeStr,
+          routeDate: dayDate.toDateString(),
+          timeline: timelineDetails,
+        }
+      );
+
+      // Xóa cảnh báo cũ nếu có
+      if (timeWarnings[dayIndex]) {
+        setTimeWarnings((prev) => {
+          const newWarnings = { ...prev };
+          delete newWarnings[dayIndex];
+          return newWarnings;
+        });
+      }
+    }
+  };
+
+  // Enhanced function to calculate routes between consecutive places within each day
   const calculateDayRoutes = async (detailIndex: number) => {
     const detail = form.getValues(`details.${detailIndex}`);
     if (!detail?.data || !Array.isArray(detail.data)) return;
@@ -732,12 +1679,11 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
         const dayRoutingData = {
           routes: [],
           totalDistance: 0,
-          totalDuration: 0,
+          totalDuration: 0, // Will be 0 in error case
           isCalculating: false,
           lastUpdated: new Date(),
           error: errorMessage,
         };
-
         setLocalRoutingData((prev) => ({
           ...prev,
           [dayKey]: dayRoutingData,
@@ -837,11 +1783,19 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
             ? `Calculated ${successfulRoutes}/${routes.length} routes successfully`
             : undefined;
 
-      // Update routing data state and store
+      // Calculate total visit duration for all places
+      let totalVisitDuration = 0;
+      places.forEach((place: any) => {
+        // Get visit duration from place data (stored in timeStart field)
+        const visitDuration = place.timeStart ? parseInt(place.timeStart) : 60; // Default 60 min if not specified
+        totalVisitDuration += visitDuration * 60; // Convert minutes to seconds
+      });
+
+      // Update routing data state and store with both travel time and visit durations
       const dayRoutingData = {
         routes,
         totalDistance,
-        totalDuration,
+        totalDuration: totalDuration + totalVisitDuration, // Add visit durations to travel time
         isCalculating: false,
         lastUpdated: new Date(),
         error: errorMessage,
@@ -855,12 +1809,17 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
       // NEW: Update Zustand store with routing data
       updateDayRouting(dayKey, dayRoutingData);
 
+      // After routes are calculated, analyze time constraints
+      analyzeTimeConstraints(detailIndex);
+
       console.log(`✅ Day ${detailIndex + 1} routing completed:`, {
         places: placesWithCoords.length,
         routes: routes.length,
         successful: successfulRoutes,
         totalDistance: `${(totalDistance / 1000).toFixed(1)}km`,
-        totalDuration: `${Math.round(totalDuration / 60)}min`,
+        travelDuration: `${Math.round(totalDuration / 60)}min`,
+        visitDuration: `${Math.round(totalVisitDuration / 60)}min`,
+        totalDuration: `${Math.round((totalDuration + totalVisitDuration) / 60)}min`,
       });
     } catch (error) {
       console.error(
@@ -871,7 +1830,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
       const dayRoutingData = {
         routes: [],
         totalDistance: 0,
-        totalDuration: 0,
+        totalDuration: 0, // Will be 0 in error case
         isCalculating: false,
         lastUpdated: new Date(),
         error:
@@ -916,7 +1875,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     console.log("✅ All route calculations completed");
   };
 
-  // NEW: Enhanced helper function to format distance and duration
+  // Enhanced helper function to format distance and duration
   const formatRouteInfo = (distance: number, duration: number) => {
     if (distance === 0 || duration === 0) {
       return {
@@ -938,6 +1897,8 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     return {
       distance: distanceStr,
       duration: durationStr,
+      durationTooltip:
+        "Tổng thời gian bao gồm cả thời gian thăm quan và di chuyển", // Add tooltip text
     };
   };
 
@@ -1135,6 +2096,18 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     const currentFormData = form.getValues();
     setPlannerData(currentFormData);
   }, [form, setPlannerData]);
+
+  // Analyze time constraints whenever form details or day start times change
+  useEffect(() => {
+    const details = form.getValues("details") || [];
+
+    // Run time constraint analysis for each route-type day
+    details.forEach((detail, index) => {
+      if (detail.type === "route" && detail.data?.length > 0) {
+        analyzeTimeConstraints(index);
+      }
+    });
+  }, [form.watch("details"), dayStartTimes]);
 
   // Debounced version of updateStore to prevent excessive calls - INCREASED TO 500ms
   const debouncedUpdateStore = useDebounce(updateStore, 500);
@@ -1501,6 +2474,92 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
           }
           itemExpand={
             <div className="flex flex-col gap-2">
+              {/* Thêm UI chọn thời gian bắt đầu đi */}
+              <div className="p-3 mb-2 border rounded-md bg-white">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Clock className="h-4 w-4 text-blue-500" />
+                    <span className="font-medium text-sm">
+                      Thời gian bắt đầu đi:
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="time"
+                      className="border rounded px-2 py-1 text-sm"
+                      value={dayStartTimes[index] || "08:00"}
+                      onChange={(e) => {
+                        // Cập nhật state thời gian bắt đầu cho ngày này
+                        setDayStartTimes((prev) => ({
+                          ...prev,
+                          [index]: e.target.value,
+                        }));
+                      }}
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        // Nếu có cảnh báo, tính toán lại các cảnh báo với thời gian mới
+                        if (timeWarnings[index]?.length > 0) {
+                          toast({
+                            title: "Cập nhật thời gian bắt đầu",
+                            description:
+                              "Đang kiểm tra lại các cảnh báo thời gian...",
+                          });
+                          // Tối ưu hóa lại lộ trình với thời gian bắt đầu mới
+                          optimizeDayRouteWithTimeConstraints(index);
+                        } else {
+                          toast({
+                            title: "Cập nhật thời gian bắt đầu",
+                            description: `Lộ trình sẽ bắt đầu lúc ${dayStartTimes[index] || "08:00"}`,
+                          });
+                        }
+                      }}
+                    >
+                      Áp dụng
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Hiển thị cảnh báo thời gian nếu có */}
+                {timeWarnings[index]?.length > 0 ? (
+                  <div className="mt-3 p-2 bg-amber-50 border border-amber-200 rounded">
+                    <h4 className="text-sm font-medium text-amber-800 flex items-center">
+                      <AlertTriangle className="h-3 w-3 mr-1" />
+                      Cảnh báo thời gian
+                    </h4>
+                    <ul className="mt-1 space-y-1">
+                      {timeWarnings[index].map((warning, wIdx) => (
+                        <li
+                          key={wIdx}
+                          className="text-xs text-amber-700 flex items-center"
+                        >
+                          <Circle className="h-1.5 w-1.5 mr-1 flex-shrink-0" />
+                          <span>
+                            {warning.placeName}: {warning.warning}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : (
+                  <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded">
+                    <h4 className="text-sm font-medium text-blue-800 flex items-center">
+                      <InfoIcon className="h-3 w-3 mr-1" />
+                      Thông tin lịch trình
+                    </h4>
+                    <div className="mt-1 text-xs text-blue-700">
+                      <p>
+                        Chưa có cảnh báo về thời gian - hãy nhấn nút "Tối ưu
+                        thời gian" để kiểm tra lịch trình với các giờ mở/đóng
+                        cửa.
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {currentRouteItems?.map((item, idx) => {
                 // Calculate the place number for this specific item
                 const testPlace = currentRouteItems.slice(0, idx + 1);
@@ -1598,86 +2657,101 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                               Note: {item.note}
                             </p>
                           )} */}
-                          <div className="flex">
-                            <RangeTimePicker
-                              key={`time-picker-${index}-${idx}`}
-                              value={{
-                                startTime: item.timeStart || "",
-                                endTime: item.timeEnd || "",
-                              }}
-                              onChange={(timeRange: {
-                                startTime: string;
-                                endTime: string;
-                              }) => {
-                                // Get current route items
-                                const currentRouteItems =
-                                  getCurrentRouteItems();
+                          <div className="flex flex-wrap gap-2">
+                            {/* Visit Duration Input */}
+                            <div className="flex items-center gap-2 p-1 px-2 border rounded-md bg-white">
+                              <span className="text-xs text-gray-500">
+                                Thời gian thăm:
+                              </span>
+                              <input
+                                type="number"
+                                min="0"
+                                max="480"
+                                className="w-12 text-center border-none focus:ring-0"
+                                placeholder="60"
+                                value={item.timeStart || ""}
+                                onChange={(e) => {
+                                  // Get current route items
+                                  const currentRouteItems =
+                                    getCurrentRouteItems();
+                                  const updatedItems = [...currentRouteItems];
 
-                                const updatedItems = [...currentRouteItems];
+                                  // Update the specific place item with visit duration
+                                  if (
+                                    updatedItems[idx] &&
+                                    updatedItems[idx].type === "place"
+                                  ) {
+                                    updatedItems[idx] = {
+                                      ...updatedItems[idx],
+                                      timeStart: e.target.value,
+                                    };
 
-                                // Update the specific place item with new time values
-                                if (
-                                  updatedItems[idx] &&
-                                  updatedItems[idx].type === "place"
-                                ) {
-                                  updatedItems[idx] = {
-                                    ...updatedItems[idx],
-                                    timeStart: timeRange.startTime,
-                                    timeEnd: timeRange.endTime,
-                                  };
-
-                                  // Update the form with the new data
-                                  form.setValue(
-                                    `details.${index}.data`,
-                                    updatedItems,
-                                    {
-                                      shouldValidate: false,
-                                      shouldDirty: true,
-                                      shouldTouch: false,
-                                    }
-                                  );
-
-                                  // Force re-render by triggering a form state update
-                                  form.trigger(`details.${index}.data`);
-
-                                  // Force trigger to ensure the update is registered
-                                  setTimeout(() => {
-                                    const verifyData = form.getValues(
-                                      `details.${index}.data`
+                                    // Update the form with the new data
+                                    form.setValue(
+                                      `details.${index}.data`,
+                                      updatedItems,
+                                      {
+                                        shouldValidate: false,
+                                        shouldDirty: true,
+                                        shouldTouch: false,
+                                      }
                                     );
 
-                                    if (
-                                      verifyData[idx]?.type === "place" &&
-                                      (!verifyData[idx]?.timeStart ||
-                                        !verifyData[idx]?.timeEnd)
-                                    ) {
-                                      console.warn(
-                                        "⚠️ Time values seem to be missing after update, retrying..."
-                                      );
-                                      // Retry the update
-                                      form.setValue(
-                                        `details.${index}.data`,
-                                        updatedItems,
-                                        {
-                                          shouldValidate: false,
-                                          shouldDirty: true,
-                                          shouldTouch: true,
-                                        }
-                                      );
-                                    }
-                                  }, 100);
-                                } else {
-                                  console.error(
-                                    "❌ Failed to find item or item is not a place:",
-                                    {
-                                      itemExists: !!updatedItems[idx],
-                                      itemType: updatedItems[idx]?.type,
-                                      expectedIndex: idx,
-                                    }
-                                  );
-                                }
-                              }}
-                            />
+                                    form.trigger(`details.${index}.data`);
+                                  }
+                                }}
+                              />
+                              <span className="text-xs">phút</span>
+                            </div>
+
+                            {/* Priority Input */}
+                            <div className="flex items-center gap-2 p-1 px-2 border rounded-md bg-white">
+                              <span className="text-xs text-gray-500">
+                                Độ ưu tiên:
+                              </span>
+                              <select
+                                className="text-center border-none focus:ring-0 bg-transparent"
+                                value={item.timeEnd || "3"}
+                                onChange={(e) => {
+                                  // Get current route items
+                                  const currentRouteItems =
+                                    getCurrentRouteItems();
+                                  const updatedItems = [...currentRouteItems];
+
+                                  // Update the specific place item with priority level
+                                  if (
+                                    updatedItems[idx] &&
+                                    updatedItems[idx].type === "place"
+                                  ) {
+                                    updatedItems[idx] = {
+                                      ...updatedItems[idx],
+                                      timeEnd: e.target.value,
+                                    };
+
+                                    // Update the form with the new data
+                                    form.setValue(
+                                      `details.${index}.data`,
+                                      updatedItems,
+                                      {
+                                        shouldValidate: false,
+                                        shouldDirty: true,
+                                        shouldTouch: false,
+                                      }
+                                    );
+
+                                    form.trigger(`details.${index}.data`);
+                                  }
+                                }}
+                              >
+                                <option value="1">Thấp (1)</option>
+                                <option value="2">Khá thấp (2)</option>
+                                <option value="3">Trung bình (3)</option>
+                                <option value="4">Khá cao (4)</option>
+                                <option value="5">Cao (5)</option>
+                              </select>
+                            </div>
+
+                            {/* Cost Button */}
                             <Button
                               variant="ghost"
                               onClick={() => {
@@ -1693,6 +2767,53 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                                   )
                                 : "Add Cost"}
                             </Button>
+
+                            {/* Hiển thị cảnh báo thời gian cho địa điểm này nếu có */}
+                            {timeWarnings[index]?.some(
+                              (warning) => warning.placeId === item.id
+                            ) && (
+                              <div className="w-full mt-1 p-1 bg-amber-50 border border-amber-200 rounded-md text-xs text-amber-700 flex items-center">
+                                <AlertTriangle className="h-3 w-3 mr-1 text-amber-500" />
+                                <span>
+                                  {
+                                    timeWarnings[index].find(
+                                      (warning) => warning.placeId === item.id
+                                    )?.warning
+                                  }
+                                </span>
+                              </div>
+                            )}
+
+                            {/* Hiển thị thông tin giờ mở/đóng cửa nếu có */}
+                            {item.attractionData?.openingPeriods && (
+                              <div className="w-full flex flex-wrap text-xs text-gray-500">
+                                <span className="flex items-center mr-2">
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  Giờ hoạt động:
+                                </span>
+                                {(() => {
+                                  const dayOfWeek = new Date().getDay();
+                                  const todayPeriod =
+                                    item.attractionData.openingPeriods.find(
+                                      (p) => p.open.day === dayOfWeek
+                                    );
+                                  if (todayPeriod) {
+                                    return (
+                                      <span>
+                                        {formatTimeFromOpeningPeriod(
+                                          todayPeriod.open.time
+                                        )}{" "}
+                                        -{" "}
+                                        {formatTimeFromOpeningPeriod(
+                                          todayPeriod.close.time
+                                        )}
+                                      </span>
+                                    );
+                                  }
+                                  return <span>Không có thông tin</span>;
+                                })()}
+                              </div>
+                            )}
                           </div>
                         </section>
                         <section>
@@ -1733,31 +2854,93 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                           <Route className="h-4 w-4" />
                           Route Information
                         </h4>
-                        <div className="flex gap-2">
-                          <Button
-                            // variant="primary"
-                            size="sm"
-                            onClick={() => calculateDayRoutes(index)}
-                            disabled={dayRouting?.isCalculating}
-                            className="h-[36px] text-[14px] font-bold"
-                          >
-                            {dayRouting?.isCalculating ? (
-                              <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
-                            ) : (
-                              "Calculate Routes"
-                            )}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => optimizeDayRouteOSRM(index)}
-                            disabled={dayRouting?.isCalculating}
-                            className="flex items-center gap-2 text-xs"
-                            title="Tối ưu hóa thứ tự các địa điểm để giảm thời gian di chuyển"
-                          >
-                            <Route className="h-3 w-3" />
-                            Optimize
-                          </Button>
+                        <div className="flex flex-col gap-2">
+                          <div className="flex gap-2">
+                            <Button
+                              // variant="primary"
+                              size="sm"
+                              onClick={() => calculateDayRoutes(index)}
+                              disabled={dayRouting?.isCalculating}
+                              className="h-[36px] text-[14px] font-bold"
+                            >
+                              {dayRouting?.isCalculating ? (
+                                <div className="animate-spin rounded-full h-4 w-4 border-2 border-blue-600 border-t-transparent"></div>
+                              ) : (
+                                "Calculate Routes"
+                              )}
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => optimizeDayRouteOSRM(index)}
+                              disabled={dayRouting?.isCalculating}
+                              className="flex items-center gap-2 text-xs"
+                              title="Tối ưu hóa thứ tự các địa điểm để giảm thời gian di chuyển"
+                            >
+                              <Route className="h-3 w-3" />
+                              Optimize
+                            </Button>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              onClick={() =>
+                                optimizeDayRouteWithTimeConstraints(index)
+                              }
+                              disabled={dayRouting?.isCalculating}
+                              className="flex items-center gap-2 text-xs"
+                              title="Tối ưu hóa theo thời gian thăm và độ ưu tiên"
+                            >
+                              <Clock className="h-3 w-3" />
+                              Time Optimize
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                analyzeTimeConstraints(index);
+                                toast({
+                                  title: "Đã phân tích ràng buộc thời gian",
+                                  description:
+                                    timeWarnings[index]?.length > 0
+                                      ? `Phát hiện ${timeWarnings[index].length} cảnh báo thời gian`
+                                      : "Không phát hiện cảnh báo thời gian nào",
+                                  variant:
+                                    timeWarnings[index]?.length > 0
+                                      ? "warning"
+                                      : "default",
+                                });
+                              }}
+                              disabled={dayRouting?.isCalculating}
+                              className="flex items-center gap-2 text-xs"
+                              title="Kiểm tra cảnh báo thời gian cho lộ trình hiện tại"
+                            >
+                              <AlertTriangle className="h-3 w-3" />
+                              Check Time
+                            </Button>
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => restorePreviousRouteData(index)}
+                              disabled={
+                                !previousRouteData[index] ||
+                                dayRouting?.isCalculating
+                              }
+                              className="flex items-center gap-2 text-xs"
+                              title="Hoàn tác lộ trình về trạng thái trước khi tối ưu hóa"
+                            >
+                              <Undo className="h-3 w-3" />
+                              Undo
+                            </Button>
+                          </div>
+
+                          {/* Help tooltip for Time Optimization */}
+                          <div className="text-xs text-gray-500 p-1 rounded-md bg-gray-100">
+                            <span className="font-medium">
+                              Tối ưu theo thời gian:
+                            </span>{" "}
+                            Nhập thời gian thăm (phút) và độ ưu tiên (1-5) cho
+                            mỗi địa điểm
+                          </div>
                           {/* NEW: Debug button to log routing data */}
                           <Button
                             variant="ghost"
@@ -1794,16 +2977,25 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                               </span>
                             </div>
                             <div className="text-sm">
-                              <span className="font-medium">
+                              <span
+                                className="font-medium tooltip"
+                                title="Tổng thời gian bao gồm cả thời gian thăm quan và di chuyển"
+                              >
                                 Total Duration:
                               </span>
-                              <span className="ml-2 text-blue-700 dark:text-blue-300">
+                              <span
+                                className="ml-2 text-blue-700 dark:text-blue-300"
+                                title="Tổng thời gian bao gồm cả thời gian thăm quan và di chuyển"
+                              >
                                 {
                                   formatRouteInfo(
                                     dayRouting.totalDistance,
                                     dayRouting.totalDuration
                                   ).duration
                                 }
+                              </span>
+                              <span className="ml-2 text-xs text-gray-500">
+                                (Bao gồm thời gian thăm quan)
                               </span>
                             </div>
                           </div>

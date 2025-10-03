@@ -2,7 +2,11 @@
 
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { getGuideByUserId, deleteGuide, searchPublicGuides } from "@/lib/actions/guide.action";
+import {
+  getGuideByUserId,
+  deleteGuide,
+  searchPublicGuides,
+} from "@/lib/actions/guide.action";
 import {
   Card,
   CardContent,
@@ -111,7 +115,10 @@ const GuidesManagementPage = () => {
     }
   };
 
-  const fetchPublicGuides = async (newPage = publicPage, query = searchQuery) => {
+  const fetchPublicGuides = async (
+    newPage = publicPage,
+    query = searchQuery
+  ) => {
     setSearchLoading(true);
     setPublicError(null);
     try {
@@ -127,7 +134,9 @@ const GuidesManagementPage = () => {
         setPublicGuides(response.data.guides);
         setPublicTotalCount(response.data.totalCount);
       } else {
-        setPublicError(response.error?.message || "Failed to fetch public guides");
+        setPublicError(
+          response.error?.message || "Failed to fetch public guides"
+        );
         setPublicGuides([]);
       }
     } catch (err) {
@@ -157,7 +166,7 @@ const GuidesManagementPage = () => {
     setPage(newPage);
     fetchGuides(newPage, state);
   };
-  
+
   const handlePublicPageChange = (newPage: number) => {
     setPublicPage(newPage);
     fetchPublicGuides(newPage);
@@ -168,7 +177,7 @@ const GuidesManagementPage = () => {
     setPublicPage(1);
     fetchPublicGuides(1, searchQuery);
   };
-  
+
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     if (value === "public" && publicGuides.length === 0) {
@@ -270,7 +279,9 @@ const GuidesManagementPage = () => {
                 e.preventDefault();
                 if (currentPage > 1) handleChange(currentPage - 1);
               }}
-              className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
+              className={
+                currentPage <= 1 ? "pointer-events-none opacity-50" : ""
+              }
             />
           </PaginationItem>
 
@@ -316,7 +327,9 @@ const GuidesManagementPage = () => {
                 if (currentPage < totalPages) handleChange(currentPage + 1);
               }}
               className={
-                currentPage >= totalPages ? "pointer-events-none opacity-50" : ""
+                currentPage >= totalPages
+                  ? "pointer-events-none opacity-50"
+                  : ""
               }
             />
           </PaginationItem>
@@ -341,9 +354,9 @@ const GuidesManagementPage = () => {
         </Button>
       </div>
 
-      <Tabs 
-        defaultValue="all" 
-        className="w-full" 
+      <Tabs
+        defaultValue="all"
+        className="w-full"
         value={activeTab}
         onValueChange={handleTabChange}
       >
@@ -405,7 +418,7 @@ const GuidesManagementPage = () => {
             {state === tabState && renderPagination(false)}
           </TabsContent>
         ))}
-        
+
         <TabsContent value="public" className="mt-0">
           {/* Search bar for public guides */}
           <form onSubmit={handleSearch} className="flex gap-2 mb-6">
@@ -425,7 +438,7 @@ const GuidesManagementPage = () => {
               Search
             </Button>
           </form>
-          
+
           <PublicGuidesList
             guides={publicGuides}
             loading={searchLoading}
@@ -761,13 +774,16 @@ const PublicGuidesList = ({
                     </span>
                   </div>
                 )}
-                
+
                 {/* Show author if available */}
                 {guide.author && (
                   <div className="flex items-center">
                     <User className="h-4 w-4 mr-1 text-gray-500" />
                     <span>
-                      By {guide.author.name || guide.author.username || "Anonymous"}
+                      By{" "}
+                      {guide.author.name ||
+                        guide.author.username ||
+                        "Anonymous"}
                     </span>
                   </div>
                 )}

@@ -787,7 +787,7 @@ export async function searchPublicGuides(params?: {
     }
 
     // Add text search if query provided
-    if (searchQuery && searchQuery.trim() !== '') {
+    if (searchQuery && searchQuery.trim() !== "") {
       query.$or = [
         { title: { $regex: searchQuery, $options: "i" } },
         { "destination.name": { $regex: searchQuery, $options: "i" } },
