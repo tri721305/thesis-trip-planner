@@ -1,15 +1,9 @@
-import {
-  Eye,
-  Heart,
-  MapPin,
-  Share,
-  ThumbsDown,
-  ThumbsUp,
-  Trash,
-  User,
-} from "lucide-react";
+"use client";
+
+import { Clock, Eye, Heart, MapPin, Share, Trash, User } from "lucide-react";
 import Image from "next/image";
 import React from "react";
+import { BsThreeDots } from "react-icons/bs";
 import Link from "next/link";
 
 import {
@@ -18,44 +12,40 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { BsThreeDots } from "react-icons/bs";
-import { IoMdArrowDown, IoMdArrowUp } from "react-icons/io";
 
 // Define proper types for our component props
-interface GuideCardProps {
-  id?: string;
+interface PlannerCardProps {
+  id: string;
   image?: string;
   title: string;
   destination?: string;
-  like?: number; // Keeping for backward compatibility
-  upvotes?: number;
-  downvotes?: number;
+  like?: number;
   views?: number;
   author?: {
     name?: string;
     image?: string;
   };
+  startDate?: string;
+  endDate?: string;
   onDelete?: () => void;
   style?: React.CSSProperties;
 }
 
-const GuideCard: React.FC<GuideCardProps> = ({
+const PlannerCard: React.FC<PlannerCardProps> = ({
   id,
   image,
   title,
   destination,
   like = 0,
-  upvotes = 0,
-  downvotes = 0,
   views = 0,
   author,
+  startDate,
+  endDate,
   onDelete,
   style,
 }) => {
-  const linkHref = id ? `/guides/${id}` : "#";
-
   return (
-    <Link href={linkHref} className="block">
+    <Link href={`/planners/${id}`} className="block">
       <div className="relative w-[256px] mt-4" style={style}>
         <div className="absolute top-1 right-2 z-10 w-[20px] h-[20px] bg-[#75757585] rounded-full p-auto flex-center">
           <DropdownMenu>
@@ -91,7 +81,7 @@ const GuideCard: React.FC<GuideCardProps> = ({
               sizes="256px"
             />
           ) : (
-            <div className="shadow-md rounded-[12px] mb-2 h-[178px] w-full bg-gradient-to-br from-green-400 to-blue-500 flex justify-center items-center">
+            <div className="shadow-md rounded-[12px] mb-2 h-[178px] w-full bg-gradient-to-br from-blue-400 to-purple-500 flex justify-center items-center">
               <MapPin className="h-10 w-10 text-white" />
             </div>
           )}
@@ -106,16 +96,28 @@ const GuideCard: React.FC<GuideCardProps> = ({
         <div className="flex gap-4 mt-2 text-[12px] text-gray-700">
           <div className="flex gap-1 items-center">
             <Heart className="h-3 w-3 text-red-500" />
-            {upvotes || like || 0}
-          </div>
-          <div className="flex gap-1 items-center">
-            <ThumbsDown className="h-3 w-3 text-gray-600" />
-            {downvotes || 0}
+            {like}
           </div>
           <div className="flex gap-1 items-center">
             <Eye className="h-3 w-3" />
             {views}
           </div>
+          {startDate && endDate && (
+            <div className="flex gap-1 items-center">
+              <Clock className="h-3 w-3" />
+              <span className="truncate">
+                {new Date(startDate).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                })}{" "}
+                -
+                {new Date(endDate).toLocaleDateString("en-US", {
+                  month: "short",
+                  day: "numeric",
+                })}
+              </span>
+            </div>
+          )}
           {author?.name && (
             <div className="flex gap-1 items-center">
               <User className="h-3 w-3" />
@@ -128,4 +130,4 @@ const GuideCard: React.FC<GuideCardProps> = ({
   );
 };
 
-export default GuideCard;
+export default PlannerCard;

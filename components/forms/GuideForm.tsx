@@ -43,7 +43,7 @@ import {
   SelectValue,
 } from "../ui/select";
 import { Separator } from "../ui/separator";
-import { VoteButtons } from "../votes";
+import { VoteButtons, VoteStats } from "../votes";
 import AuthDebug from "../debug/AuthDebug";
 import {
   Trash2,
@@ -2186,12 +2186,22 @@ const GuideForm = ({ planner }: { planner?: any }) => {
                 )}
               />
 
-              {/* Vote Buttons for testing */}
+              {/* Vote System */}
               <div className="px-8 py-4 border-t ">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-medium text-gray-600">
-                    {/* 🧪 Vote System Test: */}
-                  </span>
+                  <div className="flex items-center">
+                    <span className="text-sm font-medium text-gray-600 mr-2">
+                      Guide Stats:
+                    </span>
+                    {planner && (
+                      <VoteStats
+                        upvotes={planner.upvotes || 0}
+                        downvotes={planner.downvotes || 0}
+                        views={planner.views || 0}
+                        comments={planner.comments?.length || 0}
+                      />
+                    )}
+                  </div>
                   {planner?._id ? (
                     <VoteButtons
                       targetId={planner._id}

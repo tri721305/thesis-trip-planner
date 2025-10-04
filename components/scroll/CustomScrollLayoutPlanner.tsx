@@ -6,6 +6,7 @@ import SidebarDetailPlanner from "../sidebar/SidebarDetailPlanner";
 import PlannerForm from "../forms/PlannerForm";
 import Map from "../Map";
 import { usePlannerStore } from "@/store/plannerStore";
+import ViewTracker from "../tracking/ViewTracker";
 
 const CustomScrollLayoutPlanner = (planner: any) => {
   const leftContentRef = useRef<HTMLDivElement>(null);
@@ -193,6 +194,19 @@ const CustomScrollLayoutPlanner = (planner: any) => {
           background: #a0aec0;
         }
       `}</style>
+
+      {/* Track this planner view to show in recently viewed items */}
+      {planner.planner && (
+        <ViewTracker
+          id={planner.planner._id || planner.planner.id}
+          title={planner.planner.title || "Trip Plan"}
+          image={planner.planner.image || "/images/ocean.jpg"}
+          type="planner"
+          destination={planner.planner.destination?.name}
+          views={planner.planner.views}
+          author={planner.planner.author}
+        />
+      )}
     </div>
   );
 };

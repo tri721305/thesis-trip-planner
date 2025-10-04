@@ -31,47 +31,51 @@ const searchPublicPlanners = async ({
       sortBy: sortBy as any,
       sortOrder: sortOrder as any,
     });
-    
+
     if (!allPlannersResponse.success || !allPlannersResponse.data) {
-      throw new Error(allPlannersResponse.error?.message || "Failed to fetch planners");
+      throw new Error(
+        allPlannersResponse.error?.message || "Failed to fetch planners"
+      );
     }
-    
+
     // Lọc các planner có type là "public"
     let publicPlanners = allPlannersResponse.data.planners.filter(
-      planner => planner.type === "public"
+      (planner) => planner.type === "public"
     );
-    
+
     // Tìm kiếm theo từ khóa nếu có
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      publicPlanners = publicPlanners.filter(planner => 
-        planner.title?.toLowerCase().includes(query) || 
-        planner.destination?.name?.toLowerCase().includes(query) ||
-        (planner.details?.some((detail: any) => 
-          detail.notes?.toLowerCase().includes(query)
-        ) ?? false)
+      publicPlanners = publicPlanners.filter(
+        (planner) =>
+          planner.title?.toLowerCase().includes(query) ||
+          planner.destination?.name?.toLowerCase().includes(query) ||
+          (planner.details?.some((detail: any) =>
+            detail.notes?.toLowerCase().includes(query)
+          ) ??
+            false)
       );
     }
-    
+
     // Phân trang kết quả
     const total = publicPlanners.length;
     const paginatedPlanners = publicPlanners.slice(offset, offset + limit);
-    
+
     return {
       success: true,
       data: {
         planners: paginatedPlanners,
         total,
-        hasMore: offset + limit < total
-      }
+        hasMore: offset + limit < total,
+      },
     };
   } catch (error) {
     console.error("Error searching public planners:", error);
     return {
       success: false,
       error: {
-        message: "Failed to search public planners"
-      }
+        message: "Failed to search public planners",
+      },
     };
   }
 };
@@ -184,7 +188,7 @@ const PlannersManagementPage = () => {
       setLoading(false);
     }
   };
-  
+
   // Hàm lấy danh sách planners công khai
   const fetchPublicPlanners = async (
     newPage = publicPage,
@@ -237,18 +241,18 @@ const PlannersManagementPage = () => {
     setPage(newPage);
     fetchPlanners(newPage, state);
   };
-  
+
   const handlePublicPageChange = (newPage: number) => {
     setPublicPage(newPage);
     fetchPublicPlanners(newPage);
   };
-  
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     setPublicPage(1);
     fetchPublicPlanners(1, searchQuery);
   };
-  
+
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     if (value === "public" && publicPlanners.length === 0) {
@@ -350,7 +354,9 @@ const PlannersManagementPage = () => {
                 e.preventDefault();
                 if (currentPage > 1) handleChange(currentPage - 1);
               }}
-              className={currentPage <= 1 ? "pointer-events-none opacity-50" : ""}
+              className={
+                currentPage <= 1 ? "pointer-events-none opacity-50" : ""
+              }
             />
           </PaginationItem>
 
@@ -396,7 +402,9 @@ const PlannersManagementPage = () => {
                 if (currentPage < totalPages) handleChange(currentPage + 1);
               }}
               className={
-                currentPage >= totalPages ? "pointer-events-none opacity-50" : ""
+                currentPage >= totalPages
+                  ? "pointer-events-none opacity-50"
+                  : ""
               }
             />
           </PaginationItem>
@@ -422,12 +430,13 @@ const PlannersManagementPage = () => {
       <div className="mb-6">
         <h2 className="text-xl font-semibold mb-2">Filter Travel Plans</h2>
         <p className="text-gray-600 text-sm mb-4">
-          Browse your own plans, shared plans, or explore public plans from others
+          Browse your own plans, shared plans, or explore public plans from
+          others
         </p>
       </div>
 
-      <Tabs 
-        defaultValue="all" 
+      <Tabs
+        defaultValue="all"
         className="w-full"
         value={activeTab}
         onValueChange={handleTabChange}
@@ -460,9 +469,7 @@ const PlannersManagementPage = () => {
           >
             Cancelled
           </TabsTrigger>
-          <TabsTrigger value="public">
-            Public Plans
-          </TabsTrigger>
+          <TabsTrigger value="public">Public Plans</TabsTrigger>
         </TabsList>
 
         <TabsContent value="all" className="mt-0">
@@ -490,14 +497,16 @@ const PlannersManagementPage = () => {
             {state === tabState && renderPagination()}
           </TabsContent>
         ))}
-        
+
         <TabsContent value="public" className="mt-0">
           <form onSubmit={handleSearch} className="mb-6 flex gap-2">
             <div className="flex-1">
               <Input
                 placeholder="Search by title, destination, or place..."
                 value={searchQuery}
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setSearchQuery(e.target.value)
+                }
                 className="w-full"
               />
             </div>
@@ -757,7 +766,7 @@ const PublicPlannersList = ({
   getStateLabel,
 }: PublicPlannersListProps) => {
   const router = useRouter();
-  
+
   if (loading) {
     return (
       <div className="flex justify-center items-center py-20">
@@ -819,7 +828,7 @@ const PublicPlannersList = ({
                   >
                     <h3 className="font-bold text-xl mb-1">{planner.title}</h3>
                   </Link>
-                  
+
                   {planner.author && (
                     <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
                       <Avatar className="h-5 w-5">
@@ -828,19 +837,24 @@ const PublicPlannersList = ({
                           {planner.author.name?.charAt(0) || "U"}
                         </AvatarFallback>
                       </Avatar>
-                      <span>Created by {planner.author.name || "Anonymous"}</span>
+                      <span>
+                        Created by {planner.author.name || "Anonymous"}
+                      </span>
                     </div>
                   )}
-                  
+
                   <div className="flex flex-wrap items-center gap-2 mb-3">
                     {getStateLabel(planner.state)}
-                    <Badge variant="outline" className="bg-green-100 text-green-800">
+                    <Badge
+                      variant="outline"
+                      className="bg-green-100 text-green-800"
+                    >
                       Public
                     </Badge>
                   </div>
                 </div>
-                
-                <Button 
+
+                <Button
                   variant="outline"
                   size="sm"
                   onClick={() => router.push(`/planners/${planner._id}`)}

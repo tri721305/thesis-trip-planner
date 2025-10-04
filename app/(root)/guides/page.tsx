@@ -87,7 +87,11 @@ const GuidesManagementPage = () => {
 
   const ITEMS_PER_PAGE = 3; // Changed from 10 to 3 for testing pagination
 
-  const fetchGuides = async (newPage = page, newState = state, query = searchQuery) => {
+  const fetchGuides = async (
+    newPage = page,
+    newState = state,
+    query = searchQuery
+  ) => {
     setLoading(true);
     setError(null);
     try {
@@ -102,29 +106,31 @@ const GuidesManagementPage = () => {
 
       if (response.success && response.data) {
         let filteredGuides = response.data.guides;
-        
+
         // If there's a search query, filter guides
         if (query) {
           const searchTerm = query.toLowerCase().trim();
-          filteredGuides = filteredGuides.filter((guide: any) => 
-            guide.title?.toLowerCase().includes(searchTerm) || 
-            guide.destination?.name?.toLowerCase().includes(searchTerm) ||
-            guide.description?.toLowerCase().includes(searchTerm) ||
-            (guide.content && typeof guide.content === 'string' && 
-              guide.content.toLowerCase().includes(searchTerm))
+          filteredGuides = filteredGuides.filter(
+            (guide: any) =>
+              guide.title?.toLowerCase().includes(searchTerm) ||
+              guide.destination?.name?.toLowerCase().includes(searchTerm) ||
+              guide.description?.toLowerCase().includes(searchTerm) ||
+              (guide.content &&
+                typeof guide.content === "string" &&
+                guide.content.toLowerCase().includes(searchTerm))
           );
-          
+
           // Manual pagination for filtered results
           const totalFilteredCount = filteredGuides.length;
           const start = (newPage - 1) * ITEMS_PER_PAGE;
           filteredGuides = filteredGuides.slice(start, start + ITEMS_PER_PAGE);
-          
+
           setTotalCount(totalFilteredCount);
         } else {
           // No search query, use API pagination
           setTotalCount(response.data.totalCount);
         }
-        
+
         setGuides(filteredGuides);
       } else {
         setError(response.error?.message || "Failed to fetch guides");
@@ -205,10 +211,13 @@ const GuidesManagementPage = () => {
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     setSearchQuery(""); // Clear search query when changing tabs
-    
+
     if (value === "public" && publicGuides.length === 0) {
       fetchPublicGuides();
-    } else if (value === "all" || ["planning", "ongoing", "completed", "cancelled"].includes(value)) {
+    } else if (
+      value === "all" ||
+      ["planning", "ongoing", "completed", "cancelled"].includes(value)
+    ) {
       // Reset page to 1 when switching between tabs
       setPage(1);
       fetchGuides(1, value === "all" ? null : value);
@@ -430,11 +439,14 @@ const GuidesManagementPage = () => {
             <p className="text-gray-600 text-sm mb-3">
               Find your guides by title, destination, or content
             </p>
-            <form onSubmit={(e) => {
-              e.preventDefault();
-              setPage(1); // Reset to first page when searching
-              fetchGuides(1, state, searchQuery);
-            }} className="flex gap-2">
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                setPage(1); // Reset to first page when searching
+                fetchGuides(1, state, searchQuery);
+              }}
+              className="flex gap-2"
+            >
               <div className="flex-1">
                 <Input
                   type="text"
@@ -454,7 +466,7 @@ const GuidesManagementPage = () => {
               </Button>
             </form>
           </div>
-          
+
           <GuidesList
             guides={guides}
             loading={loading}

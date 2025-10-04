@@ -8,6 +8,7 @@ import Map from "../Map";
 import { usePlannerStore } from "@/store/plannerStore";
 import GuideForm from "../forms/GuideForm";
 import GuideViewForm from "../forms/GuideViewForm";
+import ViewTracker from "../tracking/ViewTracker";
 
 const CustomScrollLayoutViewGuide = (planner: any) => {
   const leftContentRef = useRef<HTMLDivElement>(null);
@@ -206,6 +207,22 @@ const CustomScrollLayoutViewGuide = (planner: any) => {
           background: #a0aec0;
         }
       `}</style>
+
+      {/* Track this guide view to show in recently viewed items */}
+      {planner.planner && (
+        <ViewTracker
+          id={planner.planner._id || planner.planner.id}
+          title={planner.planner.title || "Guide"}
+          image={planner.planner.image || "/images/ocean.jpg"}
+          type="guide"
+          destination={planner.planner.destination?.name}
+          views={planner.planner.views}
+          likes={planner.planner.likes}
+          upvotes={planner.planner.upvotes || planner.planner.likes}
+          downvotes={planner.planner.downvotes || 0}
+          author={planner.planner.author}
+        />
+      )}
     </div>
   );
 };

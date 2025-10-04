@@ -15,6 +15,8 @@ const GuideCardInline = async ({
   image,
   title,
   like,
+  upvotes,
+  downvotes,
   views,
   author,
   style,
@@ -55,7 +57,7 @@ const GuideCardInline = async ({
           <div className="flex gap-4  text-[0.8rem]">
             <div className="flex gap-2 items-center">
               <Heart size={14} />
-              {like || 0}
+              {upvotes || like || 0}
             </div>
             <div className="flex gap-2 items-center">
               <Eye size={14} />
