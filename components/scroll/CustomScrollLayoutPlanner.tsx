@@ -14,8 +14,8 @@ const CustomScrollLayoutPlanner = (planner: any) => {
   const leftContainerRef = useRef<HTMLDivElement>(null);
   const [scrollHeight, setScrollHeight] = useState(0);
 
-  // Get routing data from Zustand store
-  const { routingData } = usePlannerStore();
+  // Get data from Zustand store
+  const { routingData, hotelsData } = usePlannerStore();
 
   // Extract destination data for the map
   const mapDestination = React.useMemo(() => {
@@ -154,6 +154,7 @@ const CustomScrollLayoutPlanner = (planner: any) => {
         <Map
           destination={mapDestination || undefined}
           routeData={mapRouteData}
+          hotels={hotelsData}
         />
       </div>
 

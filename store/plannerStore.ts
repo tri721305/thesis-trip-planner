@@ -31,6 +31,8 @@ interface PlannerState {
     name: string;
     timestamp: number;
   } | null;
+  // NEW: State for hotel data
+  hotelsData: any[];
   setPlannerData: (data: any) => void;
   updatePlannerDetails: (details: any[]) => void;
   // NEW: Method to update routing data
@@ -44,6 +46,8 @@ interface PlannerState {
       timestamp: number;
     } | null
   ) => void;
+  // NEW: Method to set hotels data
+  setHotelsData: (hotelsData: any[]) => void;
   clearPlannerData: () => void;
 }
 
@@ -51,6 +55,7 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
   plannerData: null,
   routingData: {}, // Initialize empty routing data
   flyToPlace: null, // Initialize fly to place state
+  hotelsData: [], // Initialize empty hotels data
 
   setPlannerData: (data: any) => {
     console.log("🏪 Store - Setting planner data:", {
@@ -125,8 +130,24 @@ export const usePlannerStore = create<PlannerState>((set, get) => ({
     set({ flyToPlace: placeData });
   },
 
+  // NEW: Set hotels data
+  setHotelsData: (hotelsData) => {
+    console.log("🏪 Store - Setting hotels data:", {
+      hotelsCount: hotelsData.length,
+      hotelsWithLocation: hotelsData.filter(
+        (h) => h?.lodging?.location?.longitude && h?.lodging?.location?.latitude
+      ).length,
+    });
+    set({ hotelsData });
+  },
+
   clearPlannerData: () => {
-    console.log("🏪 Store - Clearing planner data and routing data");
-    set({ plannerData: null, routingData: {}, flyToPlace: null });
+    console.log("🏪 Store - Clearing all planner data");
+    set({
+      plannerData: null,
+      routingData: {},
+      flyToPlace: null,
+      hotelsData: [],
+    });
   },
 }));

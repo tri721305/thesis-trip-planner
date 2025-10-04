@@ -231,6 +231,237 @@ export async function getHotelOfferById(
  * @param params Tham số phân trang và lọc
  * @returns Danh sách khách sạn từ nguồn Wanderlog
  */
+/**
+ * Get hotels by array of IDs
+ * @param params Object containing array of hotel IDs
+ * @returns Array of hotel objects with location data
+ */
+/**
+ * Find hotels by their IDs
+ * @param params Object containing array of hotel IDs
+ * @returns Array of hotel objects with location data
+ * @deprecated Use getHotelsByNames instead if searching by hotel names
+ */
+export async function getHotelsById(params: {
+  hotelIds: string[];
+}): Promise<ActionResponse<{ hotels: any[] }>> {
+  const { hotelIds } = params;
+
+  if (!hotelIds || hotelIds.length === 0) {
+    return {
+      success: true,
+      data: {
+        hotels: [],
+      },
+    };
+  }
+
+  try {
+    console.log("🏨 Fetching hotels by IDs:", hotelIds);
+
+    const mongoose = require("mongoose");
+
+    // Convert string IDs to MongoDB ObjectId when they're valid ObjectIds
+    const objectIds = hotelIds.map((id) => {
+      try {
+        // Check if it's a valid ObjectId format
+        if (mongoose.Types.ObjectId.isValid(id)) {
+          return new mongoose.Types.ObjectId(id);
+        }
+        // If not a valid ObjectId, return the original string
+        return id;
+      } catch (err) {
+        return id; // Return original if conversion fails
+      }
+    });
+
+    console.log("🏨 Converted ObjectIds for query:", objectIds);
+
+    // Query hotels by _id using $in with both ObjectIds and original strings
+    const hotels = await Hotel.find({
+      $or: [
+        { _id: { $in: objectIds } },
+        { offerId: { $in: hotelIds } }, // Also try matching with offerId as fallback
+        { hotel_id: { $in: hotelIds } }, // Also try matching with hotel_id as another fallback
+      ],
+    }).lean();
+
+    // Serialize the results
+    const serializedHotels = hotels.map((hotel: any) => {
+      return {
+        ...hotel,
+        _id: hotel._id ? hotel._id.toString() : undefined,
+        createdAt: hotel.createdAt ? hotel.createdAt.toISOString() : undefined,
+        updatedAt: hotel.updatedAt ? hotel.updatedAt.toISOString() : undefined,
+      };
+    });
+
+    console.log(
+      `✅ Found ${serializedHotels.length} hotels out of ${hotelIds.length} requested`
+    );
+
+    return {
+      success: true,
+      data: {
+        hotels: serializedHotels,
+      },
+    };
+  } catch (error) {
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+/**
+ * Find hotels by their names
+ * @param params Object containing array of hotel names
+ * @returns Array of hotel objects that match the provided names
+ */
+export async function getHotelsByNames(params: {
+  hotelNames: string[];
+}): Promise<ActionResponse<{ hotels: any[] }>> {
+  const { hotelNames } = params;
+
+  if (!hotelNames || hotelNames.length === 0) {
+    return {
+      success: true,
+      data: {
+        hotels: [],
+      },
+    };
+  }
+
+  try {
+    console.log("🏨 Fetching hotels by names:", hotelNames);
+
+    // Create case-insensitive regex queries for each hotel name
+    const nameQueries = hotelNames.map((name) => ({
+      "lodging.name": { $regex: new RegExp(name, "i") },
+    }));
+
+    // Query hotels by name using $or to match any of the provided names
+    const hotels = await Hotel.find({
+      $or: nameQueries,
+    }).lean();
+
+    // Serialize the results
+    const serializedHotels = hotels.map((hotel: any) => {
+      return {
+        ...hotel,
+        _id: hotel._id ? hotel._id.toString() : undefined,
+        createdAt: hotel.createdAt ? hotel.createdAt.toISOString() : undefined,
+        updatedAt: hotel.updatedAt ? hotel.updatedAt.toISOString() : undefined,
+      };
+    });
+
+    console.log(
+      `✅ Found ${serializedHotels.length} hotels out of ${hotelNames.length} requested names`
+    );
+
+    return {
+      success: true,
+      data: {
+        hotels: serializedHotels,
+      },
+    };
+  } catch (error) {
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+/**
+ * Search for hotels with flexible matching options
+ * @param params Search parameters including search text and match type
+ * @returns Array of matching hotel objects
+ */
+export async function searchHotels(params: {
+  searchText: string;
+  matchType?: "exact" | "partial" | "smart";
+  limit?: number;
+}): Promise<ActionResponse<{ hotels: any[] }>> {
+  const { searchText, matchType = "smart", limit = 20 } = params;
+
+  if (!searchText || typeof searchText !== "string") {
+    return {
+      success: false,
+      message: "Search text is required and must be a string",
+    } as ErrorResponse;
+  }
+
+  try {
+    console.log(
+      `🔍 Searching hotels with ${matchType} matching for: "${searchText}"`
+    );
+
+    let filterQuery: FilterQuery<typeof Hotel> = {};
+
+    switch (matchType) {
+      case "exact":
+        // Case-sensitive exact match
+        filterQuery = { "lodging.name": searchText };
+        break;
+
+      case "partial":
+        // Case-insensitive partial match
+        filterQuery = { "lodging.name": { $regex: searchText, $options: "i" } };
+        break;
+
+      case "smart":
+      default:
+        // Try to find hotels whose names contain the search terms in any order
+        const searchTerms = searchText
+          .split(/\s+/)
+          .filter((term) => term.length > 2);
+
+        if (searchTerms.length > 0) {
+          // Create regex patterns for each term
+          const regexPatterns = searchTerms.map(
+            (term) =>
+              new RegExp(term.replace(/[-\/\\^$*+?.()|[\]{}]/g, "\\$&"), "i")
+          );
+
+          // Match hotels that contain all the search terms
+          filterQuery = {
+            $and: regexPatterns.map((pattern) => ({
+              "lodging.name": { $regex: pattern },
+            })),
+          };
+        } else {
+          // Fallback to simple partial match for short search terms
+          filterQuery = {
+            "lodging.name": { $regex: searchText, $options: "i" },
+          };
+        }
+        break;
+    }
+
+    // Perform the search
+    const hotels = await Hotel.find(filterQuery).limit(limit).lean();
+
+    // Serialize the results
+    const serializedHotels = hotels.map((hotel: any) => {
+      return {
+        ...hotel,
+        _id: hotel._id ? hotel._id.toString() : undefined,
+        createdAt: hotel.createdAt ? hotel.createdAt.toISOString() : undefined,
+        updatedAt: hotel.updatedAt ? hotel.updatedAt.toISOString() : undefined,
+      };
+    });
+
+    console.log(
+      `✅ Found ${serializedHotels.length} hotels matching "${searchText}"`
+    );
+
+    return {
+      success: true,
+      data: {
+        hotels: serializedHotels,
+      },
+    };
+  } catch (error) {
+    return handleError(error) as ErrorResponse;
+  }
+}
+
 export async function getHotelsByWanderlog(
   params: PaginatedSearchHotelParams & { filter?: FilterOptions }
 ): Promise<ActionResponse<{ hotels: any[]; isNext: boolean }>> {

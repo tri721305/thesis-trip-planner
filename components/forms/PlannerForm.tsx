@@ -104,6 +104,7 @@ import {
   partialUpdatePlanner,
 } from "@/lib/actions/planner.action";
 import { getPlaceById } from "@/lib/actions/place.action";
+import { getHotelsById, searchHotels } from "@/lib/actions/hotel.action";
 import { useToast } from "@/hooks/use-toast";
 import { Toast } from "../ui/toast";
 import UserSearch from "../search/UserSearch";
@@ -159,12 +160,12 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     [dayIndex: number]: any[];
   }>({});
 
-  // State cho thời gian bắt đầu đi của mỗi ngày
+  // State for departure time of each day
   const [dayStartTimes, setDayStartTimes] = useState<{
     [dayIndex: number]: string;
   }>({});
 
-  // State cho cảnh báo thời gian của mỗi ngày
+  // State for time warnings of each day
   const [timeWarnings, setTimeWarnings] = useState<{
     [dayIndex: number]: Array<{
       placeId: string;
@@ -218,6 +219,74 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
   // LocationCard states - same as GuideForm
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
   const [showLocationCard, setShowLocationCard] = useState(false);
+
+  // State for hotel data with location information
+  const [hotelData, setHotelData] = useState<any[]>([]);
+  const [isLoadingHotels, setIsLoadingHotels] = useState(false);
+
+  // Function to fetch hotel data by IDs
+  // Updated to support both ID and name-based hotel searches
+  const fetchHotelData = useCallback(
+    async (hotelData: string[] | { name: string; _id?: string }[]) => {
+      if (!hotelData.length) return;
+
+      setIsLoadingHotels(true);
+      try {
+        let result;
+
+        // Check if we're dealing with IDs or hotel objects
+        if (typeof hotelData[0] === "string") {
+          // Legacy support - search by IDs
+          const hotelIds = hotelData as string[];
+          console.log("🏨 Searching hotels by IDs:", hotelIds);
+          result = await getHotelsById({ hotelIds });
+        } else {
+          // New approach - search by hotel names
+          const hotelObjects = hotelData as { name: string; _id?: string }[];
+          const hotelNames = hotelObjects
+            .map((hotel) => hotel.name)
+            .filter(Boolean);
+
+          if (hotelNames.length > 0) {
+            console.log("🏨 Searching hotels by names:", hotelNames);
+            const searchPromises = hotelNames.map((name) =>
+              searchHotels({ searchText: name, matchType: "smart", limit: 1 })
+            );
+
+            const searchResults = await Promise.all(searchPromises);
+            const hotelsFound = searchResults
+              .filter((res) => res.success && res.data?.hotels?.length > 0)
+              .flatMap((res) => res.data.hotels);
+
+            result = {
+              success: true,
+              data: {
+                hotels: hotelsFound,
+              },
+            };
+          }
+        }
+
+        if (result?.success && result.data.hotels) {
+          console.log("🏨 Fetched hotel data:", result.data.hotels.length);
+          setHotelData(result.data.hotels);
+
+          // Update store with hotel data
+          usePlannerStore.getState().setHotelsData?.(result.data.hotels);
+        }
+      } catch (error) {
+        console.error("Error fetching hotel data:", error);
+        toast({
+          title: "Error fetching hotel data",
+          description: "Could not load hotel information. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsLoadingHotels(false);
+      }
+    },
+    [toast]
+  );
 
   // Debounced callback for cost input
   const debouncedCostUpdate = useDebounce((value: number) => {
@@ -378,7 +447,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     }
   };
 
-  // Hàm tìm tọa độ gần nhất trong danh sách
+  // Function to find the nearest coordinate in the list
   const findClosestCoordinate = (
     waypoint: { lat: number; lon: number },
     placesMap: Record<string, string>,
@@ -391,7 +460,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     for (const key of keys) {
       const [lat, lon] = key.split(",").map(Number);
 
-      // Tính khoảng cách theo Haversine
+      // Calculate distance using Haversine formula
       const distance = Math.sqrt(
         Math.pow(waypoint.lat - lat, 2) + Math.pow(waypoint.lon - lon, 2)
       );
@@ -405,7 +474,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     return closestKey;
   };
 
-  // Hàm tối ưu hóa lộ trình sử dụng OSRM Trip API
+  // Function to optimize route using OSRM Trip API
   const optimizeRouteWithOSRM = async (
     coordinates: Array<{ lat: number; lon: number }>,
     source: string = "first",
@@ -425,7 +494,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
         isNaN(coord.lat) ||
         isNaN(coord.lon)
       ) {
-        console.error("❌ Tọa độ không hợp lệ:", coord);
+        console.error("❌ Invalid coordinates:", coord);
         return null;
       }
     }
@@ -461,7 +530,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
 
       if (data.trips && data.trips.length > 0) {
         const trip = data.trips[0];
-        // Lấy thứ tự tối ưu của các điểm
+        // Get optimal order of points
         const waypointOrder = data.waypoints.sort(
           (a, b) => a.waypoint_index - b.waypoint_index
         );
@@ -482,7 +551,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
           legs: trip.legs || [],
         };
       } else {
-        throw new Error("Không tìm thấy lộ trình trong phản hồi API");
+        throw new Error("No route found in API response");
       }
     } catch (error) {
       console.error("❌ Lỗi OSRM Trip API:", error);
@@ -490,7 +559,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     }
   };
 
-  // Hàm tối ưu hóa lộ trình cho một ngày sử dụng OSRM Trip API
+  // Function to optimize route for a day using OSRM Trip API
   const optimizeDayRouteOSRM = async (dayIndex: number) => {
     const details = form.getValues("details");
     if (!details || !details[dayIndex]) return;
@@ -499,8 +568,8 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     if (detail.type !== "route") return;
 
     toast({
-      title: "Tối ưu hóa lộ trình",
-      description: "Đang tính toán đường đi tối ưu...",
+      title: "Route Optimization",
+      description: "Calculating optimal route...",
     });
 
     // Extract date from the day
@@ -672,10 +741,10 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     form.setValue("details", updatedDetails);
 
     toast({
-      title: "Lộ trình đã được tối ưu hóa",
+      title: "Route has been optimized",
       description: hotelInfo
-        ? `Lộ trình đã được tối ưu hóa bắt đầu và kết thúc tại ${hotelInfo.name}`
-        : "Lộ trình đã được tối ưu hóa để di chuyển hiệu quả nhất",
+        ? `Route has been optimized to start and end at ${hotelInfo.name}`
+        : "Route has been optimized for most efficient travel",
       variant: "default",
     });
 
@@ -708,13 +777,13 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     form.setValue("details", updatedDetails);
 
     toast({
-      title: "Đã hoàn tác thay đổi",
+      title: "Changes undone",
       description:
-        "Lộ trình đã được khôi phục về trạng thái trước khi tối ưu hóa",
+        "Route has been restored to its state before optimization",
       variant: "default",
     });
 
-    // Tính toán lại lộ trình
+    // Recalculate the route
     calculateDayRoutes(dayIndex);
   };
 
@@ -879,7 +948,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
 
         const toPlace = placesWithData[j];
 
-        // Tính khoảng cách và thời gian di chuyển giữa 2 điểm
+        // Calculate distance and travel time between 2 points
         const routeResult = await calculateRoute([
           fromPlace.coordinates,
           toPlace.coordinates,
@@ -1200,7 +1269,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     }
 
     toast({
-      title: "Lộ trình đã được tối ưu hóa theo thời gian",
+      title: "Route has been time-optimized",
       description: toastMessage,
       variant: timeWarningsList.length > 0 ? "warning" : "default",
     });
@@ -1209,7 +1278,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     calculateDayRoutes(dayIndex);
   };
 
-  // Hàm tính khoảng cách Haversine (đường chim bay) giữa 2 tọa độ
+  // Function to calculate Haversine distance (as the crow flies) between 2 coordinates
   const calculateHaversineDistance = (lat1, lon1, lat2, lon2) => {
     const R = 6371000; // Bán kính trái đất tính bằng mét
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
@@ -2278,6 +2347,21 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     name: "details",
   });
 
+  // Fetch hotel data from planner's lodging information
+  useEffect(() => {
+    if (planner?.lodging && planner.lodging.length > 0) {
+      // Extract hotels from lodging data - prioritize name over ID
+      const hotels = planner.lodging.filter(
+        (item: any) => item.name || item._id
+      );
+
+      if (hotels.length > 0) {
+        console.log("🏨 Found hotels in planner data:", hotels.length);
+        fetchHotelData(hotels);
+      }
+    }
+  }, [planner, fetchHotelData]);
+
   const onSubmit = (data: PlannerFormData) => {
     startTransition(() => {
       // TODO: Implement submit logic
@@ -2294,7 +2378,8 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
   };
 
   const addNewLodging = (hotel: any) => {
-    appendLodging({
+    // Create the lodging object with standard properties
+    const lodgingData = {
       name: hotel?.lodging?.name || "",
       address: hotel?.lodging?.address || "",
       checkIn: "",
@@ -2305,7 +2390,32 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
         type: "VND",
         value: hotel?.priceRate?.amount || 0,
       },
-    });
+    };
+
+    // Add the object to the form
+    appendLodging(lodgingData);
+
+    // If we have a valid hotel object with name or ID, add it to the map data
+    if (hotel?.lodging?.name || hotel?._id) {
+      // Get current hotels data
+      const currentHotels = usePlannerStore.getState().hotelsData || [];
+
+      // Check if the hotel is already in the store (by ID or name)
+      const hotelExists = currentHotels.some(
+        (h) =>
+          (hotel._id && h._id === hotel._id) ||
+          (hotel.lodging?.name && h.lodging?.name === hotel.lodging.name)
+      );
+
+      if (!hotelExists) {
+        // Add the new hotel to the store
+        usePlannerStore.getState().setHotelsData([...currentHotels, hotel]);
+        console.log(
+          "🏨 Added new hotel directly to store:",
+          hotel.lodging?.name
+        );
+      }
+    }
   };
 
   const addNewDetail = (type: "route" | "list") => {
