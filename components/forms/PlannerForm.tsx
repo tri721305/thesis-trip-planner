@@ -1262,10 +1262,22 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     // Nếu có dữ liệu routing và route tồn tại
     if (routingData?.routes && routingData.routes[routeIndex]?.duration) {
       // Chuyển đổi từ giây sang phút và làm tròn
-      return Math.round(routingData.routes[routeIndex].duration / 60);
+      const travelTime = Math.round(
+        routingData.routes[routeIndex].duration / 60
+      );
+
+      // Log để debug
+      console.log(
+        `Travel time for route ${routeIndex} in day ${dayIndex}: ${travelTime} minutes`
+      );
+
+      return travelTime;
     }
 
     // Nếu không có dữ liệu, trả về giá trị mặc định (30 phút)
+    console.log(
+      `No routing data for route ${routeIndex} in day ${dayIndex}, using default 30 minutes`
+    );
     return 30;
   };
 
@@ -1488,22 +1500,28 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
         // Tính lại thời gian đến và rời đi cho mỗi địa điểm
         let arrivalTime = startHour * 60 + startMinute;
 
+        // Duyệt qua từng điểm trước điểm hiện tại
         for (let i = 0; i < idx; i++) {
-          const routingData = localRoutingData[`day-${dayIndex}`];
-          const travelTime =
-            i > 0 && routingData?.routes[i - 1]?.duration
-              ? Math.round(routingData.routes[i - 1].duration / 60)
-              : 30;
-          arrivalTime += travelTime + placesWithData[i].visitDuration;
-        }
+          // Thêm thời gian thăm quan của điểm trước đó
+          arrivalTime += placesWithData[i].visitDuration;
 
-        // Thêm thời gian di chuyển đến địa điểm hiện tại (trừ điểm đầu tiên)
-        if (idx > 0) {
-          const routingData = localRoutingData[`day-${dayIndex}`];
-          const travelTime = routingData?.routes[idx - 1]?.duration
-            ? Math.round(routingData.routes[idx - 1].duration / 60)
-            : 30;
-          arrivalTime += travelTime;
+          // Thêm thời gian di chuyển từ điểm i đến điểm i+1
+          if (i < idx) {
+            const routingData = localRoutingData[`day-${dayIndex}`];
+            let travelTime;
+
+            // Lấy thời gian di chuyển từ dữ liệu routing nếu có
+            if (routingData?.routes && routingData.routes[i]) {
+              travelTime = Math.round(routingData.routes[i].duration / 60);
+              console.log(
+                `Travel time from ${placesWithData[i].name} to ${placesWithData[i + 1].name}: ${travelTime} minutes`
+              );
+            } else {
+              travelTime = 30; // Giá trị mặc định
+            }
+
+            arrivalTime += travelTime;
+          }
         }
 
         const departureTime = arrivalTime + place.visitDuration;
@@ -1555,22 +1573,28 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
       const timelineDetails = placesWithData.map((place, idx) => {
         let arrivalTime = startHour * 60 + startMinute;
 
+        // Duyệt qua từng điểm trước điểm hiện tại
         for (let i = 0; i < idx; i++) {
-          // Tính thời gian di chuyển giữa các điểm
-          const routingData = localRoutingData[`day-${dayIndex}`];
-          const travelTime =
-            i > 0 && routingData?.routes[i - 1]?.duration
-              ? Math.round(routingData.routes[i - 1].duration / 60)
-              : 30;
-          arrivalTime += travelTime + placesWithData[i].visitDuration;
-        }
+          // Thêm thời gian thăm quan của điểm trước đó
+          arrivalTime += placesWithData[i].visitDuration;
 
-        if (idx > 0) {
-          const routingData = localRoutingData[`day-${dayIndex}`];
-          const travelTime = routingData?.routes[idx - 1]?.duration
-            ? Math.round(routingData.routes[idx - 1].duration / 60)
-            : 30;
-          arrivalTime += travelTime;
+          // Thêm thời gian di chuyển từ điểm i đến điểm i+1
+          if (i < idx) {
+            const routingData = localRoutingData[`day-${dayIndex}`];
+            let travelTime;
+
+            // Lấy thời gian di chuyển từ dữ liệu routing nếu có
+            if (routingData?.routes && routingData.routes[i]) {
+              travelTime = Math.round(routingData.routes[i].duration / 60);
+              console.log(
+                `Travel time from ${placesWithData[i].name} to ${placesWithData[i + 1].name}: ${travelTime} minutes`
+              );
+            } else {
+              travelTime = 30; // Giá trị mặc định
+            }
+
+            arrivalTime += travelTime;
+          }
         }
 
         const departureTime = arrivalTime + place.visitDuration;
@@ -1826,6 +1850,9 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
       updateDayRouting(dayKey, dayRoutingData);
 
       // After routes are calculated, analyze time constraints
+      console.log(
+        `🔍 Analyzing time constraints for day ${detailIndex + 1} after route calculation`
+      );
       analyzeTimeConstraints(detailIndex);
 
       console.log(`✅ Day ${detailIndex + 1} routing completed:`, {
@@ -2113,9 +2140,12 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     setPlannerData(currentFormData);
   }, [form, setPlannerData]);
 
-  // Analyze time constraints whenever form details or day start times change
+  // Analyze time constraints whenever form details, day start times, or routing data change
   useEffect(() => {
     const details = form.getValues("details") || [];
+    console.log(
+      "Re-analyzing time constraints due to change in details, day start times, or routing data"
+    );
 
     // Run time constraint analysis for each route-type day
     details.forEach((detail, index) => {
@@ -2123,7 +2153,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
         analyzeTimeConstraints(index);
       }
     });
-  }, [form.watch("details"), dayStartTimes]);
+  }, [form.watch("details"), dayStartTimes, localRoutingData]);
 
   // Debounced version of updateStore to prevent excessive calls - INCREASED TO 500ms
   const debouncedUpdateStore = useDebounce(updateStore, 500);
