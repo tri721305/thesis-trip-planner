@@ -85,23 +85,47 @@ const GuidesManagementPage = () => {
   const [searchLoading, setSearchLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("all");
 
-  const ITEMS_PER_PAGE = 10;
+  const ITEMS_PER_PAGE = 3; // Changed from 10 to 3 for testing pagination
 
-  const fetchGuides = async (newPage = page, newState = state) => {
+  const fetchGuides = async (newPage = page, newState = state, query = searchQuery) => {
     setLoading(true);
     setError(null);
     try {
+      // First, get all guides (or a larger number) to filter client-side
       const response = await getGuideByUserId({
-        limit: ITEMS_PER_PAGE,
-        page: newPage,
+        limit: query ? 100 : ITEMS_PER_PAGE, // Get more if we're searching
+        page: query ? 1 : newPage, // Start from first page when searching
         sortBy: "createdAt",
         sortOrder: "desc",
         state: (newState as any) || undefined,
       });
 
       if (response.success && response.data) {
-        setGuides(response.data.guides);
-        setTotalCount(response.data.totalCount);
+        let filteredGuides = response.data.guides;
+        
+        // If there's a search query, filter guides
+        if (query) {
+          const searchTerm = query.toLowerCase().trim();
+          filteredGuides = filteredGuides.filter((guide: any) => 
+            guide.title?.toLowerCase().includes(searchTerm) || 
+            guide.destination?.name?.toLowerCase().includes(searchTerm) ||
+            guide.description?.toLowerCase().includes(searchTerm) ||
+            (guide.content && typeof guide.content === 'string' && 
+              guide.content.toLowerCase().includes(searchTerm))
+          );
+          
+          // Manual pagination for filtered results
+          const totalFilteredCount = filteredGuides.length;
+          const start = (newPage - 1) * ITEMS_PER_PAGE;
+          filteredGuides = filteredGuides.slice(start, start + ITEMS_PER_PAGE);
+          
+          setTotalCount(totalFilteredCount);
+        } else {
+          // No search query, use API pagination
+          setTotalCount(response.data.totalCount);
+        }
+        
+        setGuides(filteredGuides);
       } else {
         setError(response.error?.message || "Failed to fetch guides");
         setGuides([]);
@@ -164,7 +188,7 @@ const GuidesManagementPage = () => {
 
   const handlePageChange = (newPage: number) => {
     setPage(newPage);
-    fetchGuides(newPage, state);
+    fetchGuides(newPage, state, searchQuery);
   };
 
   const handlePublicPageChange = (newPage: number) => {
@@ -180,8 +204,14 @@ const GuidesManagementPage = () => {
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
+    setSearchQuery(""); // Clear search query when changing tabs
+    
     if (value === "public" && publicGuides.length === 0) {
       fetchPublicGuides();
+    } else if (value === "all" || ["planning", "ongoing", "completed", "cancelled"].includes(value)) {
+      // Reset page to 1 when switching between tabs
+      setPage(1);
+      fetchGuides(1, value === "all" ? null : value);
     }
   };
 
@@ -394,6 +424,37 @@ const GuidesManagementPage = () => {
         </TabsList>
 
         <TabsContent value="all" className="mt-0">
+          {/* Search bar for my guides */}
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold mb-2">Search My Guides</h2>
+            <p className="text-gray-600 text-sm mb-3">
+              Find your guides by title, destination, or content
+            </p>
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              setPage(1); // Reset to first page when searching
+              fetchGuides(1, state, searchQuery);
+            }} className="flex gap-2">
+              <div className="flex-1">
+                <Input
+                  type="text"
+                  placeholder="Search my guides by title or destination..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <Button type="submit" disabled={loading}>
+                {loading ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Search className="h-4 w-4 mr-2" />
+                )}
+                Search
+              </Button>
+            </form>
+          </div>
+          
           <GuidesList
             guides={guides}
             loading={loading}
@@ -420,24 +481,32 @@ const GuidesManagementPage = () => {
         ))}
 
         <TabsContent value="public" className="mt-0">
-          {/* Search bar for public guides */}
-          <form onSubmit={handleSearch} className="flex gap-2 mb-6">
-            <Input
-              type="text"
-              placeholder="Search public guides by title or destination..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="flex-1"
-            />
-            <Button type="submit" disabled={searchLoading}>
-              {searchLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : (
-                <Search className="h-4 w-4 mr-2" />
-              )}
-              Search
-            </Button>
-          </form>
+          {/* Enhanced search bar for public guides */}
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold mb-2">Search Public Guides</h2>
+            <p className="text-gray-600 text-sm mb-3">
+              Find travel guides by guide name, destination, or content
+            </p>
+            <form onSubmit={handleSearch} className="flex gap-2">
+              <div className="flex-1">
+                <Input
+                  type="text"
+                  placeholder="Search by title, destination, or content..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+              <Button type="submit" disabled={searchLoading}>
+                {searchLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Search className="h-4 w-4 mr-2" />
+                )}
+                Search
+              </Button>
+            </form>
+          </div>
 
           <PublicGuidesList
             guides={publicGuides}
