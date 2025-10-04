@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Popover,
   PopoverContent,
@@ -14,8 +15,43 @@ import { Input } from "../ui/input";
 import { Separator } from "../ui/separator";
 
 const SearchHotelBar = () => {
-  const [location, setLocation] = useState();
-  const [selectedDateRange, setSelectedDateRange] = useState<any>(null);
+  const router = useRouter();
+  const [location, setLocation] = useState<any>();
+  const [selectedDateRange, setSelectedDateRange] = useState<any>({
+    from: new Date(),
+    to: new Date(new Date().setDate(new Date().getDate() + 1)), // Default to tomorrow
+  });
+  const [roomCount, setRoomCount] = useState(1);
+  const [adults, setAdults] = useState(2);
+  const [children, setChildren] = useState(0);
+
+  const handleSearch = () => {
+    if (!location) {
+      alert("Please select a location");
+      return;
+    }
+
+    if (
+      !selectedDateRange ||
+      !selectedDateRange.from ||
+      !selectedDateRange.to
+    ) {
+      alert("Please select check-in and check-out dates");
+      return;
+    }
+
+    // Create query parameters for the search page
+    const params = new URLSearchParams();
+    params.append("location", location.displayName || location);
+    params.append("checkInDate", selectedDateRange.from.toISOString());
+    params.append("checkOutDate", selectedDateRange.to.toISOString());
+    params.append("adults", adults.toString());
+    params.append("children", children.toString());
+    params.append("roomCount", roomCount.toString());
+
+    // Navigate to the search page with query parameters
+    router.push(`/hotels/search?${params.toString()}`);
+  };
 
   return (
     <div className="flex px-20 items-center justify-around bg-gray-200  gap-4">
@@ -48,9 +84,11 @@ const SearchHotelBar = () => {
               <PopoverTrigger asChild>
                 <Button
                   variant="outline"
-                  className="h-[56px] !bg-[#f3f4f5] text-black border-none "
+                  className="h-[56px] !bg-[#f3f4f5] text-black border-none"
                 >
-                  Open popover
+                  {roomCount} Room{roomCount > 1 ? "s" : ""}, {adults} Adult
+                  {adults > 1 ? "s" : ""}, {children} Child
+                  {children > 1 ? "ren" : ""}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-80">
@@ -62,42 +100,136 @@ const SearchHotelBar = () => {
                   </div>
                   <div className="grid gap-2">
                     <div className="grid grid-cols-3 items-center gap-4">
-                      <Label htmlFor="width">Rooms</Label>
-                      <Input
-                        id="width"
-                        defaultValue="100%"
-                        className="col-span-2 h-8"
-                      />
+                      <Label htmlFor="roomCount">Rooms</Label>
+                      <div className="col-span-2 flex items-center">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8"
+                          onClick={() =>
+                            setRoomCount(Math.max(1, roomCount - 1))
+                          }
+                        >
+                          -
+                        </Button>
+                        <Input
+                          id="roomCount"
+                          type="number"
+                          min={1}
+                          value={roomCount}
+                          onChange={(e) =>
+                            setRoomCount(parseInt(e.target.value) || 1)
+                          }
+                          className="h-8 mx-2 text-center"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8"
+                          onClick={() => setRoomCount(roomCount + 1)}
+                        >
+                          +
+                        </Button>
+                      </div>
                     </div>
                     <div className="grid grid-cols-3 items-center gap-4">
-                      <Label htmlFor="maxWidth">Adults</Label>
-                      <Input
-                        id="maxWidth"
-                        defaultValue="300px"
-                        className="col-span-2 h-8"
-                      />
+                      <Label htmlFor="adults">Adults</Label>
+                      <div className="col-span-2 flex items-center">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8"
+                          onClick={() => setAdults(Math.max(1, adults - 1))}
+                        >
+                          -
+                        </Button>
+                        <Input
+                          id="adults"
+                          type="number"
+                          min={1}
+                          value={adults}
+                          onChange={(e) =>
+                            setAdults(parseInt(e.target.value) || 1)
+                          }
+                          className="h-8 mx-2 text-center"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8"
+                          onClick={() => setAdults(adults + 1)}
+                        >
+                          +
+                        </Button>
+                      </div>
                     </div>
                     <div className="grid grid-cols-3 items-center gap-4">
-                      <Label htmlFor="height">Children</Label>
-                      <Input
-                        id="height"
-                        defaultValue="25px"
-                        className="col-span-2 h-8"
-                      />
+                      <Label htmlFor="children">Children</Label>
+                      <div className="col-span-2 flex items-center">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8"
+                          onClick={() => setChildren(Math.max(0, children - 1))}
+                        >
+                          -
+                        </Button>
+                        <Input
+                          id="children"
+                          type="number"
+                          min={0}
+                          value={children}
+                          onChange={(e) =>
+                            setChildren(parseInt(e.target.value) || 0)
+                          }
+                          className="h-8 mx-2 text-center"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 w-8"
+                          onClick={() => setChildren(children + 1)}
+                        >
+                          +
+                        </Button>
+                      </div>
                     </div>
                   </div>
                   <Separator className="mt-1" />
                   <div className="flex gap-2 w-full justify-end">
-                    <Button variant={"outline"}>Reset</Button>
-                    <Button className="bg-primary-500 hover:bg-orange-500">
-                      Save
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setRoomCount(1);
+                        setAdults(2);
+                        setChildren(0);
+                      }}
+                    >
+                      Reset
+                    </Button>
+                    <Button
+                      className="bg-primary-500 hover:bg-orange-500"
+                      onClick={() => document.body.click()} // Close popover
+                    >
+                      Apply
                     </Button>
                   </div>
                 </div>
               </PopoverContent>
             </Popover>
           </div>
-          <Button className="h-[56px] font-bold">Search</Button>
+          <Button
+            className="h-[56px] font-bold bg-primary-500 hover:bg-orange-500"
+            onClick={handleSearch}
+          >
+            Search
+          </Button>
         </div>
       </div>
       <div>
