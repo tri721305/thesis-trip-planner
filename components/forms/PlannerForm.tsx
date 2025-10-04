@@ -10,6 +10,7 @@ import React, {
   useTransition,
   useCallback,
 } from "react";
+import TripmatesDialog from "./TripmatesDialog";
 import { RiArrowDownSFill } from "react-icons/ri";
 import { useForm, useFieldArray, FormProvider } from "react-hook-form";
 import { z } from "zod";
@@ -108,6 +109,8 @@ import { Toast } from "../ui/toast";
 import UserSearch from "../search/UserSearch";
 import { formatCurrency } from "@/lib/currency";
 import LocationCard from "../cards/LocationCard";
+import InviteTripmate from "./InviteTripmate";
+import { useSession } from "next-auth/react";
 
 type PlannerFormData = z.infer<typeof PlannerSchema>;
 
@@ -117,12 +120,25 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
   const router = useRouter();
   const { toast } = useToast();
   const [isPending, startTransition] = useTransition();
+  // Lấy session user ID trực tiếp từ useSession
+  const { data: session } = useSession();
+  const currentUserId = session?.user?.id;
 
+  console.log("Current User ID from session:", currentUserId, planner);
   // Zustand store for planner data
   const { setPlannerData, updatePlannerDetails, updateDayRouting } =
     usePlannerStore();
   const [showDialog, setShowDialog] = useState(false);
   const [manageTripmates, setManageTripmates] = useState(false);
+
+  // Kiểm tra nếu người dùng hiện tại là người tạo planner
+  const isAuthor =
+    planner &&
+    currentUserId &&
+    planner.author &&
+    (planner.author === currentUserId ||
+      planner.author._id === currentUserId ||
+      planner.author.id === currentUserId);
   const [showAddHotel, setShowAddHotel] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const divRef = useRef<HTMLDivElement | null>(null);
@@ -4366,6 +4382,18 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                   >
                     <UserPlus className="!w-[24px] !h-[24px]" />
                   </Button>
+                  {/* Chỉ hiển thị nút mời bạn khi người dùng hiện tại là tác giả */}
+                  {planner?._id && isAuthor && (
+                    <InviteTripmate
+                      plannerId={planner._id}
+                      onSuccess={() => {
+                        // Có thể refresh danh sách tripmates tại đây
+                      }}
+                      buttonLabel="Mời bạn"
+                      buttonVariant="outline"
+                      buttonSize="sm"
+                    />
+                  )}
                 </div>
               </div>
             </div>

@@ -1275,6 +1275,105 @@ export async function updatePlannerImagesFromFormData(
 }
 
 /**
+ * Invite a user to join a planner as a tripmate
+ * @param params - Invitation parameters
+ * @returns Success or error response
+ */
+export async function inviteTripmate(params: {
+  plannerId: string;
+  email: string;
+  message?: string;
+}): Promise<ActionResponse<{ success: boolean }>> {
+  const validationResult = await action({
+    params,
+    authorize: true,
+  });
+
+  if (validationResult instanceof Error) {
+    return handleError(validationResult) as ErrorResponse;
+  }
+
+  const { plannerId, email, message } = validationResult.params!;
+  const userId = validationResult?.session?.user?.id;
+
+  try {
+    // Check if planner exists and user has permission
+    const existingPlanner = await TravelPlan.findById(plannerId);
+
+    if (!existingPlanner) {
+      return {
+        success: false,
+        error: {
+          message: "Planner not found",
+        },
+      };
+    }
+
+    // Check permissions - only author can send invitations
+    const isAuthor = existingPlanner.author.toString() === userId;
+    if (!isAuthor) {
+      return {
+        success: false,
+        error: {
+          message: "Only the planner owner can send invitations",
+        },
+      };
+    }
+
+    // Find the user by email
+    const invitedUser = await User.findOne({
+      email: email.toLowerCase().trim(),
+    });
+
+    if (!invitedUser) {
+      return {
+        success: false,
+        error: {
+          message: "User with this email not found",
+        },
+      };
+    }
+
+    // Check if user is already a tripmate
+    const isAlreadyTripmate = existingPlanner.tripmates.some(
+      (tripmate: any) =>
+        (tripmate.userId &&
+          tripmate.userId.toString() === invitedUser._id.toString()) ||
+        (tripmate.email && tripmate.email.toLowerCase() === email.toLowerCase())
+    );
+
+    if (isAlreadyTripmate) {
+      return {
+        success: false,
+        error: {
+          message: "This user is already a tripmate",
+        },
+      };
+    }
+
+    // Import and use the invitation action
+    const { sendPlannerInvitation } = await import("./invitation.action");
+    const invitationResult = await sendPlannerInvitation({
+      plannerId,
+      userId: invitedUser._id.toString(),
+      message,
+    });
+
+    if (!invitationResult.success) {
+      return invitationResult;
+    }
+
+    return {
+      success: true,
+      data: { success: true },
+    };
+  } catch (error) {
+    console.error("Error inviting tripmate:", error);
+    return handleError(error) as ErrorResponse;
+  }
+}
+
+/**
  * Delete planner by ID
  * @param params - The planner ID to delete
  * @returns Success or error response

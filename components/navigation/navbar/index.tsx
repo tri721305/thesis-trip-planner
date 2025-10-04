@@ -12,6 +12,7 @@ import UserAvatar from "@/components/UserAvatar";
 import { Button } from "@/components/ui/button";
 import ROUTES from "@/constants/route";
 import { IoMdLogOut } from "react-icons/io";
+import InvitationIndicator from "@/components/invitations/InvitationIndicator";
 
 const Navbar = async () => {
   const session = await auth();
@@ -69,11 +70,14 @@ const Navbar = async () => {
       <div className="flex-between gap-5">
         <Theme />
         {session?.user?.id && (
-          <UserAvatar
-            id={session.user.name!}
-            name={session.user.name!}
-            imageUrl={session.user.image!}
-          />
+          <>
+            <InvitationIndicator className="mr-1" />
+            <UserAvatar
+              id={session.user.name!}
+              name={session.user.name!}
+              imageUrl={session.user.image!}
+            />
+          </>
         )}
         {session?.user?.id && (
           <Button
