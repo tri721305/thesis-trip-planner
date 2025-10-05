@@ -112,7 +112,7 @@ const Recently = () => {
       <section className="text-dark200-light800 font-extrabold flex justify-between gap-6 text-[2.5em] mb-6">
         <p>Recently viewed and upcoming</p>
         <Button className="primary-gradient rounded-[30px] py-6" asChild>
-          <Link href="/planners/create">
+          <Link href="/create-planner">
             <Plus className="mr-2" />
             Plan new trip
           </Link>

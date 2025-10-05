@@ -141,7 +141,9 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
   const [showGroupbalance, setShowGroupbalance] = useState(false);
   const [showExpensesHotel, setShowExpensesHotel] = useState(false);
   const [allExpenses, setAllExpenses] = useState<any[]>([]);
-  const [expenseBalances, setExpenseBalances] = useState<Record<string, number>>({});
+  const [expenseBalances, setExpenseBalances] = useState<
+    Record<string, number>
+  >({});
   console.log("Current User ID from session:", session, currentUserId, planner);
   // Zustand store for planner data
   const { setPlannerData, updatePlannerDetails, updateDayRouting } =
@@ -5755,38 +5757,38 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
       setShowExpensesHotel(true);
     }
   };
-  
+
   // Function to calculate expense balances between users
   const calculateExpenseBalances = (expenses: any[]) => {
     // Initialize balances for each person
     const balances: Record<string, number> = {};
     const personNames: Set<string> = new Set();
-    
+
     // Process each expense
-    expenses.forEach(expense => {
+    expenses.forEach((expense) => {
       const paidBy = expense.paidBy;
-      
+
       // Add all people involved to the set
       personNames.add(paidBy);
       expense.splitBetween.forEach((split: any) => {
         personNames.add(split.name);
       });
-      
+
       // Initialize balance entries if not exists
-      Array.from(personNames).forEach(name => {
+      Array.from(personNames).forEach((name) => {
         if (!balances[name]) balances[name] = 0;
       });
-      
+
       // Person who paid gets positive balance (others owe them)
       if (!balances[paidBy]) balances[paidBy] = 0;
-      
+
       // Process each split
       expense.splitBetween.forEach((split: any) => {
         if (split.amount > 0) {
           // Person who paid gets credit
           if (split.name !== paidBy) {
             balances[paidBy] += split.amount;
-            
+
             // Person who owes gets debit
             if (!balances[split.name]) balances[split.name] = 0;
             balances[split.name] -= split.amount;
@@ -5794,10 +5796,10 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
         }
       });
     });
-    
+
     return balances;
   };
-  
+
   // Function to open group balance dialog
   const handleOpenGroupBalance = () => {
     // Get expenses data
@@ -5818,9 +5820,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
       (day.data || [])
         .filter(
           (item: any) =>
-            item.type === "place" &&
-            item.cost?.value &&
-            item.cost.value > 0
+            item.type === "place" && item.cost?.value && item.cost.value > 0
         )
         .map((place: any) => ({
           ...place.cost,
@@ -5831,14 +5831,14 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
 
     // Combine all expenses
     const expenses = [...lodgingCosts, ...placeCosts];
-    
+
     // Calculate balances
     const balances = calculateExpenseBalances(expenses);
-    
+
     // Update states
     setAllExpenses(expenses);
     setExpenseBalances(balances);
-    
+
     // Open the dialog
     setShowGroupbalance(true);
   };
@@ -6587,26 +6587,29 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                         </Avatar>
                       )} */}
                   </div>
-                  <Button
-                    onClick={() => {
-                      setShowDialog(true);
-                    }}
-                    variant="ghost"
-                    className="rounded-full"
-                  >
-                    <UserPlus className="!w-[24px] !h-[24px]" />
-                  </Button>
+
                   {/* Chỉ hiển thị nút mời bạn khi người dùng hiện tại là tác giả */}
                   {planner?._id && isAuthor && (
-                    <InviteTripmate
-                      plannerId={planner._id}
-                      onSuccess={() => {
-                        // Có thể refresh danh sách tripmates tại đây
-                      }}
-                      buttonLabel="Mời bạn"
-                      buttonVariant="outline"
-                      buttonSize="sm"
-                    />
+                    <>
+                      <Button
+                        onClick={() => {
+                          setShowDialog(true);
+                        }}
+                        variant="ghost"
+                        className="rounded-full"
+                      >
+                        <UserPlus className="!w-[24px] !h-[24px]" />
+                      </Button>
+                      <InviteTripmate
+                        plannerId={planner._id}
+                        onSuccess={() => {
+                          // Có thể refresh danh sách tripmates tại đây
+                        }}
+                        buttonLabel="Mời bạn"
+                        buttonVariant="outline"
+                        buttonSize="sm"
+                      />
+                    </>
                   )}
                 </div>
               </div>
@@ -7475,19 +7478,21 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
 
           {/* Submit Button */}
           <div className="flex gap-4 w-full p-4 justify-end">
-            <Button
-              type="submit"
-              disabled={isPending}
-              onClick={handleSubmit}
-              className=" !w-fit bg-primary-500 hover:bg-primary-500 font-bold p-4 "
-            >
-              {isPending ? "Updating..." : "Update Planner"}
-            </Button>
+            {planner?._id && isAuthor && (
+              <Button
+                type="submit"
+                disabled={isPending}
+                onClick={handleSubmit}
+                className=" !w-fit bg-primary-500 hover:bg-primary-500 font-bold p-4 "
+              >
+                {isPending ? "Updating..." : "Update Planner"}
+              </Button>
+            )}
           </div>
           <div className="px-8 pb-8 flex flex-col gap-4">
-            <h1 className="text-[36px] font-bold">Budgeting</h1>
-            <div className="p-4 px-12 flex justify-between items-center rounded-lg background-light800_darkgradient">
-              <div>
+            {/* <h1 className="text-[36px] font-bold">Budgeting</h1> */}
+            {/* <div className="p-4 px-12 flex justify-between items-center rounded-lg background-light800_darkgradient"> */}
+            {/* <div>
                 <div className="text-[30px] font-bold mb-2">
                   {formatCurrency(1000000, "vnd", {
                     showSymbol: true,
@@ -7503,8 +7508,8 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                     Group Balances
                   </Button>
                 </div>
-              </div>
-              <div className="flex flex-col gap-4 pr-8">
+              </div> */}
+            {/* <div className="flex flex-col gap-4 pr-8">
                 <div className="flex items-center gap-2 text-[14px] font-semibold">
                   <ChartBar size={14} /> View breakdown
                 </div>
@@ -7514,8 +7519,8 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                 <div className="flex items-center gap-2 text-[14px] font-semibold">
                   <Settings size={14} /> Settings
                 </div>
-              </div>
-            </div>
+              </div> */}
+            {/* </div> */}
 
             <h2 className="text-[24px] font-semibold">Expenses</h2>
             <div className="">
@@ -7590,10 +7595,18 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                   <div className="space-y-6">
                     {/* Total Summary */}
                     <div className="background-light800_darkgradient p-4 rounded-lg border-none">
-                      <h3 className="text-lg font-semibold mb-3 flex items-center">
-                        <BiMoney className="mr-2" />
-                        Total Expenses
-                      </h3>
+                      <div className="flex w-full items-center justify-between gap-2">
+                        <h3 className="text-lg font-semibold mb-3 flex items-center">
+                          <BiMoney className="mr-2" />
+                          Total Expenses
+                        </h3>
+                        <Button
+                          className="h-[40px] ml-2"
+                          onClick={() => handleOpenGroupBalance()}
+                        >
+                          Group Balances
+                        </Button>
+                      </div>
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {Object.entries(totalsByCurrency).map(
                           ([currency, total]) => (
@@ -8501,10 +8514,14 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
               <div className="space-y-4">
                 <Tabs defaultValue="yoursummary">
                   <TabsList className="w-full mb-4">
-                    <TabsTrigger value="yoursummary" className="flex-1">Your Summary</TabsTrigger>
-                    <TabsTrigger value="groupoverview" className="flex-1">Group Overview</TabsTrigger>
+                    <TabsTrigger value="yoursummary" className="flex-1">
+                      Your Summary
+                    </TabsTrigger>
+                    <TabsTrigger value="groupoverview" className="flex-1">
+                      Group Overview
+                    </TabsTrigger>
                   </TabsList>
-                  
+
                   <TabsContent value="yoursummary">
                     <div className="space-y-6">
                       <div className="flex items-center gap-4 p-4 rounded-lg bg-blue-50 border border-blue-100">
@@ -8515,124 +8532,187 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                           </AvatarFallback>
                         </Avatar>
                         <div>
-                          <h3 className="text-xl font-bold">{session?.user?.name || "You"}</h3>
+                          <h3 className="text-xl font-bold">
+                            {session?.user?.name || "You"}
+                          </h3>
                           <p className="text-gray-600">Your balance summary</p>
                         </div>
                       </div>
-                      
+
                       {/* Personal balance */}
                       {(() => {
                         const currentUserBalance = expenseBalances["You"] || 0;
-                        
+
                         return (
-                          <div className={`p-4 rounded-lg ${
-                            currentUserBalance > 0 
-                              ? "bg-green-50 border border-green-100" 
-                              : currentUserBalance < 0 
-                                ? "bg-red-50 border border-red-100"
-                                : "bg-gray-50 border border-gray-100"
-                          }`}>
-                            <h3 className="text-lg font-semibold mb-2">Your Balance</h3>
-                            <div className={`text-2xl font-bold ${
-                              currentUserBalance > 0 
-                                ? "text-green-600" 
-                                : currentUserBalance < 0 
-                                  ? "text-red-600"
-                                  : "text-gray-600"
-                            }`}>
-                              {currentUserBalance > 0 
+                          <div
+                            className={`p-4 rounded-lg ${
+                              currentUserBalance > 0
+                                ? "bg-green-50 border border-green-100"
+                                : currentUserBalance < 0
+                                  ? "bg-red-50 border border-red-100"
+                                  : "bg-gray-50 border border-gray-100"
+                            }`}
+                          >
+                            <h3 className="text-lg font-semibold mb-2">
+                              Your Balance
+                            </h3>
+                            <div
+                              className={`text-2xl font-bold ${
+                                currentUserBalance > 0
+                                  ? "text-green-600"
+                                  : currentUserBalance < 0
+                                    ? "text-red-600"
+                                    : "text-gray-600"
+                              }`}
+                            >
+                              {currentUserBalance > 0
                                 ? `+${formatCurrency(currentUserBalance, "vnd", { showSymbol: true })}`
-                                : currentUserBalance < 0 
-                                  ? formatCurrency(currentUserBalance, "vnd", { showSymbol: true })
+                                : currentUserBalance < 0
+                                  ? formatCurrency(currentUserBalance, "vnd", {
+                                      showSymbol: true,
+                                    })
                                   : "₫0"}
                             </div>
                             <p className="text-sm mt-1">
-                              {currentUserBalance > 0 
-                                ? "Others owe you money" 
-                                : currentUserBalance < 0 
+                              {currentUserBalance > 0
+                                ? "Others owe you money"
+                                : currentUserBalance < 0
                                   ? "You owe money to others"
                                   : "You're all settled up"}
                             </p>
                           </div>
                         );
                       })()}
-                      
+
                       {/* Payment details - who owes who */}
                       <div className="space-y-2">
                         <h3 className="text-lg font-semibold">Settlements</h3>
-                        
-                        {Object.entries(expenseBalances).map(([person, balance]) => {
-                          // Skip self
-                          if (person === "You") return null;
-                          
-                          const userBalance = expenseBalances["You"] || 0;
-                          // Only show relevant settlements where money is owed
-                          if ((userBalance > 0 && balance < 0) || (userBalance < 0 && balance > 0)) {
-                            const amount = Math.min(Math.abs(userBalance), Math.abs(balance));
-                            const direction = userBalance > 0 ? "receive" : "pay";
-                            
+
+                        {Object.entries(expenseBalances).map(
+                          ([person, balance]) => {
+                            // Skip self
+                            if (person === "You") return null;
+
+                            const userBalance = expenseBalances["You"] || 0;
+                            // Only show relevant settlements where money is owed
+                            if (
+                              (userBalance > 0 && balance < 0) ||
+                              (userBalance < 0 && balance > 0)
+                            ) {
+                              const amount = Math.min(
+                                Math.abs(userBalance),
+                                Math.abs(balance)
+                              );
+                              const direction =
+                                userBalance > 0 ? "receive" : "pay";
+
+                              return (
+                                <div
+                                  key={person}
+                                  className="p-3 border rounded-lg flex justify-between items-center"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    <Avatar>
+                                      <AvatarFallback className="bg-gray-200">
+                                        {person.charAt(0)}
+                                      </AvatarFallback>
+                                    </Avatar>
+                                    <span className="font-medium">
+                                      {person}
+                                    </span>
+                                  </div>
+                                  <div
+                                    className={`font-semibold ${direction === "pay" ? "text-red-600" : "text-green-600"}`}
+                                  >
+                                    {direction === "pay"
+                                      ? "You pay"
+                                      : "You receive"}
+                                    :{" "}
+                                    {formatCurrency(amount, "vnd", {
+                                      showSymbol: true,
+                                    })}
+                                  </div>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }
+                        )}
+
+                        {Object.entries(expenseBalances).filter(
+                          ([person, balance]) => {
+                            if (person === "You") return false;
+                            const userBalance = expenseBalances["You"] || 0;
                             return (
-                              <div key={person} className="p-3 border rounded-lg flex justify-between items-center">
-                                <div className="flex items-center gap-3">
-                                  <Avatar>
-                                    <AvatarFallback className="bg-gray-200">
-                                      {person.charAt(0)}
-                                    </AvatarFallback>
-                                  </Avatar>
-                                  <span className="font-medium">{person}</span>
-                                </div>
-                                <div className={`font-semibold ${direction === "pay" ? "text-red-600" : "text-green-600"}`}>
-                                  {direction === "pay" ? "You pay" : "You receive"}: {formatCurrency(amount, "vnd", { showSymbol: true })}
-                                </div>
-                              </div>
+                              (userBalance > 0 && balance < 0) ||
+                              (userBalance < 0 && balance > 0)
                             );
                           }
-                          return null;
-                        })}
-                        
-                        {Object.entries(expenseBalances).filter(([person, balance]) => {
-                          if (person === "You") return false;
-                          const userBalance = expenseBalances["You"] || 0;
-                          return (userBalance > 0 && balance < 0) || (userBalance < 0 && balance > 0);
-                        }).length === 0 && (
+                        ).length === 0 && (
                           <div className="p-4 text-center text-gray-500 bg-gray-50 rounded-lg">
                             No settlements needed
                           </div>
                         )}
                       </div>
-                      
+
                       {/* Expense summary */}
                       <div>
-                        <h3 className="text-lg font-semibold mb-2">Your Expenses</h3>
+                        <h3 className="text-lg font-semibold mb-2">
+                          Your Expenses
+                        </h3>
                         <div className="space-y-2 max-h-64 overflow-y-auto">
                           {allExpenses
-                            .filter(expense => 
-                              expense.paidBy === "You" || 
-                              expense.splitBetween.some((split: any) => split.name === "You" && split.amount > 0)
+                            .filter(
+                              (expense) =>
+                                expense.paidBy === "You" ||
+                                expense.splitBetween.some(
+                                  (split: any) =>
+                                    split.name === "You" && split.amount > 0
+                                )
                             )
                             .map((expense, index) => {
-                              const yourContribution = expense.splitBetween.find((split: any) => split.name === "You")?.amount || 0;
+                              const yourContribution =
+                                expense.splitBetween.find(
+                                  (split: any) => split.name === "You"
+                                )?.amount || 0;
                               const youPaid = expense.paidBy === "You";
-                              
+
                               return (
-                                <div key={index} className="p-3 border rounded-lg">
+                                <div
+                                  key={index}
+                                  className="p-3 border rounded-lg"
+                                >
                                   <div className="flex justify-between">
-                                    <span className="font-medium">{expense.name}</span>
+                                    <span className="font-medium">
+                                      {expense.name}
+                                    </span>
                                     <span className="font-semibold">
-                                      {formatCurrency(yourContribution, expense.type || "vnd", { showSymbol: true })}
+                                      {formatCurrency(
+                                        yourContribution,
+                                        expense.type || "vnd",
+                                        { showSymbol: true }
+                                      )}
                                     </span>
                                   </div>
                                   <div className="flex justify-between text-sm text-gray-500">
                                     <span>{expense.category}</span>
-                                    <span>{youPaid ? "You paid" : `Paid by ${expense.paidBy}`}</span>
+                                    <span>
+                                      {youPaid
+                                        ? "You paid"
+                                        : `Paid by ${expense.paidBy}`}
+                                    </span>
                                   </div>
                                 </div>
                               );
                             })}
-                            
-                          {allExpenses.filter(expense => 
-                            expense.paidBy === "You" || 
-                            expense.splitBetween.some((split: any) => split.name === "You" && split.amount > 0)
+
+                          {allExpenses.filter(
+                            (expense) =>
+                              expense.paidBy === "You" ||
+                              expense.splitBetween.some(
+                                (split: any) =>
+                                  split.name === "You" && split.amount > 0
+                              )
                           ).length === 0 && (
                             <div className="p-4 text-center text-gray-500 bg-gray-50 rounded-lg">
                               No expenses found
@@ -8642,35 +8722,54 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                       </div>
                     </div>
                   </TabsContent>
-                  
+
                   <TabsContent value="groupoverview">
                     <div className="space-y-6">
                       {/* Group balance overview */}
                       <div className="grid grid-cols-1 gap-4">
-                        {Object.entries(expenseBalances).map(([person, balance]) => (
-                          <div key={person} className="p-4 border rounded-lg flex justify-between items-center">
-                            <div className="flex items-center gap-3">
-                              <Avatar>
-                                <AvatarFallback className={`${
-                                  person === "You" ? "bg-blue-200" : "bg-gray-200"
-                                }`}>
-                                  {person.charAt(0)}
-                                </AvatarFallback>
-                              </Avatar>
-                              <span className="font-medium">{person}</span>
+                        {Object.entries(expenseBalances).map(
+                          ([person, balance]) => (
+                            <div
+                              key={person}
+                              className="p-4 border rounded-lg flex justify-between items-center"
+                            >
+                              <div className="flex items-center gap-3">
+                                <Avatar>
+                                  <AvatarFallback
+                                    className={`${
+                                      person === "You"
+                                        ? "bg-blue-200"
+                                        : "bg-gray-200"
+                                    }`}
+                                  >
+                                    {person.charAt(0)}
+                                  </AvatarFallback>
+                                </Avatar>
+                                <span className="font-medium">{person}</span>
+                              </div>
+                              <div
+                                className={`font-semibold ${
+                                  balance > 0
+                                    ? "text-green-600"
+                                    : balance < 0
+                                      ? "text-red-600"
+                                      : "text-gray-600"
+                                }`}
+                              >
+                                {formatCurrency(balance, "vnd", {
+                                  showSymbol: true,
+                                })}
+                              </div>
                             </div>
-                            <div className={`font-semibold ${
-                              balance > 0 ? "text-green-600" : balance < 0 ? "text-red-600" : "text-gray-600"
-                            }`}>
-                              {formatCurrency(balance, "vnd", { showSymbol: true })}
-                            </div>
-                          </div>
-                        ))}
+                          )
+                        )}
                       </div>
-                      
+
                       {/* All expenses table */}
                       <div>
-                        <h3 className="text-lg font-semibold mb-2">All Expenses</h3>
+                        <h3 className="text-lg font-semibold mb-2">
+                          All Expenses
+                        </h3>
                         <div className="border rounded-lg overflow-hidden">
                           <table className="w-full text-sm">
                             <thead className="bg-gray-50">
@@ -8685,17 +8784,28 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                                 <tr key={index} className="hover:bg-gray-50">
                                   <td className="py-2 px-3">
                                     <div>{expense.name}</div>
-                                    <div className="text-xs text-gray-500">{expense.category}</div>
+                                    <div className="text-xs text-gray-500">
+                                      {expense.category}
+                                    </div>
                                   </td>
-                                  <td className="py-2 px-3">{expense.paidBy}</td>
+                                  <td className="py-2 px-3">
+                                    {expense.paidBy}
+                                  </td>
                                   <td className="py-2 px-3 text-right font-medium">
-                                    {formatCurrency(expense.value, expense.type || "vnd", { showSymbol: true })}
+                                    {formatCurrency(
+                                      expense.value,
+                                      expense.type || "vnd",
+                                      { showSymbol: true }
+                                    )}
                                   </td>
                                 </tr>
                               ))}
                               {allExpenses.length === 0 && (
                                 <tr>
-                                  <td colSpan={3} className="py-4 text-center text-gray-500">
+                                  <td
+                                    colSpan={3}
+                                    className="py-4 text-center text-gray-500"
+                                  >
                                     No expenses recorded
                                   </td>
                                 </tr>
@@ -8707,9 +8817,9 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                     </div>
                   </TabsContent>
                 </Tabs>
-                
+
                 <div className="flex justify-end pt-4 border-t">
-                  <Button 
+                  <Button
                     variant="outline"
                     onClick={() => setShowGroupbalance(false)}
                   >

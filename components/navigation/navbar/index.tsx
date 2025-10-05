@@ -9,6 +9,7 @@ import MobileNavigation from "./MobileNavigation";
 import NavLinks from "./NavLinks";
 import { auth, signOut } from "@/auth";
 import UserAvatar from "@/components/UserAvatar";
+import CurrentUserAvatar from "@/components/CurrentUserAvatar";
 import { Button } from "@/components/ui/button";
 import ROUTES from "@/constants/route";
 import { IoMdLogOut } from "react-icons/io";
@@ -72,11 +73,22 @@ const Navbar = async () => {
         {session?.user?.id && (
           <>
             <InvitationIndicator className="mr-1" />
-            <UserAvatar
-              id={session.user.name!}
-              name={session.user.name!}
-              imageUrl={session.user.image!}
-            />
+            {/* Use CurrentUserAvatar to fetch latest user data */}
+            <div className="flex" suppressHydrationWarning>
+              <UserAvatar
+                id={session.user.id!}
+                name={session.user.name!}
+                imageUrl={session.user.image!}
+              />
+              {/* 
+              <!-- Uncomment this and comment out the UserAvatar above to use the dynamic avatar -->
+              <CurrentUserAvatar
+                userId={session.user.id!}
+                sessionName={session.user.name!}
+                sessionImageUrl={session.user.image!}
+              />
+              */}
+            </div>
           </>
         )}
         {session?.user?.id && (

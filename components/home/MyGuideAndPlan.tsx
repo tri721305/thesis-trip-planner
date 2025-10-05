@@ -35,7 +35,7 @@ const MyGuideAndPlan = async () => {
             </Button>
           </div>
           <Button asChild>
-            <Link href="/planners/create">
+            <Link href="/create-planner">
               <Plus className="mr-1" /> Plan new trip
             </Link>
           </Button>
