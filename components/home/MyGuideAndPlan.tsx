@@ -23,7 +23,7 @@ const MyGuideAndPlan = async () => {
   if (!plannerSuccess) {
     return;
   }
-  console.log("planners", planners);
+  // console.log("planners", planners);
   return (
     <div className="px-40 flex gap-2 py-4 ">
       <div className="flex-1 rounded-lg p-4 px-6 bg-gray-100">

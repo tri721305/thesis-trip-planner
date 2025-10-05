@@ -82,6 +82,8 @@ interface CalendarDatePickerProps
   numberOfMonths?: 1 | 2;
   yearsRange?: number;
   typeShow?: "default" | "reduce";
+  minDate?: Date; // Minimum selectable date (e.g., planner start date)
+  maxDate?: Date; // Maximum selectable date (e.g., planner end date)
   onDateSelect: (range: { from: Date; to: Date }) => void;
 }
 
@@ -100,6 +102,8 @@ export const CalendarDatePicker = React.forwardRef<
       typeShow = "default",
       onDateSelect,
       variant,
+      minDate,
+      maxDate,
       ...props
     },
     ref
@@ -695,6 +699,12 @@ export const CalendarDatePicker = React.forwardRef<
                       numberOfMonths={numberOfMonths}
                       showOutsideDays={false}
                       className={className}
+                      disabled={[
+                        ...(minDate
+                          ? [{ before: minDate }]
+                          : [{ before: new Date() }]),
+                        ...(maxDate ? [{ after: maxDate }] : []),
+                      ]}
                     />
                   </div>
                 </div>

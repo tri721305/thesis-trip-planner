@@ -31,23 +31,24 @@ interface LocationCardProps {
   website?: string;
   categories?: string[];
   isBookmarked?: boolean;
+  onClose?: () => void; // Thêm prop onClose
 }
 
-const LocationCard = ({
+export function LocationCard({
   placeId,
-  name: propName = "Bến Thành market",
-  description:
-    propDescription = "Well-known standby for handicrafts, souvenirs, clothing & other goods along with local eats.",
-  rating: propRating = 4.5,
-  reviewCount: propReviewCount = 42212,
-  address: propAddress = "Ben Thanh, District 1, Ho Chi Minh City, Vietnam",
-  hours: propHours = "Monday: 8:00–15:30",
-  duration: propDuration = "2 hr",
-  phone: propPhone = "+84 28 3822 3652",
-  website: propWebsite = "https://www.dinhdoclap.gov.vn/",
-  categories: propCategories = ["Musée", "Sites et monuments"],
-  isBookmarked = false,
-}: LocationCardProps) => {
+  name: propName,
+  description: propDescription,
+  rating: propRating,
+  reviewCount: propReviewCount,
+  address: propAddress,
+  hours: propHours,
+  duration: propDuration,
+  phone: propPhone,
+  website: propWebsite,
+  categories: propCategories,
+  isBookmarked,
+  onClose,
+}: LocationCardProps) {
   const dayAbbreviations = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
   // State for fetched place data
@@ -110,13 +111,43 @@ const LocationCard = ({
   console.log("dataPlace", placeData);
   return (
     <Card
-      className="w-full  !bg-white absolute -right-[105%] bottom-4 max-w-4xl mx-auto shadow-lg border-0"
+      className="w-full !bg-white -right-[105%] bottom-4 max-w-4xl mx-auto shadow-lg border-0 absolute"
       style={{
         zIndex: 40,
         // maxHeight: "300px",
         // overflowY: "auto",
       }}
     >
+      {/* Close Button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        className="absolute top-2 right-2 z-50 hover:bg-gray-100 rounded-full w-8 h-8 p-1"
+        onClick={() => {
+          // You need to implement onClose prop and pass it from parent component
+          if (typeof onClose === "function") {
+            onClose();
+          }
+        }}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="lucide lucide-x"
+        >
+          <path d="M18 6 6 18"></path>
+          <path d="m6 6 12 12"></path>
+        </svg>
+        <span className="sr-only">Close</span>
+      </Button>
+
       {loading ? (
         <div className="flex items-center justify-center p-8">
           <Loader2 className="w-6 h-6 animate-spin mr-2" />
@@ -164,7 +195,7 @@ const LocationCard = ({
             </TabsList>
 
             <TabsContent value="about" className="mt-0 p-6">
-              <div className="flex max-h-[300px] overflow-auto max-h-[300px] gap-6">
+              <div className="flex max-h-[300px] overflow-auto gap-6">
                 {/* Main Content */}
                 <div className="flex-1 space-y-4">
                   {/* Location Header */}
@@ -361,6 +392,6 @@ const LocationCard = ({
       )}
     </Card>
   );
-};
+}
 
 export default LocationCard;

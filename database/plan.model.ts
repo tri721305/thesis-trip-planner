@@ -499,8 +499,8 @@ const travelPlanSchema = new mongoose.Schema(
           splitBetween: [
             {
               userId: {
-                type: Types.ObjectId,
-                ref: "User",
+                type: String, // Changed from Types.ObjectId to String to handle both formats
+                trim: true,
               },
               name: {
                 type: String,
@@ -515,6 +515,10 @@ const travelPlanSchema = new mongoose.Schema(
               settled: {
                 type: Boolean,
                 default: false,
+              },
+              selected: {
+                type: Boolean,
+                default: true,
               },
             },
           ],

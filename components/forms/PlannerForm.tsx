@@ -10,6 +10,12 @@ import React, {
   useTransition,
   useCallback,
 } from "react";
+import type {
+  RouteDetail,
+  PlaceItem,
+  HotelInfo,
+  PlaceWithData,
+} from "@/types/planner";
 import TripmatesDialog from "./TripmatesDialog";
 import { RiArrowDownSFill } from "react-icons/ri";
 import { useForm, useFieldArray, FormProvider } from "react-hook-form";
@@ -26,6 +32,8 @@ import {
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { Button } from "../ui/button";
+// Changed from ES Module import to CommonJS require
+// Debug what's available in routeHelper
 import {
   Card,
   CardContent,
@@ -68,6 +76,12 @@ import {
   AlertTriangle,
   Circle,
   InfoIcon,
+  UserRound,
+  Receipt,
+  ArrowLeftRight,
+  Check,
+  CheckCircle,
+  X,
 } from "lucide-react";
 import Image from "next/image";
 
@@ -103,7 +117,7 @@ import {
   getPlannerById,
   partialUpdatePlanner,
 } from "@/lib/actions/planner.action";
-import { getPlaceById } from "@/lib/actions/place.action";
+import { getPlaceById, getPlaces } from "@/lib/actions/place.action";
 import { getHotelsById, searchHotels } from "@/lib/actions/hotel.action";
 import { useToast } from "@/hooks/use-toast";
 import { Toast } from "../ui/toast";
@@ -124,8 +138,9 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
   // Lấy session user ID trực tiếp từ useSession
   const { data: session } = useSession();
   const currentUserId = session?.user?.id;
-
-  console.log("Current User ID from session:", currentUserId, planner);
+  const [showGroupbalance, setShowGroupbalance] = useState(false);
+  const [showExpensesHotel, setShowExpensesHotel] = useState(false);
+  console.log("Current User ID from session:", session, currentUserId, planner);
   // Zustand store for planner data
   const { setPlannerData, updatePlannerDetails, updateDayRouting } =
     usePlannerStore();
@@ -178,6 +193,17 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     }>;
   }>({});
 
+  // State để lưu thông tin khách sạn và tuyến đường đi từ/đến khách sạn cho từng ngày
+  const [hotelInfoState, setHotelInfoState] = useState<{
+    [dayIndex: number]: {
+      name: string;
+      coordinates: { lat: number; lon: number };
+      source?: string;
+      hotelToFirstPlaceRoute?: any;
+      lastPlaceToHotelRoute?: any;
+    } | null;
+  }>({});
+
   // State for hotel search values - moved to component level to follow Rules of Hooks
   const [hotelSearchValues, setHotelSearchValues] = useState<{
     [key: number]: string;
@@ -190,8 +216,9 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
 
   // State for expense management
   const [currentExpenseContext, setCurrentExpenseContext] = useState<{
-    detailIndex: number;
-    itemIndex: number;
+    detailIndex?: number;
+    itemIndex?: number;
+    lodgingIndex?: number;
   } | null>(null);
 
   const [expenseFormData, setExpenseFormData] = useState({
@@ -268,7 +295,11 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
         }
 
         if (result?.success && result.data.hotels) {
-          console.log("🏨 Fetched hotel data:", result.data.hotels.length);
+          console.log(
+            "🏨 Fetched hotel data:",
+            result.data.hotels,
+            result.data.hotels.length
+          );
           setHotelData(result.data.hotels);
 
           // Update store with hotel data
@@ -349,6 +380,48 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
       error?: string;
     };
   }>({});
+
+  const handleSaveExpenseHotel = () => {
+    console.log("💾 Saving hotel expense:", expenseFormData);
+
+    if (!currentExpenseContext) return;
+
+    const { lodgingIndex } = currentExpenseContext;
+
+    if (lodgingIndex === undefined) return;
+
+    // Get existing lodging data
+    const currentLodging = form.getValues(`lodging.${lodgingIndex}`);
+
+    if (!currentLodging) return;
+
+    // Save expense information
+    form.setValue(`lodging.${lodgingIndex}.cost`, {
+      value: expenseFormData.value,
+      type: expenseFormData.type,
+      description: expenseFormData.description,
+      paidBy: expenseFormData.paidBy,
+      splitBetween: expenseFormData.splitBetween
+        .filter((person) => splitMode === "everyone" || person.selected)
+        .map((person) => ({
+          userId: person.userId,
+          name: person.name,
+          amount: person.amount,
+          settled: person.settled,
+        })),
+    });
+
+    // Close the dialog
+    setShowExpensesHotel(false);
+    // Reset context
+    setCurrentExpenseContext(null);
+
+    toast({
+      title: "Hotel expense saved!",
+      description: `Your expense of ${formatCurrency(expenseFormData.value, expenseFormData.type)} has been saved.`,
+      variant: "success",
+    });
+  };
 
   // NEW: Enhanced function to call OpenStreetMap routing API with retry logic
   const calculateRoute = async (
@@ -507,9 +580,17 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
 
       console.log(`🔍 Gọi OSRM Trip API với ${coordinates.length} điểm`);
 
+      // Check if this is a round trip (hotel as start and end)
+      const isRoundTrip = source === "first" && destination === "first";
+      if (isRoundTrip) {
+        console.log(
+          "🏨 Round trip detected: Hotel will be both start and end point"
+        );
+      }
+
       // Use OSRM Trip API to find the optimal route through all points
       const response = await fetch(
-        `https://routing.openstreetmap.de/routed-car/trip/v1/driving/${coordsString}?overview=full&geometries=geojson&steps=true&source=${source}&destination=${destination}`,
+        `https://routing.openstreetmap.de/routed-car/trip/v1/driving/${coordsString}?overview=full&geometries=geojson&steps=true&source=${source}&destination=${destination}&roundtrip=${isRoundTrip}`,
         {
           method: "GET",
           headers: {
@@ -539,6 +620,48 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
           `✅ OSRM Trip API thành công: ${Math.round(trip.distance / 1000)}km, ${Math.round(trip.duration / 60)} phút`
         );
 
+        // Log the waypoint order for debugging
+        if (isRoundTrip) {
+          console.log("🏨 Round trip waypoint order:");
+          waypointOrder.forEach((wp, i) => {
+            console.log(
+              `   Waypoint ${i}: [${wp.location[1].toFixed(6)}, ${wp.location[0].toFixed(6)}] (index: ${wp.waypoint_index})`
+            );
+          });
+
+          // Verify that first and last points match for round trips
+          const firstWaypoint = waypointOrder[0];
+          const lastWaypoint = waypointOrder[waypointOrder.length - 1];
+
+          if (firstWaypoint.waypoint_index === 0) {
+            console.log(
+              "✅ First waypoint is correctly set as the start point"
+            );
+          } else {
+            console.log(
+              "⚠️ First waypoint is not the start point - might need manual adjustment"
+            );
+          }
+
+          const distanceBetweenFirstAndLast = calculateHaversineDistance(
+            firstWaypoint.location[1],
+            firstWaypoint.location[0],
+            lastWaypoint.location[1],
+            lastWaypoint.location[0]
+          );
+
+          if (distanceBetweenFirstAndLast < 100) {
+            // If less than 100 meters apart
+            console.log(
+              "✅ First and last points are the same location (hotel) - round trip confirmed"
+            );
+          } else {
+            console.log(
+              "⚠️ First and last points are not the same location - round trip may not be properly formed"
+            );
+          }
+        }
+
         return {
           distance: Math.round(trip.distance || 0), // in meters
           duration: Math.round(trip.duration || 0), // in seconds
@@ -549,6 +672,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
             originalIndex: wp.waypoint_index,
           })),
           legs: trip.legs || [],
+          isRoundTrip: isRoundTrip, // Add flag to indicate if this was a round trip
         };
       } else {
         throw new Error("No route found in API response");
@@ -559,6 +683,309 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     }
   };
 
+  // Function to find hotel coordinates from hotelData
+  const findHotelCoordinates = (
+    hotelName: string,
+    hotelId?: string
+  ): { lat: number; lon: number } | null => {
+    if (!hotelData || !Array.isArray(hotelData) || hotelData.length === 0) {
+      console.log(
+        `🏨 No hotel data available to find coordinates for "${hotelName}"`
+      );
+      return null;
+    }
+
+    // First try to find by exact ID match
+    if (hotelId) {
+      const exactMatch = hotelData.find(
+        (item) => item._id === hotelId || item.offerId === hotelId
+      );
+      if (exactMatch) {
+        // Check for coordinates in lodging property (from the example data structure)
+        if (exactMatch.lodging?.location?.coordinates) {
+          const [lon, lat] = exactMatch.lodging.location.coordinates;
+          console.log(
+            `✅ Found hotel coordinates by ID match for "${hotelName}": [${lat}, ${lon}]`
+          );
+          return { lat, lon };
+        }
+
+        // Alternative location structure
+        if (exactMatch.location?.coordinates) {
+          const [lon, lat] = exactMatch.location.coordinates;
+          console.log(
+            `✅ Found hotel coordinates by ID match for "${hotelName}": [${lat}, ${lon}]`
+          );
+          return { lat, lon };
+        }
+
+        // Handle latitude/longitude format
+        if (
+          exactMatch.lodging?.location?.latitude !== undefined &&
+          exactMatch.lodging?.location?.longitude !== undefined
+        ) {
+          const lat = exactMatch.lodging.location.latitude;
+          const lon = exactMatch.lodging.location.longitude;
+          console.log(
+            `✅ Found hotel coordinates by ID match for "${hotelName}": [${lat}, ${lon}]`
+          );
+          return { lat, lon };
+        }
+      }
+    }
+
+    // Try to find by name match
+    for (const item of hotelData) {
+      const matchesName =
+        item.lodging?.name === hotelName || item.name === hotelName;
+
+      if (matchesName) {
+        // Check in lodging.location.coordinates (array [lon, lat])
+        if (
+          item.lodging?.location?.coordinates &&
+          Array.isArray(item.lodging.location.coordinates) &&
+          item.lodging.location.coordinates.length === 2
+        ) {
+          const [lon, lat] = item.lodging.location.coordinates;
+          console.log(
+            `✅ Found hotel coordinates by name match for "${hotelName}" in lodging.location.coordinates: [${lat}, ${lon}]`
+          );
+          return { lat, lon };
+        }
+
+        // Check in lodging.location.latitude/longitude format
+        if (
+          item.lodging?.location?.latitude !== undefined &&
+          item.lodging?.location?.longitude !== undefined
+        ) {
+          const lat = item.lodging.location.latitude;
+          const lon = item.lodging.location.longitude;
+          console.log(
+            `✅ Found hotel coordinates by name match for "${hotelName}" in lodging.location lat/lon: [${lat}, ${lon}]`
+          );
+          return { lat, lon };
+        }
+
+        // Check directly in location property
+        if (
+          item.location?.coordinates &&
+          Array.isArray(item.location.coordinates) &&
+          item.location.coordinates.length === 2
+        ) {
+          const [lon, lat] = item.location.coordinates;
+          console.log(
+            `✅ Found hotel coordinates by name match for "${hotelName}" in location.coordinates: [${lat}, ${lon}]`
+          );
+          return { lat, lon };
+        }
+
+        // Check in direct latitude/longitude
+        if (
+          item.location?.latitude !== undefined &&
+          item.location?.longitude !== undefined
+        ) {
+          const lat = item.location.latitude;
+          const lon = item.location.longitude;
+          console.log(
+            `✅ Found hotel coordinates by name match for "${hotelName}" in location lat/lon: [${lat}, ${lon}]`
+          );
+          return { lat, lon };
+        }
+      }
+    }
+
+    console.log(`❌ Could not find coordinates for hotel "${hotelName}"`);
+    return null;
+  };
+
+  // Find complete hotel info including coordinates
+  const findHotelInfo = (dayDate: Date): any | null => {
+    try {
+      // First check hotelData state for a hotel covering this date
+      if (hotelData && Array.isArray(hotelData)) {
+        for (const hotel of hotelData) {
+          if (!hotel.checkIn || !hotel.checkOut) continue;
+
+          try {
+            const checkInDate = new Date(hotel.checkIn);
+            const checkOutDate = new Date(hotel.checkOut);
+
+            if (isNaN(checkInDate.getTime()) || isNaN(checkOutDate.getTime()))
+              continue;
+
+            // If dayDate is within the hotel stay period
+            if (dayDate >= checkInDate && dayDate < checkOutDate) {
+              if (hotel.lodging?.location?.coordinates) {
+                const [lon, lat] = hotel.lodging.location.coordinates;
+                console.log(
+                  `🏨 Found hotel from hotelData with coordinates: ${hotel.lodging.name || hotel.name}`
+                );
+                return {
+                  name: hotel.lodging.name || hotel.name || "Hotel Booking",
+                  coordinates: { lat, lon },
+                  source: "hotelData direct match",
+                  checkIn: hotel.checkIn,
+                  checkOut: hotel.checkOut,
+                };
+              }
+            }
+          } catch (error: any) {
+            console.error(
+              `❌ Error processing hotel date: ${error?.message || error}`
+            );
+          }
+        }
+      }
+
+      // Then try lodging from form data
+      const lodgings = form.getValues("lodging") || [];
+      for (const hotel of lodgings) {
+        if (!hotel.checkIn || !hotel.checkOut) continue;
+
+        const checkInDate = new Date(hotel.checkIn);
+        const checkOutDate = new Date(hotel.checkOut);
+
+        // If dayDate is within hotel stay period
+        if (dayDate >= checkInDate && dayDate < checkOutDate) {
+          // First try coordinates from the hotel object itself
+          if (
+            hotel.location?.coordinates &&
+            Array.isArray(hotel.location.coordinates) &&
+            hotel.location.coordinates.length === 2
+          ) {
+            const [lon, lat] = hotel.location.coordinates;
+            return {
+              name: hotel.name || "Hotel Booking",
+              coordinates: { lat, lon },
+              source: "form lodging direct",
+              checkIn: hotel.checkIn,
+              checkOut: hotel.checkOut,
+            };
+          }
+
+          // Then try to find coordinates using helper function
+          const coordinates = findHotelCoordinates(hotel.name, hotel._id);
+          if (coordinates) {
+            return {
+              name: hotel.name || "Hotel Booking",
+              coordinates,
+              source: "hotel coordinates helper",
+              checkIn: hotel.checkIn,
+              checkOut: hotel.checkOut,
+            };
+          }
+
+          // Return hotel info without coordinates as last resort
+          console.log(
+            `⚠️ Found hotel "${hotel.name}" for date ${dayDate.toDateString()} but no coordinates available`
+          );
+          return {
+            name: hotel.name || "Hotel Booking",
+            source: "form lodging no coordinates",
+            checkIn: hotel.checkIn,
+            checkOut: hotel.checkOut,
+          };
+        }
+      }
+
+      return null;
+    } catch (error: any) {
+      console.error(`❌ Error in findHotelInfo: ${error?.message || error}`);
+      return null;
+    }
+  };
+
+  // Debug function to analyze hotel data
+  const debugHotelData = (hotelData: any[], date: Date) => {
+    if (!hotelData || !Array.isArray(hotelData) || hotelData.length === 0) {
+      console.log("🏨 No hotel data available to debug");
+      return;
+    }
+
+    console.log(`=== HOTEL DATA DEBUG ===`);
+    console.log(
+      `🏨 Analyzing ${hotelData.length} hotels for date: ${date.toISOString().split("T")[0]}`
+    );
+
+    hotelData.forEach((hotel, index) => {
+      console.log(`\n🏨 Hotel ${index + 1}: ${hotel.name || "Unnamed"}`);
+
+      // Check for date range
+      if (hotel.checkIn && hotel.checkOut) {
+        try {
+          const checkInDate = new Date(hotel.checkIn);
+          const checkOutDate = new Date(hotel.checkOut);
+
+          if (!isNaN(checkInDate.getTime()) && !isNaN(checkOutDate.getTime())) {
+            console.log(
+              `   Check-in: ${checkInDate.toISOString().split("T")[0]}`
+            );
+            console.log(
+              `   Check-out: ${checkOutDate.toISOString().split("T")[0]}`
+            );
+
+            const isDateInRange = date >= checkInDate && date < checkOutDate;
+            console.log(
+              `   Date in range? ${isDateInRange ? "✅ YES" : "❌ NO"}`
+            );
+
+            if (!isDateInRange) {
+              // Calculate days off
+              const daysBeforeCheckIn =
+                checkInDate > date
+                  ? Math.ceil(
+                      (checkInDate.getTime() - date.getTime()) /
+                        (1000 * 3600 * 24)
+                    )
+                  : 0;
+
+              const daysAfterCheckOut =
+                date >= checkOutDate
+                  ? Math.ceil(
+                      (date.getTime() - checkOutDate.getTime()) /
+                        (1000 * 3600 * 24)
+                    )
+                  : 0;
+
+              if (daysBeforeCheckIn > 0) {
+                console.log(
+                  `   ⚠️ Target date is ${daysBeforeCheckIn} day(s) before check-in`
+                );
+              } else if (daysAfterCheckOut > 0) {
+                console.log(
+                  `   ⚠️ Target date is ${daysAfterCheckOut} day(s) after check-out`
+                );
+              }
+            }
+          } else {
+            console.log(
+              `   ⚠️ Invalid date format: Check-in=${hotel.checkIn}, Check-out=${hotel.checkOut}`
+            );
+          }
+        } catch (error) {
+          console.log(`   ❌ Error parsing dates: ${error.message}`);
+        }
+      } else {
+        console.log(`   ❌ Missing check-in/check-out dates`);
+      }
+
+      // Check for location
+      if (
+        hotel.location?.coordinates &&
+        Array.isArray(hotel.location.coordinates) &&
+        hotel.location.coordinates.length === 2
+      ) {
+        console.log(
+          `   📍 Coordinates: [${hotel.location.coordinates[1]}, ${hotel.location.coordinates[0]}]`
+        );
+      } else {
+        console.log(`   ❌ No valid coordinates available`);
+      }
+    });
+
+    console.log(`=== END HOTEL DEBUG ===\n`);
+  };
+
   // Function to optimize route for a day using OSRM Trip API
   const optimizeDayRouteOSRM = async (dayIndex: number) => {
     const details = form.getValues("details");
@@ -567,48 +994,204 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     const detail = details[dayIndex];
     if (detail.type !== "route") return;
 
+    // Ensure we have a valid date to work with - with more detailed error logging
+    if (!detail.date) {
+      console.error("❌ Missing date in detail:", detail);
+      toast({
+        title: "Missing date information",
+        description:
+          "Please ensure the day has a valid date before optimizing the route",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Try to parse the date with more flexible handling
+    let dayDate;
+    try {
+      dayDate = new Date(detail.date);
+      // Check if date is valid
+      if (isNaN(dayDate.getTime())) {
+        throw new Error("Invalid date format");
+      }
+      console.log(
+        `📅 Successfully parsed date: ${dayDate.toISOString().split("T")[0]}`
+      );
+    } catch (error) {
+      console.error(`❌ Date parsing error for ${detail.date}:`, error);
+      toast({
+        title: "Invalid date format",
+        description:
+          "The date format is invalid. Please check the date and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     toast({
       title: "Route Optimization",
       description: "Calculating optimal route...",
     });
 
-    // Extract date from the day
-    const dayDate = new Date(detail.date);
-
     // Get hotel information for this date if available
     let hotelInfo = null;
     try {
-      const lodgings = form.getValues("lodging") || [];
+      console.log(
+        "🏨 Looking for hotel data for OSRM optimization on date:",
+        dayDate.toISOString().split("T")[0]
+      );
 
-      // Find a hotel where the date falls between check-in and check-out
-      for (const hotel of lodgings) {
-        if (!hotel.checkIn || !hotel.checkOut) continue;
+      // Run detailed hotel data debug
+      if (hotelData && Array.isArray(hotelData)) {
+        debugHotelData(hotelData, dayDate);
+      }
 
-        const checkInDate = new Date(hotel.checkIn);
-        const checkOutDate = new Date(hotel.checkOut);
+      // First, try to get from hotelData state which may have more complete information
+      if (hotelData && Array.isArray(hotelData)) {
+        console.log(
+          `🏨 Found ${hotelData.length} hotel entries in hotelData state`
+        );
 
-        // If dayDate is on or after checkIn and before checkOut
-        if (dayDate >= checkInDate && dayDate < checkOutDate) {
-          // Return hotel with coordinates if available
-          if (
-            hotel.location?.coordinates &&
-            Array.isArray(hotel.location.coordinates) &&
-            hotel.location.coordinates.length === 2
-          ) {
-            const [lon, lat] = hotel.location.coordinates;
-            hotelInfo = {
-              name: hotel.name,
-              coordinates: {
-                lat: lat,
-                lon: lon,
-              },
-            };
-            break;
+        // Debug hotel data
+        hotelData.forEach((hotel, index) => {
+          console.log(`🏨 Hotel ${index + 1}: "${hotel.name || "Unnamed"}"`);
+          console.log(`   Check-in: ${hotel.checkIn || "undefined"}`);
+          console.log(`   Check-out: ${hotel.checkOut || "undefined"}`);
+          if (hotel.location?.coordinates) {
+            console.log(
+              `   Has coordinates: [${hotel.location.coordinates[1]}, ${hotel.location.coordinates[0]}]`
+            );
+          } else {
+            console.log(`   No coordinates available`);
+          }
+        });
+
+        // Find a hotel booking that covers this date
+        const matchingHotel = hotelData.find((hotel) => {
+          if (!hotel.checkIn || !hotel.checkOut) {
+            console.log(
+              `⚠️ Hotel "${hotel.name || "Unnamed"}" missing check-in/check-out dates`
+            );
+            return false;
+          }
+
+          try {
+            const checkInDate = new Date(hotel.checkIn);
+            const checkOutDate = new Date(hotel.checkOut);
+
+            // Validate dates are proper Date objects
+            if (isNaN(checkInDate.getTime()) || isNaN(checkOutDate.getTime())) {
+              console.log(
+                `⚠️ Hotel "${hotel.name || "Unnamed"}" has invalid date format`
+              );
+              return false;
+            }
+
+            // If dayDate is on or after checkIn and before checkOut
+            const isDateInRange =
+              dayDate >= checkInDate && dayDate < checkOutDate;
+            console.log(
+              `🏨 Hotel "${hotel.name || "Unnamed"}" date range check: ${isDateInRange ? "MATCH" : "NO MATCH"}`
+            );
+            return isDateInRange;
+          } catch (error) {
+            console.error(
+              `❌ Error comparing hotel dates for "${hotel.name || "Unnamed"}":`,
+              error
+            );
+            return false;
+          }
+        });
+
+        if (
+          matchingHotel &&
+          matchingHotel.location?.coordinates &&
+          Array.isArray(matchingHotel.location.coordinates) &&
+          matchingHotel.location.coordinates.length === 2
+        ) {
+          const [lon, lat] = matchingHotel.location.coordinates;
+          hotelInfo = {
+            name: matchingHotel.name || "Hotel Booking",
+            coordinates: {
+              lat: lat,
+              lon: lon,
+            },
+            source: "hotelData state",
+            checkIn: matchingHotel.checkIn,
+            checkOut: matchingHotel.checkOut,
+          };
+          console.log(
+            `🏨 Found hotel from hotelData state for OSRM: "${matchingHotel.name}" at [${lat}, ${lon}]`
+          );
+          try {
+            console.log(
+              `🏨 Stay period: ${new Date(matchingHotel.checkIn).toLocaleDateString()} to ${new Date(matchingHotel.checkOut).toLocaleDateString()}`
+            );
+          } catch (error) {
+            console.warn(`⚠️ Could not format hotel dates: ${error.message}`);
           }
         }
       }
+
+      // If no hotel found in hotelData state, try from form values
+      if (!hotelInfo) {
+        const lodgings = form.getValues("lodging") || [];
+
+        // Find a hotel where the date falls between check-in and check-out
+        for (const hotel of lodgings) {
+          if (!hotel.checkIn || !hotel.checkOut) continue;
+
+          const checkInDate = new Date(hotel.checkIn);
+          const checkOutDate = new Date(hotel.checkOut);
+
+          // If dayDate is on or after checkIn and before checkOut
+          if (dayDate >= checkInDate && dayDate < checkOutDate) {
+            // Return hotel with coordinates if available
+            if (
+              hotel.location?.coordinates &&
+              Array.isArray(hotel.location.coordinates) &&
+              hotel.location.coordinates.length === 2
+            ) {
+              const [lon, lat] = hotel.location.coordinates;
+              hotelInfo = {
+                name: hotel.name || "Hotel Booking",
+                coordinates: {
+                  lat: lat,
+                  lon: lon,
+                },
+                source: "form lodging values",
+                checkIn: hotel.checkIn,
+                checkOut: hotel.checkOut,
+              };
+              console.log(
+                `🏨 Found hotel from form values for OSRM: "${hotel.name}" at [${lat}, ${lon}]`
+              );
+              try {
+                console.log(
+                  `🏨 Stay period: ${new Date(hotel.checkIn).toLocaleDateString()} to ${new Date(hotel.checkOut).toLocaleDateString()}`
+                );
+              } catch (error) {
+                console.warn(
+                  `⚠️ Could not format hotel dates: ${error.message}`
+                );
+              }
+              break;
+            } else {
+              console.log(
+                `⚠️ Found hotel "${hotel.name || "Unnamed"}" but it lacks coordinates`
+              );
+            }
+          }
+        }
+      }
+
+      if (!hotelInfo) {
+        console.log(
+          "ℹ️ No hotel found for this date in OSRM optimization. Route will not start/end at a hotel."
+        );
+      }
     } catch (error) {
-      console.error("Lỗi khi tìm khách sạn cho ngày:", error);
+      console.error("❌ Lỗi khi tìm khách sạn cho ngày trong OSRM:", error);
     }
 
     // Extract places with coordinates from the day's data
@@ -637,7 +1220,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
 
         // In ra log để debug
         console.log(
-          `🗺️ Địa điểm: ${place.name}, ID: ${place.id}, Tọa độ: [${lat.toFixed(6)},${lon.toFixed(6)}]`
+          `🗺️ Location: ${place.name}, ID: ${place.id}, Coordinates: [${lat.toFixed(6)},${lon.toFixed(6)}]`
         );
       }
     }
@@ -657,11 +1240,26 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     let destination = "last";
 
     if (hotelInfo?.coordinates) {
+      console.log(
+        `🏨 Using hotel "${hotelInfo.name}" as start and end point in OSRM optimization`
+      );
       // Add hotel coordinates at the beginning
       coordinates = [hotelInfo.coordinates, ...placesWithCoords];
       // Configure OSRM to use first point (hotel) as source and destination
       source = "first";
       destination = "first";
+
+      // Update toast with hotel information
+      toast({
+        title: "Tối ưu hóa lộ trình",
+        description: `Tính toán lộ trình tối ưu bắt đầu và kết thúc tại khách sạn "${hotelInfo.name}"...`,
+      });
+    } else {
+      toast({
+        title: "Tối ưu hóa lộ trình",
+        description:
+          "Tính toán lộ trình tối ưu giữa các điểm tham quan (không có khách sạn)...",
+      });
     }
 
     // Get optimized route using OSRM Trip API
@@ -743,9 +1341,19 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     toast({
       title: "Route has been optimized",
       description: hotelInfo
-        ? `Route has been optimized to start and end at ${hotelInfo.name}`
-        : "Route has been optimized for most efficient travel",
+        ? `Route has been optimized to start and end at "${hotelInfo.name}" (${optimizedRoute.isRoundTrip ? "confirmed round trip" : "linear trip"})`
+        : "Route has been optimized for most efficient travel between attractions",
       variant: "default",
+    });
+
+    console.log("🚶‍♂️ Final route optimization with OSRM:", {
+      totalPlaces: placesWithCoords.length,
+      hasHotel: !!hotelInfo,
+      hotelName: hotelInfo?.name || "None",
+      totalDistance: optimizedRoute.distance,
+      totalDuration: optimizedRoute.duration,
+      isRoundTrip: optimizedRoute.isRoundTrip || false,
+      optimizedPlaceOrder: newOrder,
     });
 
     // Recalculate routes
@@ -778,36 +1386,240 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
 
     toast({
       title: "Changes undone",
-      description:
-        "Route has been restored to its state before optimization",
+      description: "Route has been restored to its state before optimization",
       variant: "default",
     });
 
     // Recalculate the route
     calculateDayRoutes(dayIndex);
+
+    // Log a complete summary for debugging
+    console.log("=== ROUTE OPTIMIZATION COMPLETE ===");
+    console.log(`📍 Route for day ${dayIndex} has been optimized`);
   };
 
   // Hàm tối ưu hóa lộ trình với ràng buộc thời gian
+  // Type definitions are now imported from @/types/planner
+
   const optimizeDayRouteWithTimeConstraints = async (dayIndex: number) => {
     const details = form.getValues("details");
     if (!details || !details[dayIndex]) return;
 
+    console.log("details", details);
     const detail = details[dayIndex];
     if (detail.type !== "route") return;
+
+    // Cast to a type that includes the date field we'll add dynamically
+    const routeDetail = detail as unknown as {
+      type: "route";
+      name: string;
+      data: any[];
+      index: number;
+      date?: string;
+    };
+
+    // Ensure we have a valid date to work with - with more detailed error logging
+    if (!routeDetail.date) {
+      console.log(
+        "⚠️ Missing date field in detail, attempting to extract from name:",
+        routeDetail.name
+      );
+
+      // Try to extract date from name if it's in common formats like:
+      // "Friday, 10th October" or "Friday, October 10th"
+      if (routeDetail.name) {
+        try {
+          let day, month, nameMatch;
+          let matchFound = false;
+
+          console.log(`Analyzing name for date: "${routeDetail.name}"`);
+
+          // Try pattern 1: "10th October" format (day followed by month)
+          nameMatch = routeDetail.name.match(
+            /(\d+)(?:st|nd|rd|th)?\s+([A-Za-z]+)/
+          );
+          if (nameMatch) {
+            console.log("✓ Matched pattern 1: Day followed by month");
+            day = parseInt(nameMatch[1]);
+            month = nameMatch[2];
+            matchFound = true;
+          }
+
+          // Try pattern 2: "October 10th" format (month followed by day)
+          if (!matchFound) {
+            nameMatch = routeDetail.name.match(
+              /([A-Za-z]+)\s+(\d+)(?:st|nd|rd|th)?/
+            );
+            if (nameMatch) {
+              console.log("✓ Matched pattern 2: Month followed by day");
+              month = nameMatch[1];
+              day = parseInt(nameMatch[2]);
+              matchFound = true;
+            }
+          }
+
+          // If neither format matched
+          if (!matchFound) {
+            throw new Error(
+              "Date format not recognized. Supported formats include: '10th October', 'October 10th', '10 Oct', 'Oct 10'"
+            );
+          }
+
+          // Use 2025 as the year from context
+          const year = 2025;
+
+          // Map month names to month numbers
+          const monthMap: { [key: string]: number } = {
+            January: 0,
+            February: 1,
+            March: 2,
+            April: 3,
+            May: 4,
+            June: 5,
+            July: 6,
+            August: 7,
+            September: 8,
+            October: 9,
+            November: 10,
+            December: 11,
+            // Add abbreviations for more robustness
+            Jan: 0,
+            Feb: 1,
+            Mar: 2,
+            Apr: 3,
+            Jun: 5,
+            Jul: 6,
+            Aug: 7,
+            Sep: 8,
+            Oct: 9,
+            Nov: 10,
+            Dec: 11,
+          };
+
+          // Handle both full and partial month names
+          let monthNumber = -1;
+
+          // First check direct match with the monthMap (for abbreviations)
+          if (month && monthMap[month] !== undefined) {
+            monthNumber = monthMap[month];
+          } else if (month) {
+            // Then try partial matching for full month names
+            for (const [monthName, monthValue] of Object.entries(monthMap)) {
+              if (monthName.toLowerCase().startsWith(month.toLowerCase())) {
+                monthNumber = monthValue;
+                break;
+              }
+            }
+          }
+
+          console.log(
+            `Extracted day: ${day}, month: ${month}, mapped to month number: ${monthNumber}`
+          );
+
+          if (monthNumber >= 0 && day && day > 0 && day <= 31) {
+            // Validate days per month (simplified)
+            const daysInMonth = [
+              31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31,
+            ];
+            if (day > daysInMonth[monthNumber]) {
+              throw new Error(
+                `Invalid day ${day} for month ${month} (max: ${daysInMonth[monthNumber]})`
+              );
+            }
+
+            // Create a date object
+            const extractedDate = new Date(year, monthNumber, day);
+
+            if (!isNaN(extractedDate.getTime())) {
+              console.log(
+                `✅ Successfully extracted date from name: ${extractedDate.toISOString().split("T")[0]}`
+              );
+
+              // Update the detail with the extracted date
+              const updatedDetails = [...details];
+
+              // Add the date property to the detail object
+              const updatedDetail = {
+                ...routeDetail,
+                date: extractedDate.toISOString().split("T")[0],
+              };
+
+              // Update the details array
+              updatedDetails[dayIndex] = updatedDetail;
+              form.setValue("details", updatedDetails);
+
+              // Update our local reference to include the date
+              routeDetail.date = extractedDate.toISOString().split("T")[0];
+
+              toast({
+                title: "Date extracted from name",
+                description: `Using date ${extractedDate.toISOString().split("T")[0]} extracted from "${routeDetail.name}"`,
+              });
+            } else {
+              throw new Error("Invalid date created from name");
+            }
+          } else {
+            throw new Error("Could not parse month or day from name");
+          }
+        } catch (error: any) {
+          console.error("❌ Failed to extract date from name:", error);
+          toast({
+            title: "Missing date information",
+            description:
+              "Please ensure the day has a valid date before optimizing the route",
+            variant: "destructive",
+          });
+          return;
+        }
+      } else {
+        console.error("❌ Missing date in detail:", routeDetail);
+        toast({
+          title: "Missing date information",
+          description:
+            "Please ensure the day has a valid date before optimizing the route",
+          variant: "destructive",
+        });
+        return;
+      }
+    }
+
+    // Try to parse the date with more flexible handling
+    let dayDate;
+    try {
+      dayDate = new Date(routeDetail.date as string);
+
+      console.log("Parsed dayDate:", dayDate);
+      // Check if date is valid
+      if (isNaN(dayDate.getTime())) {
+        throw new Error("Invalid date format");
+      }
+      console.log(
+        `📅 Successfully parsed date: ${dayDate.toISOString().split("T")[0]}`
+      );
+    } catch (error: any) {
+      console.error(`❌ Date parsing error for ${routeDetail.date}:`, error);
+      toast({
+        title: "Invalid date format",
+        description:
+          "The date format is invalid. Please check the date and try again.",
+        variant: "destructive",
+      });
+      return;
+    }
 
     // Lưu trạng thái hiện tại để có thể hoàn tác sau này
     setPreviousRouteData((prev) => ({
       ...prev,
-      [dayIndex]: [...detail.data],
+      [dayIndex]: [...routeDetail.data],
     }));
 
     toast({
-      title: "Tối ưu hóa lộ trình theo thời gian",
-      description: "Đang tính toán đường đi tối ưu với ràng buộc thời gian...",
+      title: "Optimize routes over time",
+      description: "Calculating optimal path with time constraint...",
     });
-
-    // Extract date from the day
-    const dayDate = new Date(detail.date);
+    if (!dayDate) {
+      console.warn("⚠️ Invalid date for day optimization:", routeDetail.date);
+    }
 
     // Lấy thời gian bắt đầu từ state hoặc sử dụng giá trị mặc định
     const startTimeStr = dayStartTimes[dayIndex] || "08:00";
@@ -817,50 +1629,39 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     let currentTime = new Date(dayDate);
     currentTime.setHours(startHour, startMinute, 0, 0);
 
-    console.log(`🕘 Thời gian bắt đầu đi: ${startTimeStr}`);
+    // Get hotel information for this date if available - using our new helper function
+    let hotelInfo = findHotelInfo(dayDate);
 
-    // Get hotel information for this date if available
-    let hotelInfo = null;
-    try {
-      const lodgings = form.getValues("lodging") || [];
-
-      // Find a hotel where the date falls between check-in and check-out
-      for (const hotel of lodgings) {
-        if (!hotel.checkIn || !hotel.checkOut) continue;
-
-        const checkInDate = new Date(hotel.checkIn);
-        const checkOutDate = new Date(hotel.checkOut);
-
-        // If dayDate is on or after checkIn and before checkOut
-        if (dayDate >= checkInDate && dayDate < checkOutDate) {
-          // Return hotel with coordinates if available
-          if (
-            hotel.location?.coordinates &&
-            Array.isArray(hotel.location.coordinates) &&
-            hotel.location.coordinates.length === 2
-          ) {
-            const [lon, lat] = hotel.location.coordinates;
-            hotelInfo = {
-              name: hotel.name,
-              coordinates: {
-                lat: lat,
-                lon: lon,
-              },
-            };
-            break;
-          }
-        }
+    if (hotelInfo) {
+      if (hotelInfo.coordinates) {
+      } else {
       }
-    } catch (error) {
-      console.error("Lỗi khi tìm khách sạn cho ngày:", error);
+    } else {
+      // Run debug to help diagnose the issue
+      if (hotelData && Array.isArray(hotelData)) {
+        debugHotelData(hotelData, dayDate);
+      }
     }
 
     // Extract places with coordinates and time constraints from the day's data
-    const places = detail.data.filter((item: any) => item.type === "place");
-    const placesWithData = [];
-    const placesMap = {};
+    const places = routeDetail.data.filter(
+      (item) => item.type === "place"
+    ) as PlaceItem[];
+
+    interface PlaceWithData {
+      id?: string;
+      name?: string;
+      coordinates: { lat: number; lon: number };
+      visitDuration: number;
+      priority: number;
+      openingPeriods: any[] | null;
+      attractionId?: string;
+    }
+
+    const placesWithData: PlaceWithData[] = [];
+    const placesMap: Record<string, string> = {};
     let hasMissingTimeData = false;
-    const timeWarningsList = [];
+    const timeWarningsList: string[] = [];
 
     for (const place of places) {
       if (
@@ -904,10 +1705,10 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
         placesMap[`${lat.toFixed(6)},${lon.toFixed(6)}`] = place.id;
 
         console.log(
-          `🗺️ Địa điểm: ${place.name}, ID: ${place.id}, Thời gian thăm: ${visitDuration} phút, Ưu tiên: ${priority}/5`
+          `🗺️ Location: ${place.name}, ID: ${place.id}, Visit duration: ${visitDuration} min, Priority: ${priority}/5`
         );
         if (openingPeriods) {
-          console.log(`   ⏰ Có thông tin giờ mở/đóng cửa`);
+          console.log(`   ⏰ Has opening/closing hours information`);
         }
       }
     }
@@ -934,26 +1735,48 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     const distanceMatrix = [];
     const durationMatrix = [];
 
-    for (let i = 0; i < placesWithData.length; i++) {
-      const fromPlace = placesWithData[i];
+    let allPoints = [...placesWithData];
+    let hotelIndex = -1;
+
+    if (hotelInfo?.coordinates) {
+      hotelIndex = 0;
+      allPoints = [
+        {
+          id: "hotel",
+          name: hotelInfo.name || "Hotel",
+          coordinates: hotelInfo.coordinates,
+          visitDuration: 0, // Thời gian thăm khách sạn là 0
+          priority: 5, // Ưu tiên cao nhất cho khách sạn
+          openingPeriods: null, // Khách sạn không có giờ mở cửa
+        },
+        ...placesWithData,
+      ];
+    }
+
+    console.log(
+      `📊 Tính ma trận khoảng cách và thời gian cho ${allPoints.length} điểm (bao gồm khách sạn: ${hotelIndex !== -1})`,
+      allPoints
+    );
+
+    for (let i = 0; i < allPoints.length; i++) {
+      const fromPlace = allPoints[i];
       const distanceRow = [];
       const durationRow = [];
 
-      for (let j = 0; j < placesWithData.length; j++) {
+      for (let j = 0; j < allPoints.length; j++) {
         if (i === j) {
           distanceRow.push(0);
           durationRow.push(0);
           continue;
         }
 
-        const toPlace = placesWithData[j];
+        const toPlace = allPoints[j];
 
         // Calculate distance and travel time between 2 points
         const routeResult = await calculateRoute([
           fromPlace.coordinates,
           toPlace.coordinates,
         ]);
-
         if (routeResult) {
           distanceRow.push(routeResult.distance);
           durationRow.push(routeResult.duration);
@@ -975,6 +1798,47 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
       distanceMatrix.push(distanceRow);
       durationMatrix.push(durationRow);
     }
+    // for (let i = 0; i < placesWithData.length; i++) {
+    //   const fromPlace = placesWithData[i];
+    //   const distanceRow = [];
+    //   const durationRow = [];
+
+    //   for (let j = 0; j < placesWithData.length; j++) {
+    //     if (i === j) {
+    //       distanceRow.push(0);
+    //       durationRow.push(0);
+    //       continue;
+    //     }
+
+    //     const toPlace = placesWithData[j];
+
+    //     // Calculate distance and travel time between 2 points
+    //     const routeResult = await calculateRoute([
+    //       fromPlace.coordinates,
+    //       toPlace.coordinates,
+    //     ]);
+
+    //     if (routeResult) {
+    //       distanceRow.push(routeResult.distance);
+    //       durationRow.push(routeResult.duration);
+    //     } else {
+    //       // Nếu không tính được, ước lượng thô bằng khoảng cách đường chim bay
+    //       const distance = calculateHaversineDistance(
+    //         fromPlace.coordinates.lat,
+    //         fromPlace.coordinates.lon,
+    //         toPlace.coordinates.lat,
+    //         toPlace.coordinates.lon
+    //       );
+    //       const estimatedDuration = distance * 0.06; // Ước lượng 60s cho 1km
+
+    //       distanceRow.push(distance);
+    //       durationRow.push(estimatedDuration);
+    //     }
+    //   }
+
+    //   distanceMatrix.push(distanceRow);
+    //   durationMatrix.push(durationRow);
+    // }
 
     console.log("Ma trận khoảng cách:", distanceMatrix);
     console.log("Ma trận thời gian:", durationMatrix);
@@ -992,7 +1856,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
           hotelInfo.coordinates,
           place.coordinates,
         ]);
-
+        console.log("Hotel distance", routeResult);
         if (routeResult) {
           hotelDistances.push(routeResult.distance);
           hotelDurations.push(routeResult.duration);
@@ -1039,7 +1903,12 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     currentTimeMinutes += placesWithData[current].visitDuration;
 
     // Tham lam: Chọn điểm tiếp theo dựa trên thời gian di chuyển và ưu tiên
-    while (route.length < placesWithData.length) {
+    // Nếu có khách sạn và cần kết thúc tại khách sạn, chỉ thăm n-1 địa điểm (để lại 1 điểm cho việc chọn điểm cuối tối ưu)
+    const totalPlacesToVisit = hotelInfo
+      ? placesWithData.length - 1
+      : placesWithData.length;
+
+    while (route.length < totalPlacesToVisit) {
       let bestNext = -1;
       let bestScore = -Infinity;
 
@@ -1183,6 +2052,115 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
       }
     }
 
+    // Nếu có khách sạn và còn địa điểm chưa thăm, chọn điểm cuối cùng tối ưu để quay về khách sạn
+    if (
+      hotelInfo &&
+      route.length === totalPlacesToVisit &&
+      route.length < placesWithData.length
+    ) {
+      console.log(
+        "Chọn điểm cuối cùng tối ưu để quay về khách sạn:",
+        hotelInfo.name
+      );
+
+      let bestLastPlace = -1;
+      let bestReturnScore = -Infinity;
+
+      // Tính điểm cho mỗi địa điểm chưa thăm dựa trên khoảng cách từ điểm hiện tại tới địa điểm đó
+      // và từ địa điểm đó về khách sạn
+      for (let i = 0; i < placesWithData.length; i++) {
+        if (!visited[i]) {
+          const travelToPlaceMinutes = durationMatrix[current][i] / 60;
+          const visitDuration = placesWithData[i].visitDuration;
+
+          // Tính thời gian đến địa điểm này
+          const arrivalTimeMinutes = currentTimeMinutes + travelToPlaceMinutes;
+          const departureTimeMinutes = arrivalTimeMinutes + visitDuration;
+
+          // Kiểm tra ràng buộc thời gian mở/đóng cửa
+          let timeConstraintViolation = false;
+
+          if (
+            placesWithData[i].openingPeriods &&
+            placesWithData[i].openingPeriods.length > 0
+          ) {
+            // Thực hiện kiểm tra tương tự như ở trên
+            const dayOfWeek = dayDate.getDay();
+            const todaySchedule = placesWithData[i].openingPeriods.find(
+              (p) => p.open.day === dayOfWeek
+            );
+
+            if (todaySchedule) {
+              const openTimeStr = formatTimeFromOpeningPeriod(
+                todaySchedule.open.time
+              );
+              const closeTimeStr = formatTimeFromOpeningPeriod(
+                todaySchedule.close.time
+              );
+              const openTimeMinutes = timeToMinutes(openTimeStr);
+              const closeTimeMinutes = timeToMinutes(closeTimeStr);
+
+              if (
+                arrivalTimeMinutes < openTimeMinutes ||
+                arrivalTimeMinutes > closeTimeMinutes
+              ) {
+                timeConstraintViolation = true;
+              }
+            }
+          }
+
+          if (!timeConstraintViolation) {
+            // Ưu tiên địa điểm + (ngược với thời gian di chuyển) để chọn điểm gần khách sạn nhất
+            // Công thức: priority * 50 - travelToPlaceMinutes - returnToHotelTime * 2
+            // Nhân đôi thời gian về khách sạn để ưu tiên điểm gần khách sạn
+
+            // Tính thời gian từ địa điểm này về khách sạn (giả định với các tính toán trước đó)
+            let returnToHotelTime = 30; // Giá trị mặc định
+
+            for (const place of placesWithData) {
+              if (place.coordinates && hotelInfo.coordinates) {
+                const distance = calculateHaversineDistance(
+                  placesWithData[i].coordinates.lat,
+                  placesWithData[i].coordinates.lon,
+                  hotelInfo.coordinates.lat,
+                  hotelInfo.coordinates.lon
+                );
+                returnToHotelTime = distance * 0.06; // Ước tính 60s cho 1km
+              }
+            }
+
+            const score =
+              placesWithData[i].priority * 50 -
+              travelToPlaceMinutes -
+              returnToHotelTime * 2;
+
+            if (score > bestReturnScore) {
+              bestReturnScore = score;
+              bestLastPlace = i;
+            }
+          }
+        }
+      }
+
+      // Thêm địa điểm tối ưu cuối cùng vào lộ trình
+      if (bestLastPlace !== -1) {
+        // Cập nhật lộ trình và thời gian
+        route.push(bestLastPlace);
+        visited[bestLastPlace] = true;
+
+        // Cập nhật thời gian hiện tại
+        currentTimeMinutes +=
+          durationMatrix[current][bestLastPlace] / 60 +
+          placesWithData[bestLastPlace].visitDuration;
+
+        current = bestLastPlace;
+
+        console.log(
+          `Đã thêm địa điểm cuối cùng ${placesWithData[bestLastPlace].name} vào lộ trình trước khi quay về khách sạn`
+        );
+      }
+    }
+
     // Cập nhật state cảnh báo thời gian
     if (timeWarningsList.length > 0) {
       setTimeWarnings((prev) => ({
@@ -1202,9 +2180,163 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
       }
     }
 
-    // Nếu có khách sạn, kết thúc tại khách sạn
+    // Nếu có khách sạn và còn địa điểm chưa thăm, chọn điểm cuối cùng tối ưu để quay về khách sạn
+    if (
+      hotelInfo &&
+      route.length === totalPlacesToVisit &&
+      route.length < placesWithData.length
+    ) {
+      console.log(
+        "Chọn điểm cuối cùng tối ưu để quay về khách sạn:",
+        hotelInfo.name
+      );
+
+      let bestLastPlace = -1;
+      let bestReturnScore = -Infinity;
+
+      // Tính điểm cho mỗi địa điểm chưa thăm dựa trên khoảng cách từ điểm hiện tại tới địa điểm đó
+      // và từ địa điểm đó về khách sạn
+      for (let i = 0; i < placesWithData.length; i++) {
+        if (!visited[i]) {
+          const travelToPlaceMinutes = durationMatrix[current][i] / 60;
+          const visitDuration = placesWithData[i].visitDuration;
+
+          // Tính thời gian đến địa điểm này
+          const arrivalTimeMinutes = currentTimeMinutes + travelToPlaceMinutes;
+          const departureTimeMinutes = arrivalTimeMinutes + visitDuration;
+
+          // Kiểm tra ràng buộc thời gian mở/đóng cửa
+          let timeConstraintViolation = false;
+
+          if (
+            placesWithData[i].openingPeriods &&
+            placesWithData[i].openingPeriods.length > 0
+          ) {
+            // Thực hiện kiểm tra tương tự như ở trên
+            const dayOfWeek = dayDate.getDay();
+            const todaySchedule = placesWithData[i].openingPeriods.find(
+              (p) => p.open.day === dayOfWeek
+            );
+
+            if (todaySchedule) {
+              const openTimeStr = formatTimeFromOpeningPeriod(
+                todaySchedule.open.time
+              );
+              const closeTimeStr = formatTimeFromOpeningPeriod(
+                todaySchedule.close.time
+              );
+              const openTimeMinutes = timeToMinutes(openTimeStr);
+              const closeTimeMinutes = timeToMinutes(closeTimeStr);
+
+              if (
+                arrivalTimeMinutes < openTimeMinutes ||
+                arrivalTimeMinutes > closeTimeMinutes
+              ) {
+                timeConstraintViolation = true;
+              }
+            }
+          }
+
+          if (!timeConstraintViolation) {
+            // Ưu tiên địa điểm + (ngược với thời gian di chuyển) để chọn điểm gần khách sạn nhất
+            // Công thức: priority * 50 - travelToPlaceMinutes - returnToHotelTime * 2
+            // Nhân đôi thời gian về khách sạn để ưu tiên điểm gần khách sạn
+
+            // Tính thời gian từ địa điểm này về khách sạn (giả định với các tính toán trước đó)
+            let returnToHotelTime = 30; // Giá trị mặc định
+
+            for (const place of placesWithData) {
+              if (place.coordinates && hotelInfo.coordinates) {
+                const distance = calculateHaversineDistance(
+                  placesWithData[i].coordinates.lat,
+                  placesWithData[i].coordinates.lon,
+                  hotelInfo.coordinates.lat,
+                  hotelInfo.coordinates.lon
+                );
+                returnToHotelTime = distance * 0.06; // Ước tính 60s cho 1km
+              }
+            }
+
+            const score =
+              placesWithData[i].priority * 50 -
+              travelToPlaceMinutes -
+              returnToHotelTime * 2;
+
+            if (score > bestReturnScore) {
+              bestReturnScore = score;
+              bestLastPlace = i;
+            }
+          }
+        }
+      }
+
+      // Thêm địa điểm tối ưu cuối cùng vào lộ trình
+      if (bestLastPlace !== -1) {
+        // Cập nhật lộ trình và thời gian
+        route.push(bestLastPlace);
+        visited[bestLastPlace] = true;
+
+        // Cập nhật thời gian hiện tại
+        currentTimeMinutes +=
+          durationMatrix[current][bestLastPlace] / 60 +
+          placesWithData[bestLastPlace].visitDuration;
+
+        current = bestLastPlace;
+
+        console.log(
+          `Đã thêm địa điểm cuối cùng ${placesWithData[bestLastPlace].name} vào lộ trình trước khi quay về khách sạn`
+        );
+      }
+    }
+
+    // Nếu có khách sạn, đảm bảo lộ trình kết thúc tại khách sạn
+    // Declare totalTravelMinutes variable that will be used later
+    const totalTravelTimeMinutes = 0; // Use a different variable name to avoid conflicts
     if (hotelInfo) {
-      console.log("Kết thúc lộ trình tại khách sạn:", hotelInfo.name);
+      console.log("Đảm bảo lộ trình kết thúc tại khách sạn:", hotelInfo.name);
+
+      // Tạo một mảng chứa ID của các địa điểm đã thăm
+      const visitedPlaceIds = route.map((index) => placesWithData[index].id);
+
+      // Không cần thêm khách sạn vào lại mảng route vì khách sạn không nằm trong placesWithData
+      // Thay vào đó, chúng ta cần đảm bảo thời gian cuối cùng bao gồm quay về khách sạn
+
+      // Lấy điểm cuối cùng trong lộ trình
+      const lastPlaceIndex = route[route.length - 1];
+      const lastPlace = placesWithData[lastPlaceIndex];
+
+      // Tính thời gian di chuyển từ điểm cuối cùng về khách sạn
+      const lastPlaceToHotelResult = await calculateRoute([
+        lastPlace.coordinates,
+        hotelInfo.coordinates,
+      ]);
+
+      let travelTimeToHotel = 0;
+      if (lastPlaceToHotelResult) {
+        travelTimeToHotel = lastPlaceToHotelResult.duration / 60; // chuyển sang phút
+      } else {
+        // Ước tính nếu không tính được chính xác
+        const distance = calculateHaversineDistance(
+          lastPlace.coordinates.lat,
+          lastPlace.coordinates.lon,
+          hotelInfo.coordinates.lat,
+          hotelInfo.coordinates.lon
+        );
+        travelTimeToHotel = distance * 0.06; // Ước tính 60s cho 1km
+      }
+
+      // Cập nhật thời gian hiện tại để bao gồm thời gian quay về khách sạn
+      currentTimeMinutes += travelTimeToHotel;
+
+      // Thêm thời gian quay về khách sạn vào tổng thời gian di chuyển
+      const travelMinutes = totalTravelTimeMinutes + travelTimeToHotel;
+
+      console.log(
+        `Thời gian quay về khách sạn từ ${lastPlace.name}: ${Math.round(travelTimeToHotel)} phút`
+      );
+      console.log(
+        `Lộ trình đã được điều chỉnh để bắt đầu và kết thúc tại khách sạn ${hotelInfo.name}`
+      );
     }
 
     // Tạo thứ tự mới cho các địa điểm
@@ -1263,23 +2395,321 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     // Chuẩn bị thông báo tối ưu hóa
     let toastMessage = `Lộ trình bao gồm ${route.length} địa điểm (tổng thời gian: ${Math.round(totalVisitMinutes + totalTravelMinutes)} phút)`;
 
+    // Thêm thông tin về khách sạn nếu có
+    if (hotelInfo) {
+      toastMessage += `. Lộ trình bắt đầu và kết thúc tại khách sạn ${hotelInfo.name}`;
+    }
+
     // Thêm thông tin về cảnh báo thời gian nếu có
     if (timeWarningsList.length > 0) {
       toastMessage += `. Có ${timeWarningsList.length} cảnh báo thời gian.`;
     }
 
     toast({
-      title: "Route has been time-optimized",
+      title: hotelInfo
+        ? `Route optimized with "${hotelInfo.name}"`
+        : "Route has been time-optimized",
       description: toastMessage,
       variant: timeWarningsList.length > 0 ? "warning" : "default",
     });
+
+    // Nếu có thông tin khách sạn, tính toán đường đi từ khách sạn đến điểm đầu và điểm cuối
+    if (hotelInfo) {
+      calculateHotelRoutes(dayIndex, hotelInfo, placesWithData, route);
+    }
+
+    // For debugging - log the exact hotel info we're using
+    if (hotelInfo) {
+      try {
+        console.log("🏨 HOTEL INFORMATION FOR ROUTE OPTIMIZATION:");
+        console.log(`🏨 Name: ${hotelInfo.name || "Unnamed Hotel"}`);
+
+        if (hotelInfo.coordinates) {
+          console.log(
+            `🏨 Coordinates: [${hotelInfo.coordinates.lat}, ${hotelInfo.coordinates.lon}]`
+          );
+        } else {
+          console.log(`🏨 No coordinates available for hotel`);
+        }
+
+        console.log(`🏨 Source: ${hotelInfo.source || "unknown"}`);
+        console.log(`🏨 Total places in route: ${route.length}`);
+        console.log(`🏨 Starting at hotel: ${startPointIndex === 0}`);
+        console.log(`🏨 Last place visited: ${route[route.length - 1]}`);
+
+        // Log the actual route sequence to help debug
+        console.log("🗺️ ROUTE SEQUENCE WITH HOTEL:");
+        if (hotelInfo.coordinates) {
+          console.log(
+            `🏨 START: ${hotelInfo.name || "Hotel"} [${hotelInfo.coordinates.lat}, ${hotelInfo.coordinates.lon}]`
+          );
+        } else {
+          console.log(
+            `🏨 START: ${hotelInfo.name || "Hotel"} [coordinates unavailable]`
+          );
+        }
+
+        for (const placeIndex of route) {
+          const place = placesWithData[placeIndex];
+          if (place && place.coordinates) {
+            console.log(
+              `➡️ ${place.name} [${place.coordinates.lat}, ${place.coordinates.lon}]`
+            );
+          } else {
+            console.log(
+              `➡️ ${place ? place.name : "Unknown place"} [coordinates unavailable]`
+            );
+          }
+        }
+
+        if (hotelInfo.coordinates) {
+          console.log(
+            `🏨 END: ${hotelInfo.name || "Hotel"} [${hotelInfo.coordinates.lat}, ${hotelInfo.coordinates.lon}]`
+          );
+        } else {
+          console.log(
+            `🏨 END: ${hotelInfo.name || "Hotel"} [coordinates unavailable]`
+          );
+        }
+      } catch (error) {
+        console.error("❌ Error logging hotel information:", error);
+      }
+    }
 
     // Tính toán lại lộ trình
     calculateDayRoutes(dayIndex);
   };
 
+  // Hàm tính toán và lưu trữ đường đi từ khách sạn đến điểm đầu tiên và từ điểm cuối cùng về khách sạn
+  const calculateHotelRoutes = async (
+    dayIndex: number,
+    hotelInfo: {
+      name: string;
+      coordinates: { lat: number; lon: number };
+      source?: string;
+    },
+    placesWithData: Array<any>,
+    route: Array<number>
+  ) => {
+    if (!hotelInfo?.coordinates || route.length === 0) {
+      return;
+    }
+
+    console.log(
+      `🏨 Tính toán đường đi từ/đến khách sạn cho ngày ${dayIndex + 1}`
+    );
+
+    try {
+      // Lấy điểm đầu tiên và cuối cùng trong lộ trình
+      const firstPlaceIndex = route[0];
+      const lastPlaceIndex = route[route.length - 1];
+
+      const firstPlace = placesWithData[firstPlaceIndex];
+      const lastPlace = placesWithData[lastPlaceIndex];
+
+      if (!firstPlace?.coordinates || !lastPlace?.coordinates) {
+        console.warn(
+          "⚠️ Thiếu tọa độ cho điểm đầu hoặc điểm cuối của lộ trình"
+        );
+        return;
+      }
+
+      // Tính đường đi từ khách sạn đến điểm đầu tiên
+      const hotelToFirstPlaceRoute = await calculateRoute([
+        hotelInfo.coordinates,
+        firstPlace.coordinates,
+      ]);
+
+      // Tính đường đi từ điểm cuối cùng về khách sạn
+      const lastPlaceToHotelRoute = await calculateRoute([
+        lastPlace.coordinates,
+        hotelInfo.coordinates,
+      ]);
+
+      // Lưu trữ thông tin vào state
+      setHotelInfoState((prev) => ({
+        ...prev,
+        [dayIndex]: {
+          name: hotelInfo.name,
+          coordinates: hotelInfo.coordinates,
+          source: hotelInfo.source,
+          hotelToFirstPlaceRoute,
+          lastPlaceToHotelRoute,
+        },
+      }));
+
+      // Lưu trữ tuyến đường từ khách sạn vào Zustand store để hiển thị trên bản đồ
+      const dayKey = `day-${dayIndex}`;
+      const currentRoutingData =
+        usePlannerStore.getState().routingData[dayKey] || {};
+
+      // Lấy danh sách tuyến đường hiện tại và lọc bỏ các tuyến đường khách sạn cũ (nếu có)
+      const existingRoutes = currentRoutingData.routes || [];
+      const regularRoutes = existingRoutes.filter(
+        (route) =>
+          !(
+            route.fromPlace?.includes("Hotel") ||
+            route.toPlace?.includes("Hotel")
+          )
+      );
+
+      // Thêm các tuyến đường từ khách sạn vào mảng routes hiện tại
+      const hotelRoutes = [];
+
+      // Tuyến đường từ khách sạn đến điểm đầu tiên
+      if (hotelToFirstPlaceRoute) {
+        const fromHotelRoute = {
+          fromPlace: `${hotelInfo.name} (Hotel)`,
+          toPlace: firstPlace.name,
+          distance: hotelToFirstPlaceRoute.distance,
+          duration: hotelToFirstPlaceRoute.duration,
+          geometry: hotelToFirstPlaceRoute.geometry,
+          color: "#FF5722", // Màu cam đặc biệt cho tuyến đường từ khách sạn
+          persistentId: `hotel-to-first-${dayIndex}`, // Thêm ID để giúp nhận dạng tuyến đường khách sạn
+        };
+
+        hotelRoutes.push(fromHotelRoute);
+        console.log(
+          `🏨 Thêm tuyến đường từ khách sạn đến điểm đầu tiên: ${fromHotelRoute.fromPlace} → ${fromHotelRoute.toPlace}`
+        );
+      }
+
+      // Kiểm tra chi tiết geometry của tuyến đường khách sạn
+      if (hotelToFirstPlaceRoute) {
+        console.log("Hotel to first place route geometry:", {
+          type: hotelToFirstPlaceRoute.geometry?.type,
+          hasCoordinates: !!hotelToFirstPlaceRoute.geometry?.coordinates,
+          coordinatesLength:
+            hotelToFirstPlaceRoute.geometry?.coordinates?.length || 0,
+          // In ra một số điểm đầu tiên để kiểm tra định dạng
+          firstPoints: hotelToFirstPlaceRoute.geometry?.coordinates?.slice(
+            0,
+            3
+          ),
+        });
+      } else {
+        console.log("Hotel to first place route: không tính được");
+      }
+
+      // Tuyến đường từ điểm cuối cùng về khách sạn
+      if (lastPlaceToHotelRoute) {
+        const toHotelRoute = {
+          fromPlace: lastPlace.name,
+          toPlace: `${hotelInfo.name} (Hotel)`,
+          distance: lastPlaceToHotelRoute.distance,
+          duration: lastPlaceToHotelRoute.duration,
+          geometry: lastPlaceToHotelRoute.geometry,
+          color: "#FF9800", // Màu cam nhạt cho tuyến đường về khách sạn
+          persistentId: `last-to-hotel-${dayIndex}`, // Thêm ID để giúp nhận dạng tuyến đường khách sạn
+        };
+
+        hotelRoutes.push(toHotelRoute);
+        console.log(
+          `🏨 Thêm tuyến đường từ điểm cuối về khách sạn: ${toHotelRoute.fromPlace} → ${toHotelRoute.toPlace}`
+        );
+      }
+
+      // Cập nhật store nếu có tuyến đường mới
+      if (hotelRoutes.length > 0) {
+        // Kết hợp các tuyến đường thường và tuyến đường khách sạn
+        const allRoutes = [...regularRoutes, ...hotelRoutes];
+
+        const updatedRoutingData = {
+          ...currentRoutingData,
+          routes: allRoutes,
+          lastUpdated: new Date(),
+        };
+
+        console.log(
+          `🏨 Cập nhật store với tất cả ${allRoutes.length} tuyến đường (${hotelRoutes.length} tuyến khách sạn)`
+        );
+        updateDayRouting(dayKey, updatedRoutingData);
+
+        // Kiểm tra sau khi cập nhật store
+        setTimeout(() => {
+          const storeData = usePlannerStore.getState().routingData[dayKey];
+          console.log(
+            `🏨 Kiểm tra sau khi cập nhật store cho ngày ${dayKey}:`,
+            {
+              totalRoutes: storeData?.routes?.length || 0,
+              // Hiển thị tên của các tuyến đường để kiểm tra
+              routeNames: storeData?.routes?.map(
+                (r) => `${r.fromPlace} → ${r.toPlace}`
+              ),
+            }
+          );
+        }, 500);
+      }
+
+      console.log(
+        `✅ Đã tính toán xong đường đi từ/đến khách sạn "${hotelInfo.name}" cho ngày ${dayIndex + 1}:`,
+        {
+          hotelToFirstPlace: hotelToFirstPlaceRoute
+            ? `${Math.round(hotelToFirstPlaceRoute.distance / 1000)}km, ${Math.round(hotelToFirstPlaceRoute.duration / 60)}min`
+            : "Không có",
+          lastPlaceToHotel: lastPlaceToHotelRoute
+            ? `${Math.round(lastPlaceToHotelRoute.distance / 1000)}km, ${Math.round(lastPlaceToHotelRoute.duration / 60)}min`
+            : "Không có",
+          hotelRoutes: hotelRoutes.map((r) => ({
+            from: r.fromPlace,
+            to: r.toPlace,
+            hasGeometry: !!r.geometry,
+            isFromHotel: r.fromPlace && r.fromPlace.includes("Hotel"),
+            isToHotel: r.toPlace && r.toPlace.includes("Hotel"),
+            color: r.color,
+          })),
+          // Chi tiết về geometry để debug
+          firstRouteGeometry: hotelToFirstPlaceRoute?.geometry
+            ? {
+                type: hotelToFirstPlaceRoute.geometry.type,
+                coordinatesLength:
+                  hotelToFirstPlaceRoute.geometry.coordinates?.length || 0,
+              }
+            : null,
+          lastRouteGeometry: lastPlaceToHotelRoute?.geometry
+            ? {
+                type: lastPlaceToHotelRoute.geometry.type,
+                coordinatesLength:
+                  lastPlaceToHotelRoute.geometry.coordinates?.length || 0,
+              }
+            : null,
+        }
+      );
+
+      // Thông báo thành công
+      toast({
+        title: "Tuyến đường khách sạn",
+        description: `Đã tính toán tuyến đường từ/đến khách sạn "${hotelInfo.name}"`,
+      });
+    } catch (error) {
+      console.error(
+        "❌ Lỗi khi tính toán tuyến đường từ/đến khách sạn:",
+        error
+      );
+    }
+  };
+
   // Function to calculate Haversine distance (as the crow flies) between 2 coordinates
-  const calculateHaversineDistance = (lat1, lon1, lat2, lon2) => {
+  const calculateHaversineDistance = (
+    lat1: number,
+    lon1: number,
+    lat2: number,
+    lon2: number
+  ): number => {
+    if (
+      typeof lat1 !== "number" ||
+      typeof lon1 !== "number" ||
+      typeof lat2 !== "number" ||
+      typeof lon2 !== "number"
+    ) {
+      console.warn("⚠️ Invalid coordinates in Haversine calculation:", {
+        lat1,
+        lon1,
+        lat2,
+        lon2,
+      });
+      return 0;
+    }
     const R = 6371000; // Bán kính trái đất tính bằng mét
     const dLat = ((lat2 - lat1) * Math.PI) / 180;
     const dLon = ((lon2 - lon1) * Math.PI) / 180;
@@ -1349,6 +2779,185 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
     );
     return 30;
   };
+
+  /**
+   * Optimize a day's route using Simulated Annealing algorithm
+   * This uses the routeOptimizer utility to find an optimal route
+   */
+  // const optimizeDayRouteWithSA = async (dayIndex: number) => {
+  //   console.log("Optimization with Simulated Annealing for day", dayIndex);
+  //   try {
+  //     // Get current day data
+  //     const details = form.getValues("details");
+  //     if (!details || !details[dayIndex]) return;
+  //     console.log("details", details);
+  //     // Check if it's a route day
+  //     const dayData = details[dayIndex];
+  //     if (dayData.type !== "route") {
+  //       toast({
+  //         title: "Không phải ngày có tuyến đường",
+  //         description: "Chỉ có thể tối ưu hóa các ngày có tuyến đường.",
+  //         variant: "destructive",
+  //       });
+  //       return;
+  //     }
+  //     console.log("Day name:", dayData.name);
+
+  //     // Parse the date directly from dayData.name using moment
+  //     let dayDate;
+
+  //     if (dayData.name) {
+  //       // Try parsing with various formats for "Friday, 10th October" style dates
+  //       const momentDate = moment(
+  //         dayData.name,
+  //         [
+  //           "dddd, Do MMMM", // Friday, 10th October
+  //           "dddd, MMMM Do", // Friday, October 10th
+  //           "Do MMMM", // 10th October
+  //           "MMMM Do", // October 10th
+  //           "D MMMM", // 10 October
+  //           "MMMM D", // October 10
+  //         ],
+  //         true
+  //       );
+
+  //       console.log("momentData ", momentDate.isValid());
+  //       if (momentDate.isValid()) {
+  //         // Set year to 2025 as specified in context
+  //         momentDate.year(2025);
+  //         dayDate = momentDate.toDate();
+  //         console.log(
+  //           "✅ Successfully parsed date from name using moment:",
+  //           dayDate
+  //         );
+  //       } else {
+  //         console.log(
+  //           "⚠️ Could not parse date from name with moment, trying to extract"
+  //         );
+
+  //         // Thử trích xuất ngày theo cách thủ công
+  //         try {
+  //           // Ví dụ: "Friday, 10th October" hoặc "Friday, October 10th"
+  //           const matches = dayData.name.match(
+  //             /(\d+)(?:st|nd|rd|th)?|(?:January|February|March|April|May|June|July|August|September|October|November|December)/gi
+  //           );
+
+  //           if (matches && matches.length >= 2) {
+  //             console.log("Found date parts:", matches);
+  //             // Tạm sử dụng current date
+  //             dayDate = new Date();
+  //           } else {
+  //             dayDate = new Date();
+  //             console.log("⚠️ No date parts found in name, using current date");
+  //           }
+  //         } catch (e) {
+  //           dayDate = new Date();
+  //           console.log("⚠️ Error extracting date, using current date:", e);
+  //         }
+  //       }
+  //     } else {
+  //       dayDate = new Date();
+  //       console.log("⚠️ No name available, using current date:", dayDate);
+  //     }
+
+  //     // Get hotel information for this date using the same helper function as Time Optimize
+  //     const hotelInfo = findHotelInfo(dayDate);
+  //     console.log("thotelInfo", hotelInfo);
+
+  //     if (hotelInfo) {
+  //       console.log(
+  //         `🏨 SA Optimize - Found hotel for date ${dayDate.toDateString()}: "${hotelInfo.name}" (Source: ${hotelInfo.source})`
+  //       );
+
+  //       if (hotelInfo.coordinates) {
+  //         console.log(
+  //           `🗺️ Hotel coordinates: [${hotelInfo.coordinates.lat}, ${hotelInfo.coordinates.lon}]`
+  //         );
+  //       } else {
+  //         console.log(
+  //           `⚠️ No coordinates available for hotel "${hotelInfo.name}"`
+  //         );
+  //       }
+  //     } else {
+  //       console.log(
+  //         "ℹ️ No hotel found for this date. Route will not start/end at a hotel."
+  //       );
+  //     }
+
+  //     // Log detailed information before optimization
+  //     console.log("🔍 SA Optimize - Day data structure:", {
+  //       dayIndex,
+  //       dayType: dayData.type,
+  //       dataLength: dayData.data?.length || 0,
+  //       places:
+  //         dayData.data?.filter((item: any) => item.type === "place")?.length ||
+  //         0,
+  //       date: dayDate,
+  //     });
+
+  //     // Log detailed hotel information
+  //     console.log(
+  //       "🏨 SA Optimize - Hotel info being passed to optimizer:",
+  //       hotelInfo
+  //     );
+
+  //     // Run optimization - with await since it's now async
+  //     // Use routeHelper directly
+  //     const result = await routeHelper.optimizeDayRoute(dayData, hotelInfo);
+
+  //     // Log result summary
+  //     if (result) {
+  //       console.log("✅ SA Optimize - Optimization result:", {
+  //         routeLength: result.route?.length,
+  //         placeIdsLength: result.placeIds?.length,
+  //         totalDistance: result.totalDistance,
+  //         firstPlace: result.route[0],
+  //         lastPlace: result.route[result.route.length - 1],
+  //       });
+  //     }
+
+  //     if (!result) {
+  //       toast({
+  //         title: "Không thể tối ưu hóa",
+  //         description: "Không đủ địa điểm có tọa độ để tối ưu hóa tuyến đường.",
+  //         variant: "destructive",
+  //       });
+  //       return;
+  //     }
+
+  //     console.log("Optimized route:", dayData, result);
+  //     // Store previous data for undo functionality
+  //     setPreviousRouteData({
+  //       dayIndex,
+  //       data: JSON.parse(JSON.stringify(dayData.data)),
+  //     });
+
+  //     // Apply optimization to day data
+  //     const updatedDayData = applyOptimizedRoute(dayData, result);
+
+  //     // Update form values
+  //     const newDetails = [...details];
+  //     newDetails[dayIndex] = updatedDayData;
+  //     form.setValue("details", newDetails);
+
+  //     // Show success toast
+  //     toast({
+  //       title: "Tuyến đường đã được tối ưu hóa",
+  //       description: `Đã sắp xếp ${result.route.length - (hotelInfo ? 2 : 0)} địa điểm theo tuyến đường tối ưu nhất.`,
+  //     });
+
+  //     // Always recalculate the route for the current day
+  //     calculateDayRoutes(dayIndex);
+  //   } catch (error: any) {
+  //     console.error("SA optimization error:", error);
+  //     toast({
+  //       title: "Lỗi tối ưu hóa",
+  //       description:
+  //         error.message || "Đã xảy ra lỗi khi tối ưu hóa tuyến đường.",
+  //       variant: "destructive",
+  //     });
+  //   }
+  // };
 
   // Hàm phân tích các ràng buộc thời gian cho một ngày
   const analyzeTimeConstraints = (dayIndex: number) => {
@@ -1732,6 +3341,181 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
       }> = [];
 
       // Get coordinates for each place
+      console.log(`🔄 Calculating day routes for day ${detailIndex}`);
+
+      // Extract date from the day
+      const dayDate = detail.date ? new Date(detail.date) : null;
+
+      console.log("dayDate", dayDate);
+      if (!dayDate) {
+        console.warn("⚠️ Invalid date for route calculation:", detail.date);
+      }
+      console.log(
+        `📅 Date for this day: ${dayDate ? dayDate.toISOString().split("T")[0] : "undefined date"}`
+      );
+
+      // Check for hotel for this day first
+      let hotelInfo = null;
+      try {
+        console.log("🏨 Looking for hotel data for route calculation");
+
+        // Bước 1: Tìm thông tin đặt phòng từ lodging trong planner
+        const lodgings = form.getValues("lodging") || [];
+        console.log("📝 Available lodgings:", lodgings.length, "hotels");
+
+        // Bước 2: Tìm khách sạn với ngày check-in/check-out phù hợp với ngày hiện tại
+        const matchingLodging = lodgings.find((lodging) => {
+          if (!lodging.checkIn || !lodging.checkOut || !dayDate) return false;
+
+          const checkInDate = new Date(lodging.checkIn);
+          const checkOutDate = new Date(lodging.checkOut);
+
+          // Nếu dayDate trong khoảng check-in và check-out
+          return dayDate >= checkInDate && dayDate < checkOutDate;
+        });
+
+        console.log("🏨 Matching lodging found:", matchingLodging?.name);
+
+        // Bước 3: Nếu tìm thấy lodging, kiểm tra xem nó đã có tọa độ chưa
+        if (matchingLodging) {
+          // Kiểm tra xem lodging đã có tọa độ sẵn không
+          if (
+            matchingLodging.location?.coordinates &&
+            Array.isArray(matchingLodging.location.coordinates) &&
+            matchingLodging.location.coordinates.length === 2
+          ) {
+            // Trường hợp: Tọa độ nằm trực tiếp trong lodging
+            const [lon, lat] = matchingLodging.location.coordinates;
+            hotelInfo = {
+              name: matchingLodging.name || "Hotel Booking",
+              coordinates: {
+                lat: lat,
+                lon: lon,
+              },
+              source: "lodging coordinates direct",
+            };
+            console.log(
+              `🏨 Found hotel coordinates directly in lodging: "${matchingLodging.name}" at [${lat}, ${lon}]`
+            );
+          }
+          // Bước 4: Nếu lodging không có tọa độ, tìm thông tin từ hotelData
+          else if (hotelData && Array.isArray(hotelData)) {
+            // Tìm dữ liệu chi tiết khách sạn từ hotelData dựa theo tên
+            const matchingHotel = hotelData.find((hotel) => {
+              // Kiểm tra trùng khớp theo tên
+              return hotel.name === matchingLodging.name;
+            });
+
+            if (matchingHotel) {
+              console.log(
+                "🏨 Found matching hotel in hotelData:",
+                matchingHotel.name
+              );
+
+              // Trường hợp: Tọa độ trong thuộc tính location.coordinates của matchingHotel
+              if (
+                matchingHotel.location?.coordinates &&
+                Array.isArray(matchingHotel.location.coordinates) &&
+                matchingHotel.location.coordinates.length === 2
+              ) {
+                const [lon, lat] = matchingHotel.location.coordinates;
+                hotelInfo = {
+                  name: matchingHotel.name || "Hotel Booking",
+                  coordinates: {
+                    lat: lat,
+                    lon: lon,
+                  },
+                  source: "hotelData coordinates",
+                };
+                console.log(
+                  `🏨 Found hotel coordinates from hotelData: "${matchingHotel.name}" at [${lat}, ${lon}]`
+                );
+              }
+            }
+          }
+
+          // Bước 5: Nếu vẫn chưa có tọa độ, thử tìm từ API hoặc nguồn khác
+          if (!hotelInfo && matchingLodging.name) {
+            try {
+              // Thử tìm thông tin địa điểm từ API bằng tên khách sạn
+              const placeSearchResult = await getPlaces({
+                query: matchingLodging.name,
+                pageSize: 1,
+              });
+
+              if (
+                placeSearchResult.success &&
+                placeSearchResult.data?.places &&
+                placeSearchResult.data.places.length > 0
+              ) {
+                const place = placeSearchResult.data.places[0];
+
+                if (
+                  place.location?.coordinates &&
+                  Array.isArray(place.location.coordinates) &&
+                  place.location.coordinates.length === 2
+                ) {
+                  const [lon, lat] = place.location.coordinates;
+                  hotelInfo = {
+                    name: matchingLodging.name,
+                    coordinates: {
+                      lat: lat,
+                      lon: lon,
+                    },
+                    source: "place search API",
+                  };
+                  console.log(
+                    `🏨 Found hotel coordinates from place search: "${matchingLodging.name}" at [${lat}, ${lon}]`
+                  );
+                }
+              }
+            } catch (searchError) {
+              console.error(
+                "❌ Error searching for hotel coordinates:",
+                searchError
+              );
+            }
+          }
+        }
+
+        if (!hotelInfo) {
+          console.log(
+            "ℹ️ No hotel found for this date. Route will not start/end at a hotel."
+          );
+        }
+      } catch (error) {
+        console.error("❌ Error finding hotel for route calculation:", error);
+      }
+
+      // If hotel is found, add it as the first place with "hotel" type
+      if (hotelInfo) {
+        console.log(
+          `🏨 Adding hotel "${hotelInfo.name}" as first place in the route`
+        );
+
+        // Create a complete hotel object with all necessary properties
+        // This is critical for proper route calculation
+        const hotelStart = {
+          name: `${hotelInfo.name} (Hotel)`,
+          coordinates: {
+            lat: hotelInfo.coordinates.lat,
+            lon: hotelInfo.coordinates.lon,
+          },
+          isHotel: true, // Mark as hotel for easier identification
+          id: "hotel-start", // Unique ID for the hotel at start
+          type: "place", // Same type as other places for consistency
+        };
+
+        // Log detailed hotel data for debugging
+        console.log("🏨 Hotel start data:", {
+          name: hotelStart.name,
+          coordinates: hotelStart.coordinates,
+          isHotel: hotelStart.isHotel,
+        });
+
+        placesWithCoords.push(hotelStart);
+      }
+
       for (const place of places) {
         // Type guard to ensure we're working with place items
         if (place.type !== "place") continue;
@@ -1776,6 +3560,35 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
             `⚠️ No coordinates found for place: ${place.name || "Unknown"}`
           );
         }
+      }
+
+      // If hotel is found, also add it as the last place to complete the loop
+      if (hotelInfo) {
+        console.log(
+          `🏨 Adding hotel "${hotelInfo.name}" as last place to complete the loop`
+        );
+
+        // Create a complete hotel object for the return journey
+        // Using separate object to avoid reference issues
+        const hotelEnd = {
+          name: `${hotelInfo.name} (Return)`,
+          coordinates: {
+            lat: hotelInfo.coordinates.lat,
+            lon: hotelInfo.coordinates.lon,
+          },
+          isHotel: true, // Mark as hotel for easier identification
+          id: "hotel-end", // Unique ID for the hotel at end
+          type: "place", // Same type as other places for consistency
+        };
+
+        // Log detailed hotel return data for debugging
+        console.log("🏨 Hotel end data:", {
+          name: hotelEnd.name,
+          coordinates: hotelEnd.coordinates,
+          isHotel: hotelEnd.isHotel,
+        });
+
+        placesWithCoords.push(hotelEnd);
       }
 
       if (placesWithCoords.length < 2) {
@@ -1823,8 +3636,16 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
         const fromPlace = placesWithCoords[i];
         const toPlace = placesWithCoords[i + 1];
 
+        // Enhanced logging for route calculation
         console.log(
-          `🗺️ Calculating route ${i + 1}/${placesWithCoords.length - 1}: ${fromPlace.name} → ${toPlace.name}`
+          `🗺️ Calculating route ${i + 1}/${placesWithCoords.length - 1}: ${fromPlace.name} → ${toPlace.name}`,
+          {
+            // Log if this is a hotel-related route
+            fromHotel: fromPlace.isHotel === true ? "Yes" : "No",
+            toHotel: toPlace.isHotel === true ? "Yes" : "No",
+            fromCoords: `${fromPlace.coordinates.lat.toFixed(6)},${fromPlace.coordinates.lon.toFixed(6)}`,
+            toCoords: `${toPlace.coordinates.lat.toFixed(6)},${toPlace.coordinates.lon.toFixed(6)}`,
+          }
         );
 
         const routeResult = await calculateRoute([
@@ -1833,14 +3654,65 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
         ]);
 
         if (routeResult) {
+          // Create a proper GeoJSON LineString for the route geometry if it doesn't exist
+          let routeGeometry = routeResult.geometry;
+
+          // Check if geometry is missing or not in proper GeoJSON LineString format
+          if (
+            !routeGeometry ||
+            !routeGeometry.type ||
+            routeGeometry.type !== "LineString"
+          ) {
+            // Create a LineString from the waypoints if available
+            if (routeResult.waypoints && routeResult.waypoints.length > 0) {
+              routeGeometry = {
+                type: "LineString",
+                coordinates: routeResult.waypoints.map(
+                  (wp: { lat: number; lon: number }) => [wp.lon, wp.lat]
+                ),
+              };
+              console.log(
+                `📍 Created LineString from ${routeResult.waypoints.length} waypoints for route: ${fromPlace.name} → ${toPlace.name}`
+              );
+            } else if (
+              routeResult.detailedWaypoints &&
+              routeResult.detailedWaypoints.length > 0
+            ) {
+              // Try using detailed waypoints if available
+              routeGeometry = {
+                type: "LineString",
+                coordinates: routeResult.detailedWaypoints.map((wp: any) =>
+                  Array.isArray(wp)
+                    ? wp
+                    : [wp.lon || wp.longitude, wp.lat || wp.latitude]
+                ),
+              };
+              console.log(
+                `📍 Created LineString from ${routeResult.detailedWaypoints.length} detailed waypoints for route: ${fromPlace.name} → ${toPlace.name}`
+              );
+            } else {
+              // If no waypoints available, create a simple straight line from source to destination
+              routeGeometry = {
+                type: "LineString",
+                coordinates: [
+                  [fromPlace.coordinates.lon, fromPlace.coordinates.lat],
+                  [toPlace.coordinates.lon, toPlace.coordinates.lat],
+                ],
+              };
+              console.log(
+                `📍 Created simple LineString for route: ${fromPlace.name} → ${toPlace.name}`
+              );
+            }
+          }
+
           routes.push({
             fromPlace: fromPlace.name,
             toPlace: toPlace.name,
             distance: routeResult.distance,
             duration: routeResult.duration,
-            geometry: routeResult.geometry,
+            geometry: routeGeometry,
             waypoints: routeResult.waypoints,
-            // NEW: Add detailed route information
+            // Detailed route information
             legs: routeResult.legs,
             routeCode: routeResult.routeCode,
             detailedWaypoints: routeResult.detailedWaypoints,
@@ -1908,6 +3780,14 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
         isCalculating: false,
         lastUpdated: new Date(),
         error: errorMessage,
+        // Store hotel information for future route calculations
+        hotelInfo: hotelInfo
+          ? {
+              name: hotelInfo.name,
+              coordinates: hotelInfo.coordinates,
+              id: hotelInfo.id || "hotel",
+            }
+          : null,
       };
 
       setLocalRoutingData((prev) => ({
@@ -1918,20 +3798,90 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
       // NEW: Update Zustand store with routing data
       updateDayRouting(dayKey, dayRoutingData);
 
+      // Verify routes were stored correctly
+      console.log(`🧪 Verifying routes saved to store for day ${dayKey}:`, {
+        routesInStore:
+          usePlannerStore.getState().routingData[dayKey]?.routes?.length,
+        expectedRoutes: routes.length,
+        firstRoute: routes[0]
+          ? `${routes[0].fromPlace} → ${routes[0].toPlace}`
+          : "None",
+        lastRoute:
+          routes.length > 0
+            ? `${routes[routes.length - 1].fromPlace} → ${routes[routes.length - 1].toPlace}`
+            : "None",
+      });
+
       // After routes are calculated, analyze time constraints
       console.log(
         `🔍 Analyzing time constraints for day ${detailIndex + 1} after route calculation`
       );
       analyzeTimeConstraints(detailIndex);
 
+      // Check if the route includes a hotel as start/end point
+      const isHotelRoute =
+        hotelInfo &&
+        placesWithCoords.length >= 3 &&
+        placesWithCoords[0].name.includes("Hotel") &&
+        placesWithCoords[placesWithCoords.length - 1].name.includes("Hotel");
+
+      // Nếu có thông tin khách sạn, tính toán đường đi từ khách sạn đến các điểm trong lộ trình
+      if (hotelInfo && places.length > 0) {
+        // Lấy place items từ dữ liệu, không phải placesWithCoords vì chúng ta cần dữ liệu gốc
+        const placeItems = places.filter(
+          (p: any) =>
+            p.location?.coordinates &&
+            Array.isArray(p.location.coordinates) &&
+            p.location.coordinates.length === 2
+        );
+
+        // Nếu có các điểm có tọa độ, tính toán đường đi
+        if (placeItems.length > 0) {
+          // Chuyển đổi tọa độ từ định dạng [lon, lat] sang {lat, lon}
+          const placesData = placeItems.map((p: any) => {
+            const [lon, lat] = p.location.coordinates;
+            return {
+              id: p.id,
+              name: p.name,
+              coordinates: { lat, lon },
+            };
+          });
+
+          // Tìm ra indices của các điểm trong lộ trình đã tối ưu hóa
+          // Sử dụng route.map để lấy route pattern từ kết quả tối ưu
+          const routePattern = routes.map((r) => ({
+            fromName: r.fromPlace,
+            toName: r.toPlace,
+          }));
+
+          // Tính toán đường đi từ/đến khách sạn
+          calculateHotelRoutes(
+            detailIndex,
+            hotelInfo,
+            placesData,
+            Array.from(Array(placesData.length).keys())
+          );
+        }
+      }
+
       console.log(`✅ Day ${detailIndex + 1} routing completed:`, {
         places: placesWithCoords.length,
         routes: routes.length,
         successful: successfulRoutes,
+        hasHotel: !!hotelInfo,
+        hotelName: hotelInfo?.name || "None",
+        isRoundTrip: isHotelRoute,
         totalDistance: `${(totalDistance / 1000).toFixed(1)}km`,
         travelDuration: `${Math.round(totalDuration / 60)}min`,
         visitDuration: `${Math.round(totalVisitDuration / 60)}min`,
         totalDuration: `${Math.round((totalDuration + totalVisitDuration) / 60)}min`,
+        routeGeometries: routes.map((route) => ({
+          from: route.fromPlace,
+          to: route.toPlace,
+          hasGeometry: !!route.geometry,
+          geometryType: route.geometry?.type,
+          coordinatesCount: route.geometry?.coordinates?.length || 0,
+        })),
       });
     } catch (error) {
       console.error(
@@ -2158,9 +4108,6 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
         }
       });
     });
-
-    console.log("\n========================");
-    console.log("🔍 Raw routing data:", localRoutingData);
   };
 
   // const session = await auth();
@@ -2631,13 +4578,11 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
           itemExpand={
             <div className="flex flex-col gap-2">
               {/* Thêm UI chọn thời gian bắt đầu đi */}
-              <div className="p-3 mb-2 border rounded-md bg-white">
+              <div className="p-3 mb-2 background-light800_darkgradient bg-white">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-2">
                     <Clock className="h-4 w-4 text-blue-500" />
-                    <span className="font-medium text-sm">
-                      Thời gian bắt đầu đi:
-                    </span>
+                    <span className="font-medium text-sm">Start time:</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <input
@@ -2667,19 +4612,19 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                           optimizeDayRouteWithTimeConstraints(index);
                         } else {
                           toast({
-                            title: "Cập nhật thời gian bắt đầu",
-                            description: `Lộ trình sẽ bắt đầu lúc ${dayStartTimes[index] || "08:00"}`,
+                            title: "Start time updated",
+                            description: `The route will start at ${dayStartTimes[index] || "08:00"}`,
                           });
                         }
                       }}
                     >
-                      Áp dụng
+                      Apply
                     </Button>
                   </div>
                 </div>
 
                 {/* Hiển thị cảnh báo thời gian nếu có */}
-                {timeWarnings[index]?.length > 0 ? (
+                {timeWarnings[index]?.length > 0 && (
                   <div className="mt-3 p-2 bg-amber-50 border border-amber-200 rounded">
                     <h4 className="text-sm font-medium text-amber-800 flex items-center">
                       <AlertTriangle className="h-3 w-3 mr-1" />
@@ -2698,20 +4643,6 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                         </li>
                       ))}
                     </ul>
-                  </div>
-                ) : (
-                  <div className="mt-3 p-2 bg-blue-50 border border-blue-200 rounded">
-                    <h4 className="text-sm font-medium text-blue-800 flex items-center">
-                      <InfoIcon className="h-3 w-3 mr-1" />
-                      Thông tin lịch trình
-                    </h4>
-                    <div className="mt-1 text-xs text-blue-700">
-                      <p>
-                        Chưa có cảnh báo về thời gian - hãy nhấn nút "Tối ưu
-                        thời gian" để kiểm tra lịch trình với các giờ mở/đóng
-                        cửa.
-                      </p>
-                    </div>
                   </div>
                 )}
               </div>
@@ -2817,7 +4748,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                             {/* Visit Duration Input */}
                             <div className="flex items-center gap-2 p-1 px-2 border rounded-md bg-white">
                               <span className="text-xs text-gray-500">
-                                Thời gian thăm:
+                                Stay in:
                               </span>
                               <input
                                 type="number"
@@ -2857,13 +4788,13 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                                   }
                                 }}
                               />
-                              <span className="text-xs">phút</span>
+                              <span className="text-xs">minutes</span>
                             </div>
 
                             {/* Priority Input */}
                             <div className="flex items-center gap-2 p-1 px-2 border rounded-md bg-white">
                               <span className="text-xs text-gray-500">
-                                Độ ưu tiên:
+                                Priority Level:
                               </span>
                               <select
                                 className="text-center border-none focus:ring-0 bg-transparent"
@@ -2899,11 +4830,11 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                                   }
                                 }}
                               >
-                                <option value="1">Thấp (1)</option>
-                                <option value="2">Khá thấp (2)</option>
-                                <option value="3">Trung bình (3)</option>
-                                <option value="4">Khá cao (4)</option>
-                                <option value="5">Cao (5)</option>
+                                <option value="1">Low (1)</option>
+                                <option value="2">Fairly Low (2)</option>
+                                <option value="3">Medium (3)</option>
+                                <option value="4">Fairly High (4)</option>
+                                <option value="5">High (5)</option>
                               </select>
                             </div>
 
@@ -3012,7 +4943,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                         </h4>
                         <div className="flex flex-col gap-2">
                           <div className="flex gap-2">
-                            <Button
+                            {/* <Button
                               // variant="primary"
                               size="sm"
                               onClick={() => calculateDayRoutes(index)}
@@ -3024,18 +4955,8 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                               ) : (
                                 "Calculate Routes"
                               )}
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => optimizeDayRouteOSRM(index)}
-                              disabled={dayRouting?.isCalculating}
-                              className="flex items-center gap-2 text-xs"
-                              title="Tối ưu hóa thứ tự các địa điểm để giảm thời gian di chuyển"
-                            >
-                              <Route className="h-3 w-3" />
-                              Optimize
-                            </Button>
+                            </Button> */}
+
                             <Button
                               variant="secondary"
                               size="sm"
@@ -3049,6 +4970,21 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                               <Clock className="h-3 w-3" />
                               Time Optimize
                             </Button>
+                            {/* <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => {
+                                startTransition(async () => {
+                                  await optimizeDayRouteWithSA(index);
+                                });
+                              }}
+                              disabled={dayRouting?.isCalculating}
+                              className="flex items-center gap-2 text-xs"
+                              title="Tối ưu hóa bằng giải thuật Simulated Annealing"
+                            >
+                              <Route className="h-3 w-3" />
+                              SA Optimize
+                            </Button> */}
                             <Button
                               variant="outline"
                               size="sm"
@@ -3090,23 +5026,6 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                           </div>
 
                           {/* Help tooltip for Time Optimization */}
-                          <div className="text-xs text-gray-500 p-1 rounded-md bg-gray-100">
-                            <span className="font-medium">
-                              Tối ưu theo thời gian:
-                            </span>{" "}
-                            Nhập thời gian thăm (phút) và độ ưu tiên (1-5) cho
-                            mỗi địa điểm
-                          </div>
-                          {/* NEW: Debug button to log routing data */}
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={logRoutingData}
-                            className="text-gray-600 hover:text-gray-800"
-                            title="Xem chi tiết routing data trong console"
-                          >
-                            🔍
-                          </Button>
                         </div>
                       </div>
 
@@ -3149,9 +5068,6 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                                     dayRouting.totalDuration
                                   ).duration
                                 }
-                              </span>
-                              <span className="ml-2 text-xs text-gray-500">
-                                (Bao gồm thời gian thăm quan)
                               </span>
                             </div>
                           </div>
@@ -3471,6 +5387,16 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                 ? moment(form.watch(`lodging.${index}.checkOut`)).toDate()
                 : new Date(),
             }}
+            minDate={
+              form.watch("startDate")
+                ? moment(form.watch("startDate")).toDate()
+                : new Date()
+            }
+            maxDate={
+              form.watch("endDate")
+                ? moment(form.watch("endDate")).toDate()
+                : undefined
+            }
             onDateSelect={(e) => {
               form.setValue(`lodging.${index}.checkIn`, e.from);
               form.setValue(`lodging.${index}.checkOut`, e.to);
@@ -3769,6 +5695,65 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
   };
 
   // Expense management functions
+  const handleOpenExpenseHotelDialog = (hotelIndex: number) => {
+    // Get current lodging data
+    const currentLodging = form.getValues(`lodging.${hotelIndex}`);
+
+    console.log("Opening hotel expense dialog for:", currentLodging);
+
+    if (currentLodging) {
+      // Set the context for which hotel we're editing
+      setCurrentExpenseContext({ lodgingIndex: hotelIndex });
+
+      // Pre-populate form with existing cost data if available
+      const existingCost = currentLodging.cost || ({} as any);
+
+      // Get all available people for splitting
+      const allAvailablePeople = getAllAvailablePeople();
+      const totalValue = existingCost.value || 0;
+      const splitCount = allAvailablePeople.length;
+      const defaultSplitAmount = splitCount > 0 ? totalValue / splitCount : 0;
+
+      // Create synchronized split between array
+      let splitBetween;
+      if (existingCost.splitBetween && existingCost.splitBetween.length > 0) {
+        // Sync existing data with current tripmates
+        splitBetween = syncSplitBetweenWithTripmates(existingCost.splitBetween);
+      } else {
+        // Create new default split for all available people
+        splitBetween = allAvailablePeople.map((person) => ({
+          userId: person.userId,
+          name: person.name,
+          amount: defaultSplitAmount,
+          settled: false,
+          selected: true, // Default to selected
+        }));
+      }
+
+      setExpenseFormData({
+        value: existingCost.value || 0,
+        type: existingCost.type || "VND",
+        description: existingCost.description || "",
+        paidBy: existingCost.paidBy || "You",
+        splitBetween: splitBetween,
+      });
+
+      // Set split mode based on existing data
+      if (existingCost.splitBetween && existingCost.splitBetween.length > 0) {
+        // Check if it's everyone or individuals
+        const isEveryone = existingCost.splitBetween.every(
+          (person: any) => person.selected
+        );
+        setSplitMode(isEveryone ? "everyone" : "individuals");
+      } else {
+        setSplitMode("everyone"); // Default
+      }
+
+      // Open the expense dialog
+      setShowExpensesHotel(true);
+    }
+  };
+
   const handleOpenExpenseDialog = (detailIndex: number, itemIndex: number) => {
     // Get current place data
     const currentPlace = form.getValues(
@@ -5422,7 +7407,12 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                 </div>
                 <div>
                   <Button className="h-[36px]">Set Budget</Button>
-                  <Button className="h-[36px] ml-2">Group Balances </Button>
+                  <Button
+                    className="h-[36px] ml-2"
+                    onClick={() => setShowGroupbalance(true)}
+                  >
+                    Group Balances
+                  </Button>
                 </div>
               </div>
               <div className="flex flex-col gap-4 pr-8">
@@ -5437,6 +7427,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                 </div>
               </div>
             </div>
+
             <h2 className="text-[24px] font-semibold">Expenses</h2>
             <div className="">
               {(() => {
@@ -5471,7 +7462,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                 );
 
                 const allExpenses = [...lodgingCosts, ...placeCosts];
-
+                console.log("All Expenses: ", allExpenses);
                 if (allExpenses.length === 0) {
                   return (
                     <div className="text-center py-8 text-gray-500">
@@ -5641,7 +7632,16 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                           </thead>
                           <tbody>
                             {allExpenses.map((expense, index) => (
-                              <tr key={index} className="border-b">
+                              <tr
+                                onClick={() => {
+                                  console.log("Expense clicked: ", expense);
+                                  if (expense.category === "Lodging") {
+                                    handleOpenExpenseHotelDialog(index);
+                                  }
+                                }}
+                                key={index}
+                                className="border-b"
+                              >
                                 <td className="py-2">
                                   <div className="font-medium">
                                     {expense.name}
@@ -5871,11 +7871,12 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
           setOpen={setShowDialog}
         />
       )}
+      {/* Simple dialog without nested components */}
       {showExpenses && (
         <ReusableDialog
           open={showExpenses}
           data={{
-            title: "Add expense",
+            title: "Group Payment Settlement",
             content: (
               <div className="space-y-4">
                 <div className="flex gap-2">
@@ -5896,6 +7897,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                       }}
                     />
                   </div>
+
                   <div className="w-fit min-w-[120px]">
                     <Label className="font-bold">Currency</Label>
                     <Select
@@ -5904,9 +7906,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                         handleExpenseFormChange("type", value)
                       }
                     >
-                      <SelectTrigger
-                        className={`h-[40px] border-none paragraph-regular background-form-input light-border-2 text-dark300_light700 no-focus rounded-1.5 border`}
-                      >
+                      <SelectTrigger className="h-[40px] border-none paragraph-regular background-form-input light-border-2 text-dark300_light700 no-focus rounded-1.5 border">
                         <SelectValue placeholder="Currency" />
                       </SelectTrigger>
                       <SelectContent>
@@ -6133,10 +8133,307 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
           setOpen={setShowExpenses}
         />
       )}
+      {showExpensesHotel && (
+        <ReusableDialog
+          open={showExpensesHotel}
+          data={{
+            title: "Group Payment Settlement",
+            content: (
+              <div className="space-y-4">
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <Label className="font-bold">Cost</Label>
+                    <Input
+                      type="number"
+                      placeholder="0"
+                      className="h-[40px]"
+                      value={costInputValue}
+                      onChange={(e) => {
+                        const inputValue = e.target.value;
+                        setCostInputValue(inputValue);
+
+                        // Debounce the actual form update
+                        const numericValue = parseFloat(inputValue) || 0;
+                        debouncedCostUpdate(numericValue);
+                      }}
+                    />
+                  </div>
+
+                  <div className="w-fit min-w-[120px]">
+                    <Label className="font-bold">Currency</Label>
+                    <Select
+                      value={expenseFormData.type}
+                      onValueChange={(value) =>
+                        handleExpenseFormChange("type", value)
+                      }
+                    >
+                      <SelectTrigger className="h-[40px] border-none paragraph-regular background-form-input light-border-2 text-dark300_light700 no-focus rounded-1.5 border">
+                        <SelectValue placeholder="Currency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="VND">VND</SelectItem>
+                        <SelectItem value="USD">USD</SelectItem>
+                        <SelectItem value="EUR">EUR</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="font-bold">Description</Label>
+                  <Textarea
+                    placeholder="Enter expense description..."
+                    className="min-h-[80px]"
+                    value={expenseFormData.description}
+                    onChange={(e) =>
+                      handleExpenseFormChange("description", e.target.value)
+                    }
+                  />
+                </div>
+
+                <div>
+                  <Label className="font-bold">Paid by</Label>
+                  <Select
+                    value={expenseFormData.paidBy}
+                    onValueChange={(value) =>
+                      handleExpenseFormChange("paidBy", value)
+                    }
+                  >
+                    <SelectTrigger
+                      className={`h-[40px] border-none paragraph-regular background-form-input light-border-2 text-dark300_light700 no-focus rounded-1.5 border`}
+                    >
+                      <SelectValue placeholder="Select who paid" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="You">
+                        <div>You (Current User)</div>
+                      </SelectItem>
+                      {(form.getValues("tripmates") || []).map(
+                        (tripmate: any, index: number) => (
+                          <SelectItem key={index} value={tripmate.name}>
+                            {tripmate.name}
+                          </SelectItem>
+                        )
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label className="font-bold">Split Between</Label>
+
+                  <div className="mb-4">
+                    <Select
+                      value={splitMode}
+                      onValueChange={handleSplitModeChange}
+                    >
+                      <SelectTrigger
+                        className={`h-[40px] border-none paragraph-regular background-form-input light-border-2 text-dark300_light700 no-focus rounded-1.5 border`}
+                      >
+                        <SelectValue placeholder="Split between ..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          <SelectItem value="everyone">Everyone</SelectItem>
+                          <SelectItem value="individuals">
+                            Individuals
+                          </SelectItem>
+                          <SelectItem value="dontsplit">Don't Split</SelectItem>
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Split explanation */}
+                  <div className="mb-3 text-sm text-gray-600">
+                    {splitMode === "everyone" &&
+                      "Split equally among all tripmates"}
+                    {splitMode === "individuals" &&
+                      "Select specific people to split with"}
+                    {splitMode === "dontsplit" &&
+                      "Only the person who paid will cover this expense"}
+                  </div>
+
+                  {/* People list with checkboxes for individuals mode */}
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {expenseFormData.splitBetween.map((person, index) => (
+                      <div
+                        key={index}
+                        className={`flex items-center gap-2 p-3 rounded-lg border transition-colors ${
+                          splitMode === "individuals"
+                            ? person.selected
+                              ? "bg-blue-50 border-blue-200"
+                              : "bg-gray-50 border-gray-200"
+                            : "bg-gray-50 border-gray-200"
+                        }`}
+                      >
+                        {/* Checkbox for individuals mode */}
+                        {splitMode === "individuals" && (
+                          <input
+                            type="checkbox"
+                            checked={person.selected || false}
+                            onChange={(e) =>
+                              handlePersonSelectionChange(
+                                index,
+                                e.target.checked
+                              )
+                            }
+                            className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                          />
+                        )}
+
+                        {/* Person name */}
+                        <div className="flex-1">
+                          <span className="font-medium">{person.name}</span>
+                          {person.name === expenseFormData.paidBy && (
+                            <span className="ml-2 text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
+                              Paid
+                            </span>
+                          )}
+                        </div>
+
+                        {/* Amount input */}
+                        <div className="flex items-center gap-2">
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={person.amount || ""}
+                            onChange={(e) =>
+                              updateSplitAmount(
+                                index,
+                                parseFloat(e.target.value) || 0
+                              )
+                            }
+                            className="w-24 h-8"
+                            placeholder="0"
+                            disabled={
+                              splitMode === "dontsplit" &&
+                              person.name !== expenseFormData.paidBy
+                            }
+                            readOnly={
+                              splitMode === "everyone" ||
+                              (splitMode === "individuals" && !person.selected)
+                            }
+                          />
+                          <span className="text-sm text-gray-600 min-w-[35px]">
+                            {expenseFormData.type}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Total calculation */}
+                  <div className="mt-3 p-3 bg-blue-50 rounded-lg">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="font-medium">Total Split:</span>
+                      <span className="font-bold">
+                        {expenseFormData.splitBetween
+                          .reduce(
+                            (sum, person) => sum + (person.amount || 0),
+                            0
+                          )
+                          .toFixed(2)}{" "}
+                        {expenseFormData.type}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center text-sm mt-1">
+                      <span>Expense Amount:</span>
+                      <span>
+                        {expenseFormData.value.toFixed(2)}{" "}
+                        {expenseFormData.type}
+                      </span>
+                    </div>
+                    {Math.abs(
+                      expenseFormData.value -
+                        expenseFormData.splitBetween.reduce(
+                          (sum, person) => sum + (person.amount || 0),
+                          0
+                        )
+                    ) > 0.01 && (
+                      <div className="flex justify-between items-center text-sm mt-1 text-red-600">
+                        <span>Difference:</span>
+                        <span>
+                          {(
+                            expenseFormData.value -
+                            expenseFormData.splitBetween.reduce(
+                              (sum, person) => sum + (person.amount || 0),
+                              0
+                            )
+                          ).toFixed(2)}{" "}
+                          {expenseFormData.type}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex gap-2 justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setShowExpensesHotel(false);
+                      resetExpenseForm();
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleSaveExpenseHotel}
+                    className="bg-primary-500 hover:bg-primary-600"
+                  >
+                    <Save className="w-4 h-4 mr-2" />
+                    Save Hotel Expense
+                  </Button>
+                </div>
+              </div>
+            ),
+            showCloseButton: false,
+          }}
+          setOpen={setShowExpensesHotel}
+        />
+      )}
 
       {/* LocationCard Overlay - Show when user selects a place */}
       {showLocationCard && selectedPlaceId && (
-        <LocationCard placeId={selectedPlaceId} />
+        <LocationCard
+          onClose={() => {
+            setShowLocationCard(false);
+          }}
+          placeId={selectedPlaceId}
+        />
+      )}
+      {showGroupbalance && (
+        <ReusableDialog
+          data={{
+            title: "Invite tripmates",
+            content: (
+              <div>
+                <Tabs defaultValue="edit">
+                  <TabsList>
+                    <TabsTrigger value="yoursummary">Your Summary</TabsTrigger>
+                    <TabsTrigger value="groupoverview">Group</TabsTrigger>
+                  </TabsList>
+                  <TabsContent value="yoursummary">
+                    <div>
+                      <Avatar>
+                        <AvatarImage src={session?.user?.image} />
+                        <AvatarFallback>
+                          {session?.user?.name?.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                  </TabsContent>
+                  <TabsContent value="groupoverview"></TabsContent>
+                </Tabs>
+              </div>
+            ),
+            showCloseButton: false,
+          }}
+          open={showGroupbalance}
+          setOpen={setShowGroupbalance}
+        />
       )}
     </div>
   );

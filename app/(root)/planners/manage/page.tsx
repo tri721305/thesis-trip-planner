@@ -421,7 +421,7 @@ const PlannersManagementPage = () => {
           <p className="text-gray-500">Manage and organize your travel plans</p>
         </div>
         <Button asChild className="shrink-0">
-          <Link href="/planners/create">
+          <Link href="/create-planner">
             <Plus className="mr-2 h-4 w-4" /> Create New Plan
           </Link>
         </Button>
