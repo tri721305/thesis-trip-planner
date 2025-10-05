@@ -403,30 +403,7 @@ const GuidesManagementPage = () => {
           <TabsTrigger value="all" onClick={() => handleStateChange(null)}>
             <User className="h-4 w-4 mr-2" /> My Guides
           </TabsTrigger>
-          <TabsTrigger
-            value="planning"
-            onClick={() => handleStateChange("planning")}
-          >
-            Planning
-          </TabsTrigger>
-          <TabsTrigger
-            value="ongoing"
-            onClick={() => handleStateChange("ongoing")}
-          >
-            Ongoing
-          </TabsTrigger>
-          <TabsTrigger
-            value="completed"
-            onClick={() => handleStateChange("completed")}
-          >
-            Completed
-          </TabsTrigger>
-          <TabsTrigger
-            value="cancelled"
-            onClick={() => handleStateChange("cancelled")}
-          >
-            Cancelled
-          </TabsTrigger>
+
           <TabsTrigger value="public">
             <Globe className="h-4 w-4 mr-2" /> Public Guides
           </TabsTrigger>
@@ -816,7 +793,7 @@ const PublicGuidesList = ({
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <h3 className="text-xl font-bold">{guide.title}</h3>
-                    {guide.state && getStateLabel(guide.state)}
+                    {/* {guide.state && getStateLabel(guide.state)} */}
                   </div>
 
                   <div className="flex items-center text-sm text-gray-500 mb-3">

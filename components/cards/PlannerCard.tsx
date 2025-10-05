@@ -94,14 +94,14 @@ const PlannerCard: React.FC<PlannerCardProps> = ({
           </div>
         )}
         <div className="flex gap-4 mt-2 text-[12px] text-gray-700">
-          <div className="flex gap-1 items-center">
+          {/* <div className="flex gap-1 items-center">
             <Heart className="h-3 w-3 text-red-500" />
             {like}
           </div>
           <div className="flex gap-1 items-center">
             <Eye className="h-3 w-3" />
             {views}
-          </div>
+          </div> */}
           {startDate && endDate && (
             <div className="flex gap-1 items-center">
               <Clock className="h-3 w-3" />

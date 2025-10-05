@@ -6637,7 +6637,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                       <BiSolidHotel size={20} />
                       <p className="text-[12px]">Lodging</p>
                       <div className="absolute -top-1 -right-[12px] flex-center text-[8px] background-light700_dark300 text-light800_dark300 rounded-full w-4 h-4">
-                        <p>1</p>
+                        <p>{form.getValues("lodging")?.length || 1}</p>
                       </div>
                     </div>
                   </div>
@@ -6661,7 +6661,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                 </div>
               </div>
               <div className="p-4 w-fit border-none paragraph-regular background-light800_darkgradient light-border-2 text-dark300_light700 no-focus min-h-12 rounded-1.5 border">
-                <p className="font-bold text-[16px]">Budgeting</p>
+                <p className="font-bold text-[16px]">Expenses</p>
                 <h1 className="mt-2 mb-1 text-[#6c757d] text-[24px]">đ 0</h1>
                 <h1 className="text-[14px]  text-[#6c757d] font-bold cursor-pointer">
                   View details
@@ -6810,7 +6810,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                         </CardContent>
                       </Card>
                     ))}
-                    <div className="flex gap-4 items-center pl-[18px]">
+                    {/* <div className="flex gap-4 items-center pl-[18px]">
                       <div
                         onClick={() => {
                           setOpenModalHotel(true);
@@ -6830,7 +6830,7 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
                           Find hotels
                         </span>
                       </div>
-                    </div>
+                    </div> */}
                   </div>
                 }
               />
@@ -7478,16 +7478,20 @@ const PlannerForm = ({ planner }: { planner?: any }) => {
 
           {/* Submit Button */}
           <div className="flex gap-4 w-full p-4 justify-end">
-            {planner?._id && isAuthor && (
-              <Button
-                type="submit"
-                disabled={isPending}
-                onClick={handleSubmit}
-                className=" !w-fit bg-primary-500 hover:bg-primary-500 font-bold p-4 "
-              >
-                {isPending ? "Updating..." : "Update Planner"}
-              </Button>
-            )}
+            {planner?._id &&
+              (isAuthor ||
+                form
+                  .getValues("tripmates")
+                  ?.some((item) => item?.userId == currentUserId)) && (
+                <Button
+                  type="submit"
+                  disabled={isPending}
+                  onClick={handleSubmit}
+                  className=" !w-fit bg-primary-500 hover:bg-primary-500 font-bold p-4 "
+                >
+                  {isPending ? "Updating..." : "Update Planner"}
+                </Button>
+              )}
           </div>
           <div className="px-8 pb-8 flex flex-col gap-4">
             {/* <h1 className="text-[36px] font-bold">Budgeting</h1> */}

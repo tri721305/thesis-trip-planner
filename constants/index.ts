@@ -21,14 +21,14 @@ export const sidebarLinks = [
   },
   {
     imgURL: "",
-    label: "Popular Itinerary",
-    route: "/popular-itinerary",
+    label: "Bookings",
+    route: "/bookings",
   },
-  {
-    imgURL: "",
-    label: "Our Services",
-    route: "/out-services",
-  },
+  // {
+  //   imgURL: "",
+  //   label: "Our Services",
+  //   route: "/out-services",
+  // },
 
   {
     imgURL: "",

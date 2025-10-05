@@ -108,7 +108,7 @@ const Recently = () => {
 
   console.log("Items to display:", itemsToDisplay);
   return (
-    <div className="px-20 py-10">
+    <div className="px-40 py-10">
       <section className="text-dark200-light800 font-extrabold flex justify-between gap-6 text-[2.5em] mb-6">
         <p>Recently viewed and upcoming</p>
         <Button className="primary-gradient rounded-[30px] py-6" asChild>
@@ -199,8 +199,8 @@ const Recently = () => {
                     image={item.image}
                     title={item.title}
                     destination={item.destination}
-                    views={item.views || 0}
-                    like={item.likes || 0}
+                    // views={item.views || 0}
+                    // like={item.likes || 0}
                     author={item.author}
                   />
                 )}
